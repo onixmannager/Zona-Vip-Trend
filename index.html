@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 20k - 10x10</title>
+    <title>Mosaico 10k - Estilo Million Dollar</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #000;
-            /* Bloqueamos el scroll horizontal */
+            background-color: #f0f0f0; /* Fondo gris claro tipo web antigua */
             overflow-x: hidden; 
             display: flex;
             justify-content: center;
@@ -18,27 +17,26 @@
         #contenedor-mosaico {
             display: flex;
             flex-wrap: wrap; 
-            /* Ocupa el ancho total de la pantalla para que los cuadros bajen */
             width: 100vw;    
-            background-color: #000;
-            /* Alineamos al inicio para evitar huecos raros */
+            background-color: #fff; /* Fondo blanco para los espacios */
             align-content: flex-start;
         }
 
         .espacio {
-            /* TAMAÑO CORREGIDO: 10x10 píxeles */
             width: 10px;      
             height: 10px;     
             box-sizing: border-box;
-            background-color: #1a1a1a; 
-            /* Borde muy fino para que se distingan los cuadros */
-            border: 0.1px solid #111;
+            background-color: #fff; 
+            /* Borde sutil para ver la rejilla */
+            border: 0.5px solid #ddd;
             flex-shrink: 0;
+            transition: background-color 0.2s;
         }
 
-        /* Efecto visual al pasar el ratón o tocar en móvil */
+        /* Efecto al pasar el ratón */
         .espacio:hover {
-            background-color: #ff00ff;
+            background-color: #000; /* Se pinta de negro al pasar */
+            border-color: #000;
         }
     </style>
 </head>
@@ -47,36 +45,23 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 20000; 
+        const totalEspacios = 10000; // 10.000 bloques de 10x10 = 1.000.000 px
         const contenedor = document.getElementById('contenedor-mosaico');
 
         function generarMosaico() {
-            let generados = 0;
-            // Lote de 5000 para que la carga sea fluida
-            const lote = 5000; 
-
-            function dibujar() {
-                const fragmento = document.createDocumentFragment();
-                
-                for (let i = 0; i < lote && generados < totalEspacios; i++) {
-                    const div = document.createElement('div');
-                    div.className = 'espacio';
-                    fragmento.appendChild(div);
-                    generados++;
-                }
-                
-                contenedor.appendChild(fragmento);
-
-                if (generados < totalEspacios) {
-                    requestAnimationFrame(dibujar);
-                }
+            const fragmento = document.createDocumentFragment();
+            
+            for (let i = 0; i < totalEspacios; i++) {
+                const div = document.createElement('div');
+                div.className = 'espacio';
+                fragmento.appendChild(div);
             }
             
-            dibujar();
+            contenedor.appendChild(fragmento);
         }
 
-        // Ejecutar después de que cargue el DOM
-        window.addEventListener('DOMContentLoaded', generarMosaico);
+        // Carga inmediata
+        window.onload = generarMosaico;
     </script>
 </body>
 </html>
