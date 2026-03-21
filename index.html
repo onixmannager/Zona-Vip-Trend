@@ -3,37 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - Vertical</title>
+    <title>Mosaico 500k - 10x10 Vertical</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #121212;
-            /* Evitamos el scroll horizontal a nivel de cuerpo */
-            overflow-x: hidden; 
+            background-color: #000; /* Fondo negro total */
+            overflow-x: hidden;    /* Bloquea scroll horizontal */
             display: flex;
             justify-content: center;
         }
 
         #contenedor-mosaico {
             display: flex;
-            flex-wrap: wrap; /* Esto hace que al llegar al borde, bajen a la siguiente línea */
-            width: 100vw;    /* Ocupa todo el ancho de la pantalla */
-            max-width: 100%; /* Asegura que no se pase en móviles */
-            background-color: #1a1a1a;
+            flex-wrap: wrap;       /* Los cuadros bajan al no caber en la fila */
+            width: 100vw;          /* Ancho total de la ventana */
+            background-color: #111;
         }
 
         .espacio {
-            width: 20px;
-            height: 20px;
+            width: 10px;           /* Tamaño solicitado: 10px */
+            height: 10px;          /* Tamaño solicitado: 10px */
             box-sizing: border-box;
-            border: 1px solid #333; /* Borde sutil para distinguir los cuadros */
-            flex-shrink: 0;         /* Evita que los cuadros se encojan */
+            border: 0.1px solid #222; /* Borde muy fino para distinguir los huecos */
+            flex-shrink: 0;        /* Impide que los cuadros se deformen */
         }
 
-        /* Efecto visual al pasar el ratón (opcional) */
+        /* Efecto al pasar el ratón para confirmar que están ahí */
         .espacio:hover {
-            background-color: #444;
+            background-color: #00ff00; 
         }
     </style>
 </head>
@@ -45,26 +43,25 @@
         const totalEspacios = 500000;
         const contenedor = document.getElementById('contenedor-mosaico');
 
-        // Función para generar los elementos en bloques para no bloquear el navegador
         function generarMosaico() {
             const fragmento = document.createDocumentFragment();
-            const tamañoBloque = 10000; // Insertamos de 10k en 10k
+            const tamañoBloque = 5000; // Bloques más pequeños para mayor fluidez inicial
 
             for (let i = 0; i < totalEspacios; i++) {
                 const div = document.createElement('div');
                 div.className = 'espacio';
                 fragmento.appendChild(div);
 
-                // Cada vez que completamos un bloque, lo inyectamos al DOM
+                // Insertar en el DOM por partes para no congelar la pestaña
                 if ((i + 1) % tamañoBloque === 0) {
                     contenedor.appendChild(fragmento);
                 }
             }
-            // Inyectar el resto si queda algo
+            // Insertar los últimos elementos restantes
             contenedor.appendChild(fragmento);
         }
 
-        // Ejecutar la generación
+        // Iniciar la creación
         generarMosaico();
     </script>
 </body>
