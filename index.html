@@ -8,72 +8,69 @@
 <style>
   body {
     margin: 0;
-    overflow: auto;
     background: #111;
+    overflow: auto;
   }
 
-  canvas {
-    display: block;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(1000, 25px);
+    width: max-content;
+  }
+
+  .cell {
+    width: 25px;
+    height: 25px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0,0,0,0.15);
+    background: #eee;
+  }
+
+  .cell:nth-child(even) {
+    background: #ddd;
+  }
+
+  .cell:hover {
+    outline: 2px solid red;
+    z-index: 2;
   }
 </style>
 </head>
 <body>
 
-<canvas id="grid"></canvas>
+<div class="grid" id="grid"></div>
 
 <script>
-const canvas = document.getElementById("grid");
-const ctx = canvas.getContext("2d");
+const grid = document.getElementById("grid");
+const total = 500000;
 
-const cellSize = 25;
-const cols = 1000;
-const rows = 500;
+// ⚠️ Crear en bloques para no congelar
+let created = 0;
+const batch = 2000;
 
-canvas.width = cols * cellSize;
-canvas.height = rows * cellSize;
+function createCells() {
+  const fragment = document.createDocumentFragment();
 
-// Dibujar celdas + líneas
-function drawGrid() {
-  // Fondo ajedrez
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
+  for (let i = 0; i < batch && created < total; i++) {
+    const div = document.createElement("div");
+    div.className = "cell";
 
-      ctx.fillStyle = (x + y) % 2 === 0 ? "#f5f5f5" : "#e0e0e0";
-      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-    }
+    div.addEventListener("click", () => {
+      alert("Celda #" + (created - i));
+    });
+
+    fragment.appendChild(div);
+    created++;
   }
 
-  // Líneas de grid
-  ctx.strokeStyle = "rgba(0,0,0,0.15)";
-  ctx.lineWidth = 1;
+  grid.appendChild(fragment);
 
-  ctx.beginPath();
-
-  // Verticales
-  for (let x = 0; x <= cols; x++) {
-    ctx.moveTo(x * cellSize, 0);
-    ctx.lineTo(x * cellSize, canvas.height);
+  if (created < total) {
+    requestAnimationFrame(createCells);
   }
-
-  // Horizontales
-  for (let y = 0; y <= rows; y++) {
-    ctx.moveTo(0, y * cellSize);
-    ctx.lineTo(canvas.width, y * cellSize);
-  }
-
-  ctx.stroke();
 }
 
-drawGrid();
-
-// Click en celda
-canvas.addEventListener("click", function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) / cellSize);
-  const y = Math.floor((e.clientY - rect.top) / cellSize);
-
-  alert("Celda: " + x + ", " + y);
-});
+createCells();
 </script>
 
 </body>
