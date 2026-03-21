@@ -3,74 +3,193 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grid 500K</title>
+<title>500K Pixels</title>
 
 <style>
   body {
     margin: 0;
     background: #111;
-    overflow: auto;
+    overflow: hidden;
+    font-family: Arial;
   }
 
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(1000, 25px);
-    width: max-content;
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    cursor: crosshair;
   }
 
-  .cell {
-    width: 25px;
-    height: 25px;
-    box-sizing: border-box;
-    border: 1px solid rgba(0,0,0,0.15);
-    background: #eee;
+  #ui {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #222;
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
   }
 
-  .cell:nth-child(even) {
-    background: #ddd;
-  }
-
-  .cell:hover {
-    outline: 2px solid red;
-    z-index: 2;
+  input, button {
+    margin-top: 5px;
+    width: 100%;
   }
 </style>
 </head>
 <body>
 
-<div class="grid" id="grid"></div>
+<div id="ui">
+  <div>Selecciona zona</div>
+  <input type="file" id="imgInput">
+  <input type="text" id="linkInput" placeholder="https://...">
+  <button onclick="saveSelection()">Guardar</button>
+</div>
+
+<canvas id="c"></canvas>
 
 <script>
-const grid = document.getElementById("grid");
-const total = 500000;
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
 
-// ⚠️ Crear en bloques para no congelar
-let created = 0;
-const batch = 2000;
+const W = 1000;
+const H = 500;
 
-function createCells() {
-  const fragment = document.createDocumentFragment();
+canvas.width = W;
+canvas.height = H;
 
-  for (let i = 0; i < batch && created < total; i++) {
-    const div = document.createElement("div");
-    div.className = "cell";
+let scale = 2;
+let offsetX = 0;
+let offsetY = 0;
 
-    div.addEventListener("click", () => {
-      alert("Celda #" + (created - i));
-    });
+let pixels = []; // "base de datos"
 
-    fragment.appendChild(div);
-    created++;
+// dibujar base
+function draw() {
+  ctx.setTransform(scale, 0, 0, scale, offsetX, offsetY);
+
+  // fondo
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      ctx.fillStyle = (x + y) % 2 === 0 ? "#eee" : "#ccc";
+      ctx.fillRect(x, y, 1, 1);
+    }
   }
 
-  grid.appendChild(fragment);
+  // imágenes
+  pixels.forEach(p => {
+    ctx.drawImage(p.img, p.x, p.y, p.w, p.h);
+  });
 
-  if (created < total) {
-    requestAnimationFrame(createCells);
+  // selección
+  if (selecting) {
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 1 / scale;
+    ctx.strokeRect(sel.x, sel.y, sel.w, sel.h);
   }
 }
 
-createCells();
+// resize
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  draw();
+}
+window.addEventListener("resize", resize);
+resize();
+
+// zoom con rueda
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  const zoom = e.deltaY < 0 ? 1.1 : 0.9;
+  scale *= zoom;
+  draw();
+});
+
+// selección
+let selecting = false;
+let sel = {x:0,y:0,w:0,h:0};
+
+canvas.addEventListener("mousedown", e => {
+  selecting = true;
+  const rect = canvas.getBoundingClientRect();
+  sel.x = Math.floor((e.clientX - rect.left - offsetX) / scale);
+  sel.y = Math.floor((e.clientY - rect.top - offsetY) / scale);
+});
+
+canvas.addEventListener("mousemove", e => {
+  if (!selecting) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
+  const y = Math.floor((e.clientY - rect.top - offsetY) / scale);
+
+  sel.w = x - sel.x;
+  sel.h = y - sel.y;
+
+  draw();
+});
+
+canvas.addEventListener("mouseup", () => {
+  selecting = false;
+});
+
+// guardar imagen
+function saveSelection() {
+  const file = document.getElementById("imgInput").files[0];
+  const link = document.getElementById("linkInput").value;
+
+  if (!file) return alert("Sube imagen");
+
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+
+  img.onload = () => {
+    pixels.push({
+      x: sel.x,
+      y: sel.y,
+      w: sel.w,
+      h: sel.h,
+      img: img,
+      link: link
+    });
+
+    saveData();
+    draw();
+  };
+}
+
+// click abrir link
+canvas.addEventListener("click", e => {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
+  const y = Math.floor((e.clientY - rect.top - offsetY) / scale);
+
+  pixels.forEach(p => {
+    if (x >= p.x && x <= p.x + p.w &&
+        y >= p.y && y <= p.y + p.h) {
+      window.open(p.link, "_blank");
+    }
+  });
+});
+
+// guardar en localStorage
+function saveData() {
+  localStorage.setItem("pixels", JSON.stringify(pixels.map(p => ({
+    x:p.x,y:p.y,w:p.w,h:p.h,link:p.link
+  }))));
+}
+
+// cargar
+function loadData() {
+  const data = JSON.parse(localStorage.getItem("pixels") || "[]");
+  data.forEach(d => {
+    const img = new Image();
+    img.src = "https://via.placeholder.com/"+d.w+"x"+d.h;
+    pixels.push({...d, img});
+  });
+}
+loadData();
+
+draw();
 </script>
 
 </body>
