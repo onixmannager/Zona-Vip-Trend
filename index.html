@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - 5x5 Numerado</title>
+    <title>Mosaico 100k - 10x10 Numerado</title>
     <style>
         body {
             margin: 0;
@@ -21,34 +21,35 @@
             width: 100vw;    
             background-color: #fff;
             align-content: flex-start;
-            /* Zoom manual permitido, evita auto-zoom molesto */
+            /* Permite zoom manual, bloquea el auto-zoom de sistema al clicar */
             touch-action: manipulation;
         }
 
         .espacio {
-            width: 5px;       /* Tamaño solicitado 5x5 */
-            height: 5px;      
+            width: 10px;      
+            height: 10px;     
             box-sizing: border-box;
             background-color: #fff; 
-            border: 0.1px solid #f0f0f0;
+            border: 0.1px solid #eee;
             flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Texto extremadamente pequeño */
-            font-size: 1.5px; 
-            color: rgba(0,0,0,0.1);
+            font-size: 3px;
+            color: #ccc;
             user-select: none;
-            overflow: hidden;
+            transition: background-color 0.1s;
         }
 
+        /* Resaltado al pasar el ratón */
         .espacio:hover {
             background-color: #000;
             color: #fff;
-            font-size: 4px; /* Se agranda un poco al pasar el ratón para verlo */
             z-index: 5;
+            cursor: crosshair;
         }
 
+        /* Feedback al tocar en móviles */
         .espacio:active {
             background-color: #ff00ff;
         }
@@ -59,10 +60,9 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 500000;
+        const totalEspacios = 100000; // Ajustado a 100.000
         const contenedor = document.getElementById('contenedor-mosaico');
-        // Reducimos el lote a 5000 para que el renderizado de 5x5 no sature el proceso visual
-        const tamañoLote = 5000; 
+        const tamañoLote = 10000; 
         let generados = 0;
 
         function generarMosaico() {
@@ -81,7 +81,6 @@
                 generados = limite;
 
                 if (generados < totalEspacios) {
-                    // Mantiene la web fluida mientras se crean los 500k divs
                     requestAnimationFrame(renderBatch);
                 }
             }
