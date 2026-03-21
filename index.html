@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - 10x10 Vertical</title>
+    <title>Mosaico 500k - 5x5 Vertical</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #000; /* Fondo negro total */
-            overflow-x: hidden;    /* Bloquea scroll horizontal */
+            background-color: #000;
+            overflow-x: hidden; /* Prohibido el scroll horizontal */
             display: flex;
             justify-content: center;
         }
 
         #contenedor-mosaico {
             display: flex;
-            flex-wrap: wrap;       /* Los cuadros bajan al no caber en la fila */
-            width: 100vw;          /* Ancho total de la ventana */
-            background-color: #111;
+            flex-wrap: wrap;    /* Los cuadros saltan de línea automáticamente */
+            width: 100vw;       /* Ajuste perfecto al ancho de pantalla */
+            background-color: #050505;
         }
 
         .espacio {
-            width: 10px;           /* Tamaño solicitado: 10px */
-            height: 10px;          /* Tamaño solicitado: 10px */
+            width: 5px;         /* Tamaño solicitado: 5px */
+            height: 5px;        /* Tamaño solicitado: 5px */
             box-sizing: border-box;
-            border: 0.1px solid #222; /* Borde muy fino para distinguir los huecos */
-            flex-shrink: 0;        /* Impide que los cuadros se deformen */
+            border: 0.1px solid #1a1a1a; /* Borde ultra fino */
+            flex-shrink: 0;
         }
 
-        /* Efecto al pasar el ratón para confirmar que están ahí */
+        /* Efecto de luz al pasar el ratón */
         .espacio:hover {
-            background-color: #00ff00; 
+            background-color: #ffffff;
         }
     </style>
 </head>
@@ -45,23 +45,23 @@
 
         function generarMosaico() {
             const fragmento = document.createDocumentFragment();
-            const tamañoBloque = 5000; // Bloques más pequeños para mayor fluidez inicial
+            const tamañoBloque = 10000; // Procesamos de 10k en 10k para eficiencia
 
             for (let i = 0; i < totalEspacios; i++) {
                 const div = document.createElement('div');
                 div.className = 'espacio';
                 fragmento.appendChild(div);
 
-                // Insertar en el DOM por partes para no congelar la pestaña
+                // Inyectar al DOM por tramos para evitar que la pestaña se bloquee
                 if ((i + 1) % tamañoBloque === 0) {
                     contenedor.appendChild(fragmento);
                 }
             }
-            // Insertar los últimos elementos restantes
+            // Inyectar el sobrante
             contenedor.appendChild(fragmento);
         }
 
-        // Iniciar la creación
+        // Ejecutar proceso
         generarMosaico();
     </script>
 </body>
