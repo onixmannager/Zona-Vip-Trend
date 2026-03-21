@@ -2,146 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2M Pixels - 20,000 Blocks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosaico 500k</title>
     <style>
-        * { box-sizing: border-box; touch-action: none; }
-        body { 
-            margin: 0; background: #000; color: #00ff00; 
-            font-family: monospace; overflow: hidden; height: 100vh;
-            display: flex; flex-direction: column;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a; /* Fondo oscuro para que resalten los huecos */
+            display: flex;
+            justify-content: center;
         }
-        header { 
-            background: #111; text-align: center; padding: 15px;
-            border-bottom: 2px solid #00ff00; z-index: 10;
+
+        #contenedor-mosaico {
+            display: grid;
+            /* Creamos una cuadrícula de 1000 columnas de 10px cada una */
+            grid-template-columns: repeat(1000, 10px);
+            /* El ancho total será de 10,000px (1000 col x 10px) */
+            width: 10000px; 
+            background-color: #333;
         }
-        #viewport {
-            flex: 1; position: relative; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
+
+        .espacio {
+            width: 10px;
+            height: 10px;
+            outline: 1px solid #444; /* Un borde sutil para ver los cuadros vacíos */
+            box-sizing: border-box;
         }
-        #canvas-wrapper { transform-origin: center; will-change: transform; }
-        canvas { 
-            background: #fff; image-rendering: pixelated; 
-            border: 5px solid #333;
+
+        /* Ejemplo de cómo se vería una imagen dentro */
+        .espacio img {
+            width: 10px;
+            height: 10px;
+            display: block;
         }
-        #info-panel {
-            position: fixed; bottom: 15px; left: 15px;
-            background: rgba(0,0,0,0.9); padding: 12px;
-            font-size: 13px; border-radius: 5px; border: 1px solid #00ff00;
-            pointer-events: none; line-height: 1.5;
-        }
-        .val { color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<header>
-    <strong style="font-size: 18px;">RECTÁNGULO HORIZONTAL 2M</strong><br>
-    2,000,000 px totales | 20,000 bloques de 10x10
-</header>
+    <div id="contenedor-mosaico"></div>
 
-<div id="viewport">
-    <div id="canvas-wrapper">
-        <canvas id="mainCanvas"></canvas>
-    </div>
-</div>
+    <script>
+        const totalEspacios = 500000;
+        const contenedor = document.getElementById('contenedor-mosaico');
 
-<div id="info-panel">
-    ESPACIOS TOTALES: <span class="val">20,000</span><br>
-    ID BLOQUE: <span id="bid" class="val">-</span><br>
-    COORDENADA: <span id="coords" class="val">0, 0</span><br>
-    ZOOM: <span id="zval" class="val">100</span>%
-</div>
+        // Usamos un DocumentFragment para mejorar el rendimiento al insertar
+        const fragmento = document.createDocumentFragment();
 
-<script>
-    const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d', { alpha: false });
-    const wrapper = document.getElementById('canvas-wrapper');
-    const bidDisp = document.getElementById('bid');
-    const coordDisp = document.getElementById('coords');
-    const zDisp = document.getElementById('zval');
+        for (let i = 0; i < totalEspacios; i++) {
+            const div = document.createElement('div');
+            div.className = 'espacio';
+            
+            // Aquí es donde iría tu lógica de imagen. 
+            // Por ahora están vacíos.
+            
+            fragmento.appendChild(div);
 
-    // CONFIGURACIÓN HORIZONTAL 2M
-    const COLS = 200; // 200 bloques * 10px = 2000px ancho
-    const ROWS = 100; // 100 bloques * 10px = 1000px alto
-    const BSIZE = 10; 
-    canvas.width = COLS * BSIZE;  // 2000px
-    canvas.height = ROWS * BSIZE; // 1000px
-
-    let scale = 0.4, posX = 0, posY = 0;
-    let isDragging = false, lastX = 0, lastY = 0, lastDist = 0;
-
-    function init() {
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // REJILLA NEGRA MARCADA
-        ctx.strokeStyle = "#000000"; 
-        ctx.lineWidth = 1; // Línea sólida de 1px
-        ctx.beginPath();
-        for(let x=0; x<=canvas.width; x+=BSIZE) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
-        for(let y=0; y<=canvas.height; y+=BSIZE) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
-        ctx.stroke();
-        
-        // Bloque de ejemplo en rojo (Posición 0,0)
-        ctx.fillStyle = "red";
-        ctx.fillRect(0, 0, BSIZE, BSIZE);
-        update();
-    }
-
-    function update() {
-        wrapper.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
-        zDisp.innerText = Math.round(scale * 100);
-    }
-
-    // Controles táctiles y mouse
-    const start = (x, y) => { isDragging = true; lastX = x; lastY = y; };
-    const move = (x, y) => {
-        if(!isDragging) return;
-        posX += x - lastX; posY += y - lastY;
-        lastX = x; lastY = y;
-        update();
-    };
-
-    window.onmousedown = e => start(e.clientX, e.clientY);
-    window.onmousemove = e => move(e.clientX, e.clientY);
-    window.onmouseup = () => isDragging = false;
-    window.onwheel = e => {
-        scale *= e.deltaY > 0 ? 0.9 : 1.1;
-        scale = Math.max(0.05, Math.min(scale, 15));
-        update();
-    };
-
-    window.ontouchstart = e => {
-        if(e.touches.length === 1) start(e.touches[0].clientX, e.touches[0].clientY);
-        if(e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    };
-    window.ontouchmove = e => {
-        if(e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY);
-        if(e.touches.length === 2) {
-            let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-            scale *= (dist / lastDist);
-            lastDist = dist;
-            update();
+            // Insertamos cada 10,000 elementos para no congelar el navegador
+            if (i % 10000 === 0) {
+                contenedor.appendChild(fragmento);
+            }
         }
-    };
-
-    canvas.onpointerdown = e => {
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / scale;
-        const y = (e.clientY - rect.top) / scale;
-        const bx = Math.floor(x / BSIZE), by = Math.floor(y / BSIZE);
         
-        if(bx >= 0 && bx < COLS && by >= 0 && by < ROWS) {
-            const id = (by * COLS) + bx + 1;
-            bidDisp.innerText = id.toLocaleString();
-            coordDisp.innerText = `${bx}, ${by}`;
-            ctx.fillStyle = `hsl(${Math.random()*360}, 80%, 50%)`;
-            ctx.fillRect(bx*BSIZE + 1, by*BSIZE + 1, BSIZE - 2, BSIZE - 2);
-        }
-    };
-
-    init();
-</script>
+        // Insertar el resto
+        contenedor.appendChild(fragmento);
+    </script>
 </body>
 </html>
