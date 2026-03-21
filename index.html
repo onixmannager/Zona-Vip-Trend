@@ -2,195 +2,41 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>500K Pixels</title>
+<title>Mi Pixel Page</title>
 
 <style>
   body {
     margin: 0;
+    text-align: center;
     background: #111;
-    overflow: hidden;
+    color: white;
     font-family: Arial;
   }
 
-  canvas {
-    display: block;
+  img {
+    max-width: 100%;
     image-rendering: pixelated;
-    cursor: crosshair;
-  }
-
-  #ui {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: #222;
-    padding: 10px;
-    border-radius: 8px;
-    color: white;
-  }
-
-  input, button {
-    margin-top: 5px;
-    width: 100%;
   }
 </style>
 </head>
 <body>
 
-<div id="ui">
-  <div>Selecciona zona</div>
-  <input type="file" id="imgInput">
-  <input type="text" id="linkInput" placeholder="https://...">
-  <button onclick="saveSelection()">Guardar</button>
-</div>
+<h1>Mi Pixel Page</h1>
+<p>Compra tu espacio</p>
 
-<canvas id="c"></canvas>
+<!-- Imagen base -->
+<img src="https://via.placeholder.com/1000x500" usemap="#mapa">
 
-<script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
+<!-- Mapa clicable -->
+<map name="mapa">
 
-const W = 1000;
-const H = 500;
+  <!-- Zona 1 -->
+  <area shape="rect" coords="0,0,100,100" href="https://google.com" target="_blank">
 
-canvas.width = W;
-canvas.height = H;
+  <!-- Zona 2 -->
+  <area shape="rect" coords="100,0,200,100" href="https://youtube.com" target="_blank">
 
-let scale = 2;
-let offsetX = 0;
-let offsetY = 0;
-
-let pixels = []; // "base de datos"
-
-// dibujar base
-function draw() {
-  ctx.setTransform(scale, 0, 0, scale, offsetX, offsetY);
-
-  // fondo
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      ctx.fillStyle = (x + y) % 2 === 0 ? "#eee" : "#ccc";
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
-
-  // imágenes
-  pixels.forEach(p => {
-    ctx.drawImage(p.img, p.x, p.y, p.w, p.h);
-  });
-
-  // selección
-  if (selecting) {
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 1 / scale;
-    ctx.strokeRect(sel.x, sel.y, sel.w, sel.h);
-  }
-}
-
-// resize
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  draw();
-}
-window.addEventListener("resize", resize);
-resize();
-
-// zoom con rueda
-canvas.addEventListener("wheel", e => {
-  e.preventDefault();
-  const zoom = e.deltaY < 0 ? 1.1 : 0.9;
-  scale *= zoom;
-  draw();
-});
-
-// selección
-let selecting = false;
-let sel = {x:0,y:0,w:0,h:0};
-
-canvas.addEventListener("mousedown", e => {
-  selecting = true;
-  const rect = canvas.getBoundingClientRect();
-  sel.x = Math.floor((e.clientX - rect.left - offsetX) / scale);
-  sel.y = Math.floor((e.clientY - rect.top - offsetY) / scale);
-});
-
-canvas.addEventListener("mousemove", e => {
-  if (!selecting) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
-  const y = Math.floor((e.clientY - rect.top - offsetY) / scale);
-
-  sel.w = x - sel.x;
-  sel.h = y - sel.y;
-
-  draw();
-});
-
-canvas.addEventListener("mouseup", () => {
-  selecting = false;
-});
-
-// guardar imagen
-function saveSelection() {
-  const file = document.getElementById("imgInput").files[0];
-  const link = document.getElementById("linkInput").value;
-
-  if (!file) return alert("Sube imagen");
-
-  const img = new Image();
-  img.src = URL.createObjectURL(file);
-
-  img.onload = () => {
-    pixels.push({
-      x: sel.x,
-      y: sel.y,
-      w: sel.w,
-      h: sel.h,
-      img: img,
-      link: link
-    });
-
-    saveData();
-    draw();
-  };
-}
-
-// click abrir link
-canvas.addEventListener("click", e => {
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left - offsetX) / scale);
-  const y = Math.floor((e.clientY - rect.top - offsetY) / scale);
-
-  pixels.forEach(p => {
-    if (x >= p.x && x <= p.x + p.w &&
-        y >= p.y && y <= p.y + p.h) {
-      window.open(p.link, "_blank");
-    }
-  });
-});
-
-// guardar en localStorage
-function saveData() {
-  localStorage.setItem("pixels", JSON.stringify(pixels.map(p => ({
-    x:p.x,y:p.y,w:p.w,h:p.h,link:p.link
-  }))));
-}
-
-// cargar
-function loadData() {
-  const data = JSON.parse(localStorage.getItem("pixels") || "[]");
-  data.forEach(d => {
-    const img = new Image();
-    img.src = "https://via.placeholder.com/"+d.w+"x"+d.h;
-    pixels.push({...d, img});
-  });
-}
-loadData();
-
-draw();
-</script>
+</map>
 
 </body>
 </html>
