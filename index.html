@@ -3,35 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - 5x5 Vertical</title>
+    <title>Mosaico 500k - 3x3 Vertical</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: #000;
-            overflow-x: hidden; /* Prohibido el scroll horizontal */
+            overflow-x: hidden; /* Solo scroll vertical */
             display: flex;
             justify-content: center;
         }
 
         #contenedor-mosaico {
             display: flex;
-            flex-wrap: wrap;    /* Los cuadros saltan de línea automáticamente */
-            width: 100vw;       /* Ajuste perfecto al ancho de pantalla */
-            background-color: #050505;
+            flex-wrap: wrap; 
+            width: 100vw;    
+            background-color: #000;
         }
 
         .espacio {
-            width: 5px;         /* Tamaño solicitado: 5px */
-            height: 5px;        /* Tamaño solicitado: 5px */
+            width: 3px;      /* Tamaño 3x3 */
+            height: 3px;
             box-sizing: border-box;
-            border: 0.1px solid #1a1a1a; /* Borde ultra fino */
+            background-color: #1a1a1a; 
+            /* Un borde casi invisible para que no parezca una mancha sólida */
+            border: 0.1px solid #111;
             flex-shrink: 0;
         }
 
-        /* Efecto de luz al pasar el ratón */
+        /* Efecto visual rápido al pasar el ratón */
         .espacio:hover {
-            background-color: #ffffff;
+            background-color: #ff00ff;
+            border: none;
         }
     </style>
 </head>
@@ -44,25 +47,32 @@
         const contenedor = document.getElementById('contenedor-mosaico');
 
         function generarMosaico() {
-            const fragmento = document.createDocumentFragment();
-            const tamañoBloque = 10000; // Procesamos de 10k en 10k para eficiencia
+            let generados = 0;
+            const lote = 15000; // Cantidad de cuadros por cada ciclo de dibujo
 
-            for (let i = 0; i < totalEspacios; i++) {
-                const div = document.createElement('div');
-                div.className = 'espacio';
-                fragmento.appendChild(div);
+            function dibujar() {
+                const fragmento = document.createDocumentFragment();
+                
+                for (let i = 0; i < lote && generados < totalEspacios; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'espacio';
+                    fragmento.appendChild(div);
+                    generados++;
+                }
+                
+                contenedor.appendChild(fragmento);
 
-                // Inyectar al DOM por tramos para evitar que la pestaña se bloquee
-                if ((i + 1) % tamañoBloque === 0) {
-                    contenedor.appendChild(fragmento);
+                if (generados < totalEspacios) {
+                    // Pedimos al navegador el siguiente hueco libre para seguir dibujando
+                    requestAnimationFrame(dibujar);
                 }
             }
-            // Inyectar el sobrante
-            contenedor.appendChild(fragmento);
+            
+            dibujar();
         }
 
-        // Ejecutar proceso
-        generarMosaico();
+        // Iniciamos con un pequeño retraso para asegurar que el DOM esté listo
+        setTimeout(generarMosaico, 300);
     </script>
 </body>
 </html>
