@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 10k - Zoom Manual Activado</title>
+    <title>Mosaico 500k - 10x10 Numerado</title>
     <style>
         body {
             margin: 0;
@@ -21,8 +21,7 @@
             width: 100vw;    
             background-color: #fff;
             align-content: flex-start;
-            /* touch-action: pan-y permite hacer scroll y zoom con dedos, 
-               pero evita el zoom automático de doble clic en muchos móviles */
+            /* Permite zoom manual y scroll, pero evita zoom automático por clic */
             touch-action: manipulation;
         }
 
@@ -39,16 +38,15 @@
             font-size: 3px;
             color: #ccc;
             user-select: none;
-            transition: background-color 0.2s;
         }
 
-        /* Hover simple para no marear al navegador */
         .espacio:hover {
             background-color: #000;
             color: #fff;
+            z-index: 5;
         }
 
-        /* Estilo para cuando se hace clic (opcional) */
+        /* Color temporal al tocar en móviles */
         .espacio:active {
             background-color: #ff00ff;
         }
@@ -59,18 +57,33 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 10000;
+        const totalEspacios = 500000;
         const contenedor = document.getElementById('contenedor-mosaico');
+        const tamañoLote = 10000; // Procesamos de 10k en 10k
+        let generados = 0;
 
         function generarMosaico() {
-            const fragmento = document.createDocumentFragment();
-            for (let i = 1; i <= totalEspacios; i++) {
-                const div = document.createElement('div');
-                div.className = 'espacio';
-                div.innerText = i;
-                fragmento.appendChild(div);
+            function renderBatch() {
+                const fragmento = document.createDocumentFragment();
+                const limite = Math.min(generados + tamañoLote, totalEspacios);
+
+                for (let i = generados + 1; i <= limite; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'espacio';
+                    div.innerText = i;
+                    fragmento.appendChild(div);
+                }
+
+                contenedor.appendChild(fragmento);
+                generados = limite;
+
+                if (generados < totalEspacios) {
+                    // Usamos requestAnimationFrame para dejar que el navegador respire
+                    requestAnimationFrame(renderBatch);
+                }
             }
-            contenedor.appendChild(fragmento);
+
+            renderBatch();
         }
 
         window.onload = generarMosaico;
