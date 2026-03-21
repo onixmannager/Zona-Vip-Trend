@@ -2,53 +2,51 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mosaico 10k Numerado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosaico 10k Numerado Adaptable</title>
     <style>
         body {
             margin: 0;
+            padding: 0;
             background-color: #f0f0f0;
+            overflow-x: hidden; 
             display: flex;
             justify-content: center;
             font-family: sans-serif;
         }
 
         #contenedor-mosaico {
-            display: grid;
-            /* 100 columnas de 10px */
-            grid-template-columns: repeat(100, 10px);
-            grid-auto-rows: 10px;
-            width: 1000px; 
+            display: flex;
+            flex-wrap: wrap; 
+            width: 100vw;    
             background-color: #fff;
-            border: 1px solid #ccc;
+            align-content: flex-start;
         }
 
-        .espacio-vacio {
-            width: 10px;
-            height: 10px;
-            border: 0.1px solid #eee;
+        .espacio {
+            width: 10px;      
+            height: 10px;     
             box-sizing: border-box;
+            background-color: #fff; 
+            border: 0.1px solid #eee;
+            flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Texto del número muy pequeño */
-            font-size: 3px; 
+            /* Tamaño de fuente minúsculo para el número */
+            font-size: 3px;
             color: #ccc;
-            user-select: none; /* Para que no se resalte el texto al clicar */
+            user-select: none;
+            transition: all 0.2s;
         }
 
-        /* Resaltar el número al pasar el ratón */
-        .espacio-vacio:hover {
-            background-color: #f0f0f0;
-            color: #000;
-            font-size: 7px; /* Se agranda un poco al pasar el ratón */
-            z-index: 1;
-        }
-
-        .anuncio {
-            background-size: cover;
-            background-position: center;
-            outline: 1px solid #333;
-            z-index: 2;
+        /* Resaltado al pasar el ratón para leer el número */
+        .espacio:hover {
+            background-color: #000;
+            color: #fff;
+            font-size: 8px;
+            z-index: 10;
+            cursor: crosshair;
         }
     </style>
 </head>
@@ -57,38 +55,24 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
+        const totalEspacios = 10000;
         const contenedor = document.getElementById('contenedor-mosaico');
 
-        // 1. Llenamos y numeramos los 10.000 cuadros
-        function crearFondoNumerado() {
-            const frag = document.createDocumentFragment();
-            for (let i = 1; i <= 10000; i++) {
+        function generarMosaico() {
+            const fragmento = document.createDocumentFragment();
+            
+            for (let i = 1; i <= totalEspacios; i++) {
                 const div = document.createElement('div');
-                div.className = 'espacio-vacio';
-                div.innerText = i; // Ponemos el número
-                frag.appendChild(div);
+                div.className = 'espacio';
+                div.innerText = i; // Numeración del 1 al 10.000
+                fragmento.appendChild(div);
             }
-            contenedor.appendChild(frag);
+            
+            contenedor.appendChild(fragmento);
         }
 
-        /**
-         * FUNCIÓN PARA COLOCAR IMÁGENES
-         * x: columna (1-100) | y: fila (1-100)
-         */
-        function colocarImagen(x, y, w, h, url) {
-            const img = document.createElement('div');
-            img.className = 'anuncio';
-            img.style.backgroundImage = `url('${url}')`;
-            img.style.gridColumn = `${x} / span ${w}`;
-            img.style.gridRow = `${y} / span ${h}`;
-            contenedor.appendChild(img);
-        }
-
-        // Ejecutar
-        crearFondoNumerado();
-
-        // Ejemplo: Colocar una imagen en la zona del cuadro número 1
-        colocarImagen(1, 1, 10, 5, 'https://picsum.photos/100/50?1');
+        // Carga el mosaico al abrir la página
+        window.onload = generarMosaico;
     </script>
 </body>
 </html>
