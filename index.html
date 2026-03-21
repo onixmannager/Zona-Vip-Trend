@@ -2,77 +2,137 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - 3x3 Vertical</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mosaico 500k - Pro Móvil</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: #000;
-            overflow-x: hidden; /* Solo scroll vertical */
-            display: flex;
-            justify-content: center;
+            overflow: hidden; /* Evita rebotes extraños en móvil */
+            font-family: sans-serif;
+            touch-action: none; /* Importante para controlar nosotros el zoom */
         }
 
-        #contenedor-mosaico {
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
             display: flex;
-            flex-wrap: wrap; 
-            width: 100vw;    
+            justify-content: flex-start;
+            align-content: flex-start;
+            flex-wrap: wrap;
             background-color: #000;
+            transform-origin: 0 0;
+            will-change: transform;
         }
 
         .espacio {
-            width: 3px;      /* Tamaño 3x3 */
+            width: 3px;
             height: 3px;
+            background-color: #1a1a1a;
             box-sizing: border-box;
-            background-color: #1a1a1a; 
-            /* Un borde casi invisible para que no parezca una mancha sólida */
-            border: 0.1px solid #111;
+            border: 0.1px solid #000;
             flex-shrink: 0;
         }
 
-        /* Efecto visual rápido al pasar el ratón */
-        .espacio:hover {
-            background-color: #ff00ff;
-            border: none;
+        /* Color al tocar/pasar el ratón */
+        .espacio.active {
+            background-color: #00ffcc !important;
+        }
+
+        #ui {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10;
         }
     </style>
 </head>
 <body>
 
-    <div id="contenedor-mosaico"></div>
+    <div id="ui">Zoom: 100% | Pellizca para ampliar</div>
+    <div id="canvas-container"></div>
 
     <script>
-        const totalEspacios = 500000;
-        const contenedor = document.getElementById('contenedor-mosaico');
+        const total = 500000;
+        const contenedor = document.getElementById('canvas-container');
+        const ui = document.getElementById('ui');
 
-        function generarMosaico() {
-            let generados = 0;
-            const lote = 15000; // Cantidad de cuadros por cada ciclo de dibujo
+        let scale = 1;
+        let pointX = 0;
+        let pointY = 0;
+        let start = { x: 0, y: 0 };
 
-            function dibujar() {
-                const fragmento = document.createDocumentFragment();
-                
-                for (let i = 0; i < lote && generados < totalEspacios; i++) {
+        // 1. GENERACIÓN OPTIMIZADA
+        function inicializar() {
+            let creados = 0;
+            const fragmento = document.createDocumentFragment();
+            
+            function renderBatch() {
+                for (let i = 0; i < 15000 && creados < total; i++) {
                     const div = document.createElement('div');
                     div.className = 'espacio';
+                    // Pintar al tocar o pasar el ratón
+                    div.addEventListener('pointerover', () => div.classList.add('active'));
                     fragmento.appendChild(div);
-                    generados++;
+                    creados++;
                 }
-                
                 contenedor.appendChild(fragmento);
-
-                if (generados < totalEspacios) {
-                    // Pedimos al navegador el siguiente hueco libre para seguir dibujando
-                    requestAnimationFrame(dibujar);
-                }
+                if (creados < total) requestAnimationFrame(renderBatch);
             }
-            
-            dibujar();
+            renderBatch();
         }
 
-        // Iniciamos con un pequeño retraso para asegurar que el DOM esté listo
-        setTimeout(generarMosaico, 300);
+        // 2. LÓGICA DE ZOOM Y MOVIMIENTO (MÓVIL Y PC)
+        let evCache = [];
+        let prevDiff = -1;
+
+        contenedor.onpointerdown = (e) => {
+            evCache.push(e);
+        };
+
+        contenedor.onpointermove = (e) => {
+            // Actualizar caché de puntos (para multi-touch)
+            const index = evCache.findIndex((item) => item.pointerId === e.pointerId);
+            evCache[index] = e;
+
+            // Si hay dos dedos: ZOOM
+            if (evCache.length === 2) {
+                const curDiff = Math.hypot(evCache[0].clientX - evCache[1].clientX, evCache[0].clientY - evCache[1].clientY);
+
+                if (prevDiff > 0) {
+                    if (curDiff > prevDiff) scale += 0.05;
+                    if (curDiff < prevDiff) scale -= 0.05;
+                }
+                prevDiff = curDiff;
+                actualizarTransform();
+            }
+        };
+
+        contenedor.onpointerup = (e) => {
+            evCache = evCache.filter((item) => item.pointerId !== e.pointerId);
+            if (evCache.length < 2) prevDiff = -1;
+        };
+
+        // Zoom con rueda también para PC
+        window.addEventListener('wheel', (e) => {
+            scale += e.deltaY * -0.001;
+            actualizarTransform();
+        }, { passive: false });
+
+        function actualizarTransform() {
+            scale = Math.min(Math.max(0.3, scale), 15); // Límites de zoom
+            contenedor.style.transform = `scale(${scale})`;
+            ui.innerText = `Zoom: ${Math.round(scale * 100)}%`;
+        }
+
+        inicializar();
     </script>
 </body>
 </html>
