@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>2M Píxeles - 500k Bloques</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Million Dollar Page - 500k Bloques</title>
     <style>
         body { 
-            margin: 0; background: #000; color: #0f0; 
-            font-family: monospace; overflow: hidden; height: 100vh;
+            margin: 0; background: #121212; color: #00ff00; 
+            font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh;
         }
         header { 
             position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.9);
@@ -18,28 +18,30 @@
             cursor: grab; touch-action: none;
             display: flex; align-items: center; justify-content: center;
         }
-        /* El lienzo donde ocurre la magia */
         #canvas-wrapper {
             transform-origin: center;
             will-change: transform;
+            transition: transform 0.05s ease-out;
         }
         canvas {
             background: #fff;
-            box-shadow: 0 0 20px rgba(255,255,255,0.2);
-            image-rendering: pixelated;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            image-rendering: pixelated; /* Evita que los píxeles se vean borrosos */
         }
         #stats {
             position: fixed; bottom: 10px; left: 10px;
-            background: rgba(0,0,0,0.8); padding: 5px 10px;
-            font-size: 10px; pointer-events: none; border-radius: 4px;
+            background: rgba(0,0,0,0.8); padding: 10px;
+            font-size: 12px; pointer-events: none; border-radius: 5px;
+            border: 1px solid #333;
         }
+        .highlight { color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-size: 14px;">2,000,000 PÍXELES TOTALES</div>
-    <div style="font-size: 10px; color: #888;">500,000 bloques de 2x2px</div>
+    <div style="font-size: 16px;">LIENZO DE 2,000,000 PÍXELES</div>
+    <div style="font-size: 10px; color: #888;">500,000 ESPACIOS (2x2 px cada uno)</div>
 </header>
 
 <div id="viewport">
@@ -49,7 +51,9 @@
 </div>
 
 <div id="stats">
-    BLOQUES: 500,000 | ID: <span id="bid">-</span>
+    BLOQUES TOTALES: <span class="highlight">500,000</span><br>
+    ZOOM ACTUAL: <span id="zoom-info" class="highlight">100</span>%<br>
+    <span id="bid">Haz zoom para ver el cuadro rojo -></span>
 </div>
 
 <script>
@@ -57,40 +61,59 @@
     const ctx = canvas.getContext('2d', { alpha: false });
     const wrapper = document.getElementById('canvas-wrapper');
     const bidDisplay = document.getElementById('bid');
+    const zoomDisplay = document.getElementById('zoom-info');
 
-    // CONFIGURACIÓN EXACTA
+    // --- CONFIGURACIÓN MATEMÁTICA ---
     const COLS = 500;
     const ROWS = 1000;
-    const BLOCK_SIZE = 2; // Cada bloque es 2x2 píxeles
-    const WIDTH = COLS * BLOCK_SIZE; // 1000px
-    const HEIGHT = ROWS * BLOCK_SIZE; // 2000px
+    const BLOCK_SIZE = 2; // Cada bloque es de 2x2 píxeles reales
+    const WIDTH = COLS * BLOCK_SIZE; // 1000px ancho
+    const HEIGHT = ROWS * BLOCK_SIZE; // 2000px alto
 
     canvas.width = WIDTH;
     canvas.height = HEIGHT;
 
-    // Estado de la cámara
-    let scale = 0.5;
+    let scale = 0.6;
     let translateX = 0;
     let translateY = 0;
 
-    // Dibujar fondo blanco inicial
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    // --- DIBUJO INICIAL ---
+    function initCanvas() {
+        // Fondo blanco
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+        // Dibujar Rejilla Negra (Líneas muy finas)
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 0.2;
+        ctx.beginPath();
+        for (let x = 0; x <= WIDTH; x += BLOCK_SIZE) {
+            ctx.moveTo(x, 0); ctx.lineTo(x, HEIGHT);
+        }
+        for (let y = 0; y <= HEIGHT; y += BLOCK_SIZE) {
+            ctx.moveTo(0, y); ctx.lineTo(WIDTH, y);
+        }
+        ctx.stroke();
+
+        // EJEMPLO: Bloque Rojo en la posición 1 (0,0)
+        ctx.fillStyle = '#FF0000';
+        ctx.fillRect(0, 0, BLOCK_SIZE, BLOCK_SIZE);
+        
+        updateTransform();
+    }
 
     function updateTransform() {
         wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        zoomDisplay.innerText = Math.round(scale * 100);
     }
 
-    // --- LÓGICA TÁCTIL Y RATÓN ---
+    // --- CONTROLES (RATÓN Y TÁCTIL) ---
     let isDragging = false;
     let lastX, lastY;
+    let lastDist = 0;
 
-    const startAction = (x, y) => {
-        isDragging = true;
-        lastX = x; lastY = y;
-    };
-
-    const moveAction = (x, y) => {
+    const start = (x, y) => { isDragging = true; lastX = x; lastY = y; };
+    const move = (x, y) => {
         if (!isDragging) return;
         translateX += x - lastX;
         translateY += y - lastY;
@@ -99,30 +122,42 @@
     };
 
     // Eventos Mouse
-    window.onmousedown = (e) => startAction(e.clientX, e.clientY);
-    window.onmousemove = (e) => moveAction(e.clientX, e.clientY);
+    window.onmousedown = (e) => { if(e.button === 0) start(e.clientX, e.clientY); };
+    window.onmousemove = (e) => move(e.clientX, e.clientY);
     window.onmouseup = () => isDragging = false;
 
+    // Zoom Rueda
+    window.onwheel = (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? 0.8 : 1.2;
+        scale = Math.max(0.1, Math.min(scale * delta, 40)); // Zoom hasta 4000%
+        updateTransform();
+    };
+
     // Eventos Touch (Móvil)
-    window.ontouchstart = (e) => startAction(e.touches[0].clientX, e.touches[0].clientY);
+    window.ontouchstart = (e) => {
+        if (e.touches.length === 1) {
+            start(e.touches[0].clientX, e.touches[0].clientY);
+        } else if (e.touches.length === 2) {
+            lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        }
+    };
+
     window.ontouchmove = (e) => {
-        if (e.touches.length === 1) moveAction(e.touches[0].clientX, e.touches[0].clientY);
-        // Zoom con dos dedos (Pinch) simplificado
-        if (e.touches.length === 2) {
-            scale = Math.max(0.2, Math.min(scale + 0.01, 10));
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            move(e.touches[0].clientX, e.touches[0].clientY);
+        } else if (e.touches.length === 2) {
+            const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            scale *= (dist / lastDist);
+            scale = Math.max(0.1, Math.min(scale, 40));
+            lastDist = dist;
             updateTransform();
         }
     };
     window.ontouchend = () => isDragging = false;
 
-    // Zoom Rueda
-    window.onwheel = (e) => {
-        const delta = e.deltaY > 0 ? 0.9 : 1.1;
-        scale = Math.max(0.1, Math.min(scale * delta, 15));
-        updateTransform();
-    };
-
-    // Detectar Bloque al hacer clic/toque
+    // Pintar al hacer clic
     canvas.onclick = (e) => {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) / scale;
@@ -133,15 +168,19 @@
         
         if (bX >= 0 && bX < COLS && bY >= 0 && bY < ROWS) {
             const id = (bY * COLS) + bX + 1;
-            bidDisplay.innerText = id.toLocaleString();
+            bidDisplay.innerHTML = `ID Bloque: <span class="highlight">${id.toLocaleString()}</span> (X:${bX}, Y:${bY})`;
             
-            // Pintar de color aleatorio al tocar
-            ctx.fillStyle = `hsl(${Math.random() * 360}, 70%, 50%)`;
+            // Pintar color aleatorio
+            ctx.fillStyle = `hsl(${Math.random() * 360}, 80%, 50%)`;
             ctx.fillRect(bX * BLOCK_SIZE, bY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+            
+            // Repintar borde (opcional para mantener la rejilla)
+            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+            ctx.strokeRect(bX * BLOCK_SIZE, bY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
         }
     };
 
-    updateTransform();
+    initCanvas();
 </script>
 </body>
 </html>
