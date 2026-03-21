@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 10k Numerado Adaptable</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mosaico 10k Numerado - Sin Zoom</title>
     <style>
         body {
             margin: 0;
@@ -13,6 +13,8 @@
             display: flex;
             justify-content: center;
             font-family: sans-serif;
+            /* Evita gestos de zoom del sistema en algunos navegadores */
+            touch-action: manipulation; 
         }
 
         #contenedor-mosaico {
@@ -33,18 +35,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Tamaño de fuente minúsculo para el número */
             font-size: 3px;
             color: #ccc;
             user-select: none;
-            transition: all 0.2s;
+            /* touch-action: none aquí asegura que el toque no dispare zoom */
+            touch-action: none; 
+            transition: background-color 0.2s, color 0.2s;
         }
 
-        /* Resaltado al pasar el ratón para leer el número */
+        /* El hover solo cambia colores, no el tamaño de fuente para evitar saltos visuales */
         .espacio:hover {
             background-color: #000;
             color: #fff;
-            font-size: 8px;
             z-index: 10;
             cursor: crosshair;
         }
@@ -64,14 +66,13 @@
             for (let i = 1; i <= totalEspacios; i++) {
                 const div = document.createElement('div');
                 div.className = 'espacio';
-                div.innerText = i; // Numeración del 1 al 10.000
+                div.innerText = i;
                 fragmento.appendChild(div);
             }
             
             contenedor.appendChild(fragmento);
         }
 
-        // Carga el mosaico al abrir la página
         window.onload = generarMosaico;
     </script>
 </body>
