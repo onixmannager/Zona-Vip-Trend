@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>500k Blocks Final</title>
+    <title>500k Blocks - Doble Tamaño</title>
     <style>
         * { box-sizing: border-box; touch-action: none; }
         body { 
             margin: 0; background: #000; color: #0f0; 
-            font-family: sans-serif; overflow: hidden; height: 100vh;
+            font-family: 'Courier New', monospace; overflow: hidden; height: 100vh;
             display: flex; flex-direction: column;
         }
         header { 
             background: #1a1a1a; text-align: center; padding: 10px;
-            border-bottom: 1px solid #333; font-size: 14px;
+            border-bottom: 2px solid #333; font-size: 14px; z-index: 10;
         }
         #viewport {
             flex: 1; position: relative; overflow: hidden;
@@ -22,20 +22,22 @@
         #canvas-wrapper { transform-origin: center; will-change: transform; }
         canvas { 
             background: #fff; image-rendering: pixelated; 
-            border: 1px solid #555;
+            border: 2px solid #555;
         }
         #info {
             position: fixed; bottom: 10px; left: 10px;
-            background: rgba(0,0,0,0.8); padding: 8px;
-            font-size: 11px; border-radius: 5px; pointer-events: none;
+            background: rgba(0,0,0,0.8); padding: 10px;
+            font-size: 12px; border-radius: 5px; pointer-events: none;
+            border: 1px solid #0f0;
         }
+        .bold { color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    500,000 BLOQUES (500x1000) - 2M PX<br>
-    <small style="color: #888;">Usa 2 dedos para Zoom / 1 para Mover y Pintar</small>
+    <strong>MEGA PIXEL BOARD</strong><br>
+    500,000 bloques de 4x4px | Lienzo: 2000x4000
 </header>
 
 <div id="viewport">
@@ -44,34 +46,44 @@
     </div>
 </div>
 
-<div id="info">ID: <span id="bid">-</span> | Zoom: <span id="zval">100</span>%</div>
+<div id="info">
+    ID BLOQUE: <span id="bid" class="bold">-</span><br>
+    COORD: <span id="coords" class="bold">0, 0</span><br>
+    ZOOM: <span id="zval" class="bold">100</span>%
+</div>
 
 <script>
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d', { alpha: false });
     const wrapper = document.getElementById('canvas-wrapper');
     const bidDisp = document.getElementById('bid');
+    const coordDisp = document.getElementById('coords');
     const zDisp = document.getElementById('zval');
 
-    const COLS = 500, ROWS = 1000, BSIZE = 2;
-    canvas.width = COLS * BSIZE; // 1000
-    canvas.height = ROWS * BSIZE; // 2000
+    // CONFIGURACIÓN DUPLICADA
+    const COLS = 500;
+    const ROWS = 1000;
+    const BSIZE = 4; // Duplicado de 2 a 4
+    canvas.width = COLS * BSIZE;  // 2000px
+    canvas.height = ROWS * BSIZE; // 4000px
 
-    let scale = 0.5, posX = 0, posY = 0;
+    let scale = 0.3, posX = 0, posY = 0;
     let isDragging = false, lastX = 0, lastY = 0, lastDist = 0;
 
-    // Dibujar rejilla inicial y punto rojo
-    function drawGrid() {
+    // Dibujar rejilla y ejemplo
+    function initBoard() {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#eee"; // Rejilla muy suave para no saturar el móvil
-        ctx.lineWidth = 0.1;
+        
+        // Rejilla Negra más visible
+        ctx.strokeStyle = "#cccccc"; 
+        ctx.lineWidth = 0.5;
         ctx.beginPath();
         for(let x=0; x<=canvas.width; x+=BSIZE) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
         for(let y=0; y<=canvas.height; y+=BSIZE) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
         ctx.stroke();
         
-        // Ejemplo: Bloque 1 en Rojo
+        // Ejemplo: Bloque 1 en Rojo (Ahora es de 4x4)
         ctx.fillStyle = "red";
         ctx.fillRect(0, 0, BSIZE, BSIZE);
     }
@@ -81,32 +93,31 @@
         zDisp.innerText = Math.round(scale * 100);
     }
 
-    // --- GESTIÓN DE EVENTOS UNIFICADA ---
-    const handleStart = (x, y) => { isDragging = true; lastX = x; lastY = y; };
-    const handleMove = (x, y) => {
+    // --- CONTROLES ---
+    const start = (x, y) => { isDragging = true; lastX = x; lastY = y; };
+    const move = (x, y) => {
         if(!isDragging) return;
         posX += x - lastX; posY += y - lastY;
         lastX = x; lastY = y;
         update();
     };
 
-    // Mouse
-    window.onmousedown = e => handleStart(e.clientX, e.clientY);
-    window.onmousemove = e => handleMove(e.clientX, e.clientY);
+    window.onmousedown = e => start(e.clientX, e.clientY);
+    window.onmousemove = e => move(e.clientX, e.clientY);
     window.onmouseup = () => isDragging = false;
     window.onwheel = e => {
-        scale *= e.deltaY > 0 ? 0.9 : 1.1;
-        scale = Math.max(0.1, Math.min(scale, 50));
+        const delta = e.deltaY > 0 ? 0.85 : 1.15;
+        scale = Math.max(0.05, Math.min(scale * delta, 25));
         update();
     };
 
-    // Touch (Móvil)
+    // Táctil Móvil
     window.ontouchstart = e => {
-        if(e.touches.length === 1) handleStart(e.touches[0].clientX, e.touches[0].clientY);
+        if(e.touches.length === 1) start(e.touches[0].clientX, e.touches[0].clientY);
         if(e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     };
     window.ontouchmove = e => {
-        if(e.touches.length === 1) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        if(e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY);
         if(e.touches.length === 2) {
             let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
             scale *= (dist / lastDist);
@@ -116,7 +127,7 @@
     };
     window.ontouchend = () => isDragging = false;
 
-    // Pintar al tocar
+    // Pintar al hacer click/tap
     canvas.onpointerdown = e => {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) / scale;
@@ -126,12 +137,17 @@
         if(bx >= 0 && bx < COLS && by >= 0 && by < ROWS) {
             const id = (by * COLS) + bx + 1;
             bidDisp.innerText = id.toLocaleString();
-            ctx.fillStyle = `hsl(${Math.random()*360}, 70%, 50%)`;
+            coordDisp.innerText = `${bx}, ${by}`;
+            
+            ctx.fillStyle = `hsl(${Math.random()*360}, 80%, 50%)`;
             ctx.fillRect(bx*BSIZE, by*BSIZE, BSIZE, BSIZE);
+            // Borde del bloque pintado
+            ctx.strokeStyle = "rgba(0,0,0,0.2)";
+            ctx.strokeRect(bx*BSIZE, by*BSIZE, BSIZE, BSIZE);
         }
     };
 
-    drawGrid();
+    initBoard();
     update();
 </script>
 </body>
