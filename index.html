@@ -2,69 +2,72 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi Reclica de Million Dollar Homepage</title>
+    <title>Million Dollar Homepage - Bloques 2x2</title>
     <style>
-        body {
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        body { 
+            background: #1a1a1a; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; margin: 0; height: 100vh;
         }
 
-        header {
-            text-align: center;
-            margin: 20px;
-        }
+        header { padding: 10px; text-align: center; }
 
-        /* Contenedor principal de 1000x1000 píxeles */
-        #grid-container {
-            width: 1000px;
-            height: 1000px;
-            background-color: white;
-            border: 2px solid #000;
-            display: grid;
-            /* Creamos 100 columnas y 100 filas de 10px cada una */
-            grid-template-columns: repeat(100, 10px);
-            grid-template-rows: repeat(100, 10px);
+        #viewport {
+            width: 95vw; height: 80vh;
+            border: 2px solid #555;
+            overflow: auto; /* Permite scroll si el zoom es grande */
+            background: #ccc;
             position: relative;
         }
 
-        /* Estilo de los anuncios (celdas ocupadas) */
-        .ad-space {
-            background-color: #ff0000; /* Color de ejemplo */
-            cursor: pointer;
-            border: 0.1px solid rgba(0,0,0,0.05);
+        #grid-container {
+            width: 1000px; height: 1000px;
+            background-color: white;
+            display: grid;
+            /* Definimos 500 columnas y filas de 2px cada una */
+            grid-template-columns: repeat(500, 2px);
+            grid-template-rows: repeat(500, 2px);
+            
+            /* DIBUJO DE LAS LÍNEAS (Cada 2px) */
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 2px 2px;
+            
+            transform-origin: 0 0;
+            transition: transform 0.05s ease-out;
         }
 
-        .ad-space:hover {
-            outline: 2px solid blue;
-            z-index: 10;
-        }
-
-        /* Tooltip simple */
-        #info {
-            margin-top: 10px;
-            font-weight: bold;
-            color: #333;
+        /* Estilo para cuando pasas el mouse por encima de un bloque */
+        .pixel-block:hover {
+            background-color: rgba(0, 0, 255, 0.5);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>The Million Dollar Homepage Replica</h1>
-        <p>1,000,000 píxeles • $1 por píxel • ¡Compra tu espacio!</p>
+        <h1>Réplica de 500,000 Bloques (2x2px)</h1>
+        <p>Usa la <b>rueda del ratón</b> para zoom y las <b>barras de desplazamiento</b> para moverte.</p>
     </header>
 
-    <div id="grid-container">
-        <div class="ad-space" 
-             style="grid-column: 1 / span 5; grid-row: 1 / span 5;" 
-             title="Mi Anuncio - www.ejemplo.com">
-        </div>
+    <div id="viewport">
+        <div id="grid-container" id="canvas">
+            </div>
     </div>
 
-    <p id="info">Pasa el mouse sobre los píxeles</p>
+    <script>
+        const el = document.getElementById("grid-container");
+        let scale = 1;
 
+        // Lógica de Zoom
+        window.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.target.closest('#viewport')) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.2 : 0.2;
+                scale = Math.min(Math.max(0.5, scale + delta), 15); // Zoom hasta 15x para ver los 2px
+                el.style.transform = `scale(${scale})`;
+            }
+        }, { passive: false });
+    </script>
 </body>
 </html>
