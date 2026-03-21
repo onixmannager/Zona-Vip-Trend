@@ -2,48 +2,53 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico Million Dollar - Multitamaño</title>
+    <title>Mosaico 10k Numerado</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
             background-color: #f0f0f0;
             display: flex;
             justify-content: center;
+            font-family: sans-serif;
         }
 
         #contenedor-mosaico {
             display: grid;
-            /* Creamos columnas de 10px fijas */
-            grid-template-columns: repeat(auto-fill, 10px);
-            /* Creamos filas automáticas de 10px */
+            /* 100 columnas de 10px */
+            grid-template-columns: repeat(100, 10px);
             grid-auto-rows: 10px;
-            width: 100vw;
+            width: 1000px; 
             background-color: #fff;
+            border: 1px solid #ccc;
         }
 
-        /* El cuadro básico de 10x10 */
-        .espacio {
+        .espacio-vacio {
             width: 10px;
             height: 10px;
-            border: 0.5px solid #ddd;
+            border: 0.1px solid #eee;
             box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Texto del número muy pequeño */
+            font-size: 3px; 
+            color: #ccc;
+            user-select: none; /* Para que no se resalte el texto al clicar */
+        }
+
+        /* Resaltar el número al pasar el ratón */
+        .espacio-vacio:hover {
+            background-color: #f0f0f0;
+            color: #000;
+            font-size: 7px; /* Se agranda un poco al pasar el ratón */
+            z-index: 1;
+        }
+
+        .anuncio {
             background-size: cover;
             background-position: center;
-        }
-
-        /* Clase para imágenes que ocupan más espacio */
-        .imagen-grande {
-            border: 0.5px solid #bbb;
-            background-color: #eee;
-            background-size: cover;
-            /* Por defecto ocupan 1x1, pero lo cambiaremos con JS o CSS manual */
-        }
-
-        .espacio:hover, .imagen-grande:hover {
-            outline: 1px solid #ff00ff;
-            z-index: 10;
+            outline: 1px solid #333;
+            z-index: 2;
         }
     </style>
 </head>
@@ -54,46 +59,36 @@
     <script>
         const contenedor = document.getElementById('contenedor-mosaico');
 
-        // Función para añadir un cuadro normal (1x1)
-        function crearCuadroNormal() {
-            const div = document.createElement('div');
-            div.className = 'espacio';
-            return div;
-        }
-
-        // Función para añadir una imagen que ocupe varios cuadros
-        // ancho y alto son multiplicadores de 10px (ej: 3 es 30px)
-        function crearImagenGrande(url, ancho, alto) {
-            const div = document.createElement('div');
-            div.className = 'imagen-grande';
-            div.style.backgroundImage = `url('${url}')`;
-            
-            // Aquí ocurre la magia:
-            div.style.gridColumn = `span ${ancho}`;
-            div.style.gridRow = `span ${alto}`;
-            
-            return div;
-        }
-
-        function generarMosaico() {
-            // Ejemplo: Añadimos 50 cuadros normales
-            for (let i = 0; i < 50; i++) {
-                contenedor.appendChild(crearCuadroNormal());
+        // 1. Llenamos y numeramos los 10.000 cuadros
+        function crearFondoNumerado() {
+            const frag = document.createDocumentFragment();
+            for (let i = 1; i <= 10000; i++) {
+                const div = document.createElement('div');
+                div.className = 'espacio-vacio';
+                div.innerText = i; // Ponemos el número
+                frag.appendChild(div);
             }
-
-            // Ejemplo: Añadimos una imagen de 30x20 píxeles (ocupa 3x2 cuadritos)
-            contenedor.appendChild(crearImagenGrande('https://picsum.photos/30/20', 3, 2));
-
-            // Ejemplo: Una imagen de 50x50 (5x5 cuadritos)
-            contenedor.appendChild(crearImagenGrande('https://picsum.photos/50/50', 5, 5));
-
-            // Rellenamos el resto hasta llegar a los 10.000 (aproximado)
-            for (let i = 0; i < 9000; i++) {
-                contenedor.appendChild(crearCuadroNormal());
-            }
+            contenedor.appendChild(frag);
         }
 
-        window.onload = generarMosaico;
+        /**
+         * FUNCIÓN PARA COLOCAR IMÁGENES
+         * x: columna (1-100) | y: fila (1-100)
+         */
+        function colocarImagen(x, y, w, h, url) {
+            const img = document.createElement('div');
+            img.className = 'anuncio';
+            img.style.backgroundImage = `url('${url}')`;
+            img.style.gridColumn = `${x} / span ${w}`;
+            img.style.gridRow = `${y} / span ${h}`;
+            contenedor.appendChild(img);
+        }
+
+        // Ejecutar
+        crearFondoNumerado();
+
+        // Ejemplo: Colocar una imagen en la zona del cuadro número 1
+        colocarImagen(1, 1, 10, 5, 'https://picsum.photos/100/50?1');
     </script>
 </body>
 </html>
