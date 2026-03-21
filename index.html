@@ -8,7 +8,7 @@
 <style>
   body {
     margin: 0;
-    overflow: hidden;
+    overflow: auto;
     background: #111;
   }
 
@@ -32,26 +32,41 @@ const rows = 500;
 canvas.width = cols * cellSize;
 canvas.height = rows * cellSize;
 
-// Dibujar cuadrícula
+// Dibujar celdas + líneas
 function drawGrid() {
+  // Fondo ajedrez
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
 
-      // efecto ajedrez gris/blanco
-      if ((x + y) % 2 === 0) {
-        ctx.fillStyle = "#eee";
-      } else {
-        ctx.fillStyle = "#ccc";
-      }
-
+      ctx.fillStyle = (x + y) % 2 === 0 ? "#f5f5f5" : "#e0e0e0";
       ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
     }
   }
+
+  // Líneas de grid
+  ctx.strokeStyle = "rgba(0,0,0,0.15)";
+  ctx.lineWidth = 1;
+
+  ctx.beginPath();
+
+  // Verticales
+  for (let x = 0; x <= cols; x++) {
+    ctx.moveTo(x * cellSize, 0);
+    ctx.lineTo(x * cellSize, canvas.height);
+  }
+
+  // Horizontales
+  for (let y = 0; y <= rows; y++) {
+    ctx.moveTo(0, y * cellSize);
+    ctx.lineTo(canvas.width, y * cellSize);
+  }
+
+  ctx.stroke();
 }
 
 drawGrid();
 
-// Detectar clic en celda
+// Click en celda
 canvas.addEventListener("click", function(e) {
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor((e.clientX - rect.left) / cellSize);
