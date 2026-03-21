@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 100k - 10x10 Numerado</title>
+    <title>Mosaico 50k - 10x10 Numerado</title>
     <style>
         body {
             margin: 0;
@@ -21,7 +21,7 @@
             width: 100vw;    
             background-color: #fff;
             align-content: flex-start;
-            /* Permite zoom manual, bloquea el auto-zoom de sistema al clicar */
+            /* Permite zoom manual (pinch), pero evita el zoom automático de sistema al clicar */
             touch-action: manipulation;
         }
 
@@ -60,9 +60,9 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 100000; // Ajustado a 100.000
+        const totalEspacios = 50000; // Ajustado a 50.000
         const contenedor = document.getElementById('contenedor-mosaico');
-        const tamañoLote = 10000; 
+        const tamañoLote = 10000; // Renderizamos en bloques para máxima fluidez
         let generados = 0;
 
         function generarMosaico() {
