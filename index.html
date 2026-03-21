@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>500k Blocks - Doble Tamaño</title>
+    <title>2M Pixels - 20,000 Blocks</title>
     <style>
         * { box-sizing: border-box; touch-action: none; }
         body { 
-            margin: 0; background: #000; color: #0f0; 
-            font-family: 'Courier New', monospace; overflow: hidden; height: 100vh;
+            margin: 0; background: #000; color: #00ff00; 
+            font-family: monospace; overflow: hidden; height: 100vh;
             display: flex; flex-direction: column;
         }
         header { 
-            background: #1a1a1a; text-align: center; padding: 10px;
-            border-bottom: 2px solid #333; font-size: 14px; z-index: 10;
+            background: #111; text-align: center; padding: 15px;
+            border-bottom: 2px solid #00ff00; z-index: 10;
         }
         #viewport {
             flex: 1; position: relative; overflow: hidden;
@@ -22,22 +22,22 @@
         #canvas-wrapper { transform-origin: center; will-change: transform; }
         canvas { 
             background: #fff; image-rendering: pixelated; 
-            border: 2px solid #555;
+            border: 5px solid #333;
         }
-        #info {
-            position: fixed; bottom: 10px; left: 10px;
-            background: rgba(0,0,0,0.8); padding: 10px;
-            font-size: 12px; border-radius: 5px; pointer-events: none;
-            border: 1px solid #0f0;
+        #info-panel {
+            position: fixed; bottom: 15px; left: 15px;
+            background: rgba(0,0,0,0.9); padding: 12px;
+            font-size: 13px; border-radius: 5px; border: 1px solid #00ff00;
+            pointer-events: none; line-height: 1.5;
         }
-        .bold { color: #fff; font-weight: bold; }
+        .val { color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <strong>MEGA PIXEL BOARD</strong><br>
-    500,000 bloques de 4x4px | Lienzo: 2000x4000
+    <strong style="font-size: 18px;">RECTÁNGULO HORIZONTAL 2M</strong><br>
+    2,000,000 px totales | 20,000 bloques de 10x10
 </header>
 
 <div id="viewport">
@@ -46,10 +46,11 @@
     </div>
 </div>
 
-<div id="info">
-    ID BLOQUE: <span id="bid" class="bold">-</span><br>
-    COORD: <span id="coords" class="bold">0, 0</span><br>
-    ZOOM: <span id="zval" class="bold">100</span>%
+<div id="info-panel">
+    ESPACIOS TOTALES: <span class="val">20,000</span><br>
+    ID BLOQUE: <span id="bid" class="val">-</span><br>
+    COORDENADA: <span id="coords" class="val">0, 0</span><br>
+    ZOOM: <span id="zval" class="val">100</span>%
 </div>
 
 <script>
@@ -60,32 +61,32 @@
     const coordDisp = document.getElementById('coords');
     const zDisp = document.getElementById('zval');
 
-    // CONFIGURACIÓN DUPLICADA
-    const COLS = 500;
-    const ROWS = 1000;
-    const BSIZE = 4; // Duplicado de 2 a 4
+    // CONFIGURACIÓN HORIZONTAL 2M
+    const COLS = 200; // 200 bloques * 10px = 2000px ancho
+    const ROWS = 100; // 100 bloques * 10px = 1000px alto
+    const BSIZE = 10; 
     canvas.width = COLS * BSIZE;  // 2000px
-    canvas.height = ROWS * BSIZE; // 4000px
+    canvas.height = ROWS * BSIZE; // 1000px
 
-    let scale = 0.3, posX = 0, posY = 0;
+    let scale = 0.4, posX = 0, posY = 0;
     let isDragging = false, lastX = 0, lastY = 0, lastDist = 0;
 
-    // Dibujar rejilla y ejemplo
-    function initBoard() {
+    function init() {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Rejilla Negra más visible
-        ctx.strokeStyle = "#cccccc"; 
-        ctx.lineWidth = 0.5;
+        // REJILLA NEGRA MARCADA
+        ctx.strokeStyle = "#000000"; 
+        ctx.lineWidth = 1; // Línea sólida de 1px
         ctx.beginPath();
         for(let x=0; x<=canvas.width; x+=BSIZE) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
         for(let y=0; y<=canvas.height; y+=BSIZE) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
         ctx.stroke();
         
-        // Ejemplo: Bloque 1 en Rojo (Ahora es de 4x4)
+        // Bloque de ejemplo en rojo (Posición 0,0)
         ctx.fillStyle = "red";
         ctx.fillRect(0, 0, BSIZE, BSIZE);
+        update();
     }
 
     function update() {
@@ -93,7 +94,7 @@
         zDisp.innerText = Math.round(scale * 100);
     }
 
-    // --- CONTROLES ---
+    // Controles táctiles y mouse
     const start = (x, y) => { isDragging = true; lastX = x; lastY = y; };
     const move = (x, y) => {
         if(!isDragging) return;
@@ -106,12 +107,11 @@
     window.onmousemove = e => move(e.clientX, e.clientY);
     window.onmouseup = () => isDragging = false;
     window.onwheel = e => {
-        const delta = e.deltaY > 0 ? 0.85 : 1.15;
-        scale = Math.max(0.05, Math.min(scale * delta, 25));
+        scale *= e.deltaY > 0 ? 0.9 : 1.1;
+        scale = Math.max(0.05, Math.min(scale, 15));
         update();
     };
 
-    // Táctil Móvil
     window.ontouchstart = e => {
         if(e.touches.length === 1) start(e.touches[0].clientX, e.touches[0].clientY);
         if(e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
@@ -125,9 +125,7 @@
             update();
         }
     };
-    window.ontouchend = () => isDragging = false;
 
-    // Pintar al hacer click/tap
     canvas.onpointerdown = e => {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) / scale;
@@ -138,17 +136,12 @@
             const id = (by * COLS) + bx + 1;
             bidDisp.innerText = id.toLocaleString();
             coordDisp.innerText = `${bx}, ${by}`;
-            
             ctx.fillStyle = `hsl(${Math.random()*360}, 80%, 50%)`;
-            ctx.fillRect(bx*BSIZE, by*BSIZE, BSIZE, BSIZE);
-            // Borde del bloque pintado
-            ctx.strokeStyle = "rgba(0,0,0,0.2)";
-            ctx.strokeRect(bx*BSIZE, by*BSIZE, BSIZE, BSIZE);
+            ctx.fillRect(bx*BSIZE + 1, by*BSIZE + 1, BSIZE - 2, BSIZE - 2);
         }
     };
 
-    initBoard();
-    update();
+    init();
 </script>
 </body>
 </html>
