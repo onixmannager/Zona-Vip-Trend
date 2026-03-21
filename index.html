@@ -3,25 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 50k - 10x10 Numerado</title>
+    <title>Mosaico Pro 50k - Sistema de Anuncios</title>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
-            overflow-x: hidden; 
-            display: flex;
-            justify-content: center;
             font-family: sans-serif;
         }
 
+        /* Contenedor relativo para que las fotos se posicionen respecto a él */
         #contenedor-mosaico {
             display: flex;
             flex-wrap: wrap; 
             width: 100vw;    
             background-color: #fff;
+            position: relative; 
             align-content: flex-start;
-            /* Permite zoom manual (pinch), pero evita el zoom automático de sistema al clicar */
             touch-action: manipulation;
         }
 
@@ -38,20 +36,27 @@
             font-size: 3px;
             color: #ccc;
             user-select: none;
-            transition: background-color 0.1s;
         }
 
-        /* Resaltado al pasar el ratón */
         .espacio:hover {
             background-color: #000;
             color: #fff;
-            z-index: 5;
-            cursor: crosshair;
+            cursor: pointer;
         }
 
-        /* Feedback al tocar en móviles */
-        .espacio:active {
-            background-color: #ff00ff;
+        /* Clase para las fotos reales que subas */
+        .foto-anuncio {
+            position: absolute;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            outline: 1px solid #000;
+            z-index: 10;
+            pointer-events: auto;
+        }
+
+        .foto-anuncio:hover {
+            outline: 2px solid #ff00ff;
+            z-index: 100;
         }
     </style>
 </head>
@@ -60,9 +65,9 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 50000; // Ajustado a 50.000
+        const totalEspacios = 50000;
         const contenedor = document.getElementById('contenedor-mosaico');
-        const tamañoLote = 10000; // Renderizamos en bloques para máxima fluidez
+        const tamañoLote = 5000; 
         let generados = 0;
 
         function generarMosaico() {
@@ -74,18 +79,46 @@
                     const div = document.createElement('div');
                     div.className = 'espacio';
                     div.innerText = i;
+                    // Al hacer clic, activamos el sistema de "subida"
+                    div.onclick = () => solicitarImagen(div, i);
                     fragmento.appendChild(div);
                 }
 
                 contenedor.appendChild(fragmento);
                 generados = limite;
-
-                if (generados < totalEspacios) {
-                    requestAnimationFrame(renderBatch);
-                }
+                if (generados < totalEspacios) requestAnimationFrame(renderBatch);
             }
-
             renderBatch();
+        }
+
+        function solicitarImagen(elemento, id) {
+            const url = prompt("Introduce la URL de la imagen:");
+            if (!url) return;
+
+            const ancho = parseInt(prompt("¿Cuántos cuadros de ANCHO? (Ej: 10 para 100px)", "10"));
+            const alto = parseInt(prompt("¿Cuántos cuadros de ALTO? (Ej: 5 para 50px)", "5"));
+
+            if (isNaN(ancho) || isNaN(alto)) return;
+
+            // Calculamos la posición exacta basándonos en el cuadro clicado
+            const rect = elemento.getBoundingClientRect();
+            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            const foto = document.createElement('div');
+            foto.className = 'foto-anuncio';
+            foto.style.backgroundImage = `url('${url}')`;
+            
+            // Posición basada en coordenadas del cuadro
+            foto.style.left = (elemento.offsetLeft) + "px";
+            foto.style.top = (elemento.offsetTop) + "px";
+            
+            // Tamaño basado en la cantidad de cuadros
+            foto.style.width = (ancho * 10) + "px";
+            foto.style.height = (alto * 10) + "px";
+
+            foto.title = `Anuncio en cuadro ${id}`;
+            contenedor.appendChild(foto);
         }
 
         window.onload = generarMosaico;
