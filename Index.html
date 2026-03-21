@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid 500K</title>
+
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+  }
+
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="grid"></canvas>
+
+<script>
+const canvas = document.getElementById("grid");
+const ctx = canvas.getContext("2d");
+
+const cellSize = 25;
+const cols = 1000;
+const rows = 500;
+
+canvas.width = cols * cellSize;
+canvas.height = rows * cellSize;
+
+// Dibujar cuadrícula
+function drawGrid() {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+
+      // efecto ajedrez gris/blanco
+      if ((x + y) % 2 === 0) {
+        ctx.fillStyle = "#eee";
+      } else {
+        ctx.fillStyle = "#ccc";
+      }
+
+      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+    }
+  }
+}
+
+drawGrid();
+
+// Detectar clic en celda
+canvas.addEventListener("click", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) / cellSize);
+  const y = Math.floor((e.clientY - rect.top) / cellSize);
+
+  alert("Celda: " + x + ", " + y);
+});
+</script>
+
+</body>
+</html>
