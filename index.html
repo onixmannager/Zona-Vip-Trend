@@ -3,45 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Million Dollar Page - 500k Bloques</title>
+    <title>500k Blocks Final</title>
     <style>
+        * { box-sizing: border-box; touch-action: none; }
         body { 
-            margin: 0; background: #121212; color: #00ff00; 
-            font-family: 'Courier New', Courier, monospace; overflow: hidden; height: 100vh;
+            margin: 0; background: #000; color: #0f0; 
+            font-family: sans-serif; overflow: hidden; height: 100vh;
+            display: flex; flex-direction: column;
         }
         header { 
-            position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.9);
-            z-index: 100; text-align: center; padding: 10px 0; border-bottom: 1px solid #333;
+            background: #1a1a1a; text-align: center; padding: 10px;
+            border-bottom: 1px solid #333; font-size: 14px;
         }
         #viewport {
-            width: 100vw; height: 100vh;
-            cursor: grab; touch-action: none;
+            flex: 1; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
         }
-        #canvas-wrapper {
-            transform-origin: center;
-            will-change: transform;
-            transition: transform 0.05s ease-out;
+        #canvas-wrapper { transform-origin: center; will-change: transform; }
+        canvas { 
+            background: #fff; image-rendering: pixelated; 
+            border: 1px solid #555;
         }
-        canvas {
-            background: #fff;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            image-rendering: pixelated; /* Evita que los píxeles se vean borrosos */
-        }
-        #stats {
+        #info {
             position: fixed; bottom: 10px; left: 10px;
-            background: rgba(0,0,0,0.8); padding: 10px;
-            font-size: 12px; pointer-events: none; border-radius: 5px;
-            border: 1px solid #333;
+            background: rgba(0,0,0,0.8); padding: 8px;
+            font-size: 11px; border-radius: 5px; pointer-events: none;
         }
-        .highlight { color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-size: 16px;">LIENZO DE 2,000,000 PÍXELES</div>
-    <div style="font-size: 10px; color: #888;">500,000 ESPACIOS (2x2 px cada uno)</div>
+    500,000 BLOQUES (500x1000) - 2M PX<br>
+    <small style="color: #888;">Usa 2 dedos para Zoom / 1 para Mover y Pintar</small>
 </header>
 
 <div id="viewport">
@@ -50,137 +44,95 @@
     </div>
 </div>
 
-<div id="stats">
-    BLOQUES TOTALES: <span class="highlight">500,000</span><br>
-    ZOOM ACTUAL: <span id="zoom-info" class="highlight">100</span>%<br>
-    <span id="bid">Haz zoom para ver el cuadro rojo -></span>
-</div>
+<div id="info">ID: <span id="bid">-</span> | Zoom: <span id="zval">100</span>%</div>
 
 <script>
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d', { alpha: false });
     const wrapper = document.getElementById('canvas-wrapper');
-    const bidDisplay = document.getElementById('bid');
-    const zoomDisplay = document.getElementById('zoom-info');
+    const bidDisp = document.getElementById('bid');
+    const zDisp = document.getElementById('zval');
 
-    // --- CONFIGURACIÓN MATEMÁTICA ---
-    const COLS = 500;
-    const ROWS = 1000;
-    const BLOCK_SIZE = 2; // Cada bloque es de 2x2 píxeles reales
-    const WIDTH = COLS * BLOCK_SIZE; // 1000px ancho
-    const HEIGHT = ROWS * BLOCK_SIZE; // 2000px alto
+    const COLS = 500, ROWS = 1000, BSIZE = 2;
+    canvas.width = COLS * BSIZE; // 1000
+    canvas.height = ROWS * BSIZE; // 2000
 
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
+    let scale = 0.5, posX = 0, posY = 0;
+    let isDragging = false, lastX = 0, lastY = 0, lastDist = 0;
 
-    let scale = 0.6;
-    let translateX = 0;
-    let translateY = 0;
-
-    // --- DIBUJO INICIAL ---
-    function initCanvas() {
-        // Fondo blanco
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-        // Dibujar Rejilla Negra (Líneas muy finas)
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 0.2;
+    // Dibujar rejilla inicial y punto rojo
+    function drawGrid() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#eee"; // Rejilla muy suave para no saturar el móvil
+        ctx.lineWidth = 0.1;
         ctx.beginPath();
-        for (let x = 0; x <= WIDTH; x += BLOCK_SIZE) {
-            ctx.moveTo(x, 0); ctx.lineTo(x, HEIGHT);
-        }
-        for (let y = 0; y <= HEIGHT; y += BLOCK_SIZE) {
-            ctx.moveTo(0, y); ctx.lineTo(WIDTH, y);
-        }
+        for(let x=0; x<=canvas.width; x+=BSIZE) { ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); }
+        for(let y=0; y<=canvas.height; y+=BSIZE) { ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); }
         ctx.stroke();
-
-        // EJEMPLO: Bloque Rojo en la posición 1 (0,0)
-        ctx.fillStyle = '#FF0000';
-        ctx.fillRect(0, 0, BLOCK_SIZE, BLOCK_SIZE);
         
-        updateTransform();
+        // Ejemplo: Bloque 1 en Rojo
+        ctx.fillStyle = "red";
+        ctx.fillRect(0, 0, BSIZE, BSIZE);
     }
 
-    function updateTransform() {
-        wrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-        zoomDisplay.innerText = Math.round(scale * 100);
+    function update() {
+        wrapper.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+        zDisp.innerText = Math.round(scale * 100);
     }
 
-    // --- CONTROLES (RATÓN Y TÁCTIL) ---
-    let isDragging = false;
-    let lastX, lastY;
-    let lastDist = 0;
-
-    const start = (x, y) => { isDragging = true; lastX = x; lastY = y; };
-    const move = (x, y) => {
-        if (!isDragging) return;
-        translateX += x - lastX;
-        translateY += y - lastY;
+    // --- GESTIÓN DE EVENTOS UNIFICADA ---
+    const handleStart = (x, y) => { isDragging = true; lastX = x; lastY = y; };
+    const handleMove = (x, y) => {
+        if(!isDragging) return;
+        posX += x - lastX; posY += y - lastY;
         lastX = x; lastY = y;
-        updateTransform();
+        update();
     };
 
-    // Eventos Mouse
-    window.onmousedown = (e) => { if(e.button === 0) start(e.clientX, e.clientY); };
-    window.onmousemove = (e) => move(e.clientX, e.clientY);
+    // Mouse
+    window.onmousedown = e => handleStart(e.clientX, e.clientY);
+    window.onmousemove = e => handleMove(e.clientX, e.clientY);
     window.onmouseup = () => isDragging = false;
-
-    // Zoom Rueda
-    window.onwheel = (e) => {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? 0.8 : 1.2;
-        scale = Math.max(0.1, Math.min(scale * delta, 40)); // Zoom hasta 4000%
-        updateTransform();
+    window.onwheel = e => {
+        scale *= e.deltaY > 0 ? 0.9 : 1.1;
+        scale = Math.max(0.1, Math.min(scale, 50));
+        update();
     };
 
-    // Eventos Touch (Móvil)
-    window.ontouchstart = (e) => {
-        if (e.touches.length === 1) {
-            start(e.touches[0].clientX, e.touches[0].clientY);
-        } else if (e.touches.length === 2) {
-            lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        }
+    // Touch (Móvil)
+    window.ontouchstart = e => {
+        if(e.touches.length === 1) handleStart(e.touches[0].clientX, e.touches[0].clientY);
+        if(e.touches.length === 2) lastDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
     };
-
-    window.ontouchmove = (e) => {
-        e.preventDefault();
-        if (e.touches.length === 1) {
-            move(e.touches[0].clientX, e.touches[0].clientY);
-        } else if (e.touches.length === 2) {
-            const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    window.ontouchmove = e => {
+        if(e.touches.length === 1) handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        if(e.touches.length === 2) {
+            let dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
             scale *= (dist / lastDist);
-            scale = Math.max(0.1, Math.min(scale, 40));
             lastDist = dist;
-            updateTransform();
+            update();
         }
     };
     window.ontouchend = () => isDragging = false;
 
-    // Pintar al hacer clic
-    canvas.onclick = (e) => {
+    // Pintar al tocar
+    canvas.onpointerdown = e => {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) / scale;
         const y = (e.clientY - rect.top) / scale;
+        const bx = Math.floor(x / BSIZE), by = Math.floor(y / BSIZE);
         
-        const bX = Math.floor(x / BLOCK_SIZE);
-        const bY = Math.floor(y / BLOCK_SIZE);
-        
-        if (bX >= 0 && bX < COLS && bY >= 0 && bY < ROWS) {
-            const id = (bY * COLS) + bX + 1;
-            bidDisplay.innerHTML = `ID Bloque: <span class="highlight">${id.toLocaleString()}</span> (X:${bX}, Y:${bY})`;
-            
-            // Pintar color aleatorio
-            ctx.fillStyle = `hsl(${Math.random() * 360}, 80%, 50%)`;
-            ctx.fillRect(bX * BLOCK_SIZE, bY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-            
-            // Repintar borde (opcional para mantener la rejilla)
-            ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-            ctx.strokeRect(bX * BLOCK_SIZE, bY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        if(bx >= 0 && bx < COLS && by >= 0 && by < ROWS) {
+            const id = (by * COLS) + bx + 1;
+            bidDisp.innerText = id.toLocaleString();
+            ctx.fillStyle = `hsl(${Math.random()*360}, 70%, 50%)`;
+            ctx.fillRect(bx*BSIZE, by*BSIZE, BSIZE, BSIZE);
         }
     };
 
-    initCanvas();
+    drawGrid();
+    update();
 </script>
 </body>
 </html>
