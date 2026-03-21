@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - 10x10 Numerado</title>
+    <title>Mosaico 500k - 5x5 Numerado</title>
     <style>
         body {
             margin: 0;
@@ -21,32 +21,34 @@
             width: 100vw;    
             background-color: #fff;
             align-content: flex-start;
-            /* Permite zoom manual y scroll, pero evita zoom automático por clic */
+            /* Zoom manual permitido, evita auto-zoom molesto */
             touch-action: manipulation;
         }
 
         .espacio {
-            width: 10px;      
-            height: 10px;     
+            width: 5px;       /* Tamaño solicitado 5x5 */
+            height: 5px;      
             box-sizing: border-box;
             background-color: #fff; 
-            border: 0.1px solid #eee;
+            border: 0.1px solid #f0f0f0;
             flex-shrink: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 3px;
-            color: #ccc;
+            /* Texto extremadamente pequeño */
+            font-size: 1.5px; 
+            color: rgba(0,0,0,0.1);
             user-select: none;
+            overflow: hidden;
         }
 
         .espacio:hover {
             background-color: #000;
             color: #fff;
+            font-size: 4px; /* Se agranda un poco al pasar el ratón para verlo */
             z-index: 5;
         }
 
-        /* Color temporal al tocar en móviles */
         .espacio:active {
             background-color: #ff00ff;
         }
@@ -59,7 +61,8 @@
     <script>
         const totalEspacios = 500000;
         const contenedor = document.getElementById('contenedor-mosaico');
-        const tamañoLote = 10000; // Procesamos de 10k en 10k
+        // Reducimos el lote a 5000 para que el renderizado de 5x5 no sature el proceso visual
+        const tamañoLote = 5000; 
         let generados = 0;
 
         function generarMosaico() {
@@ -78,7 +81,7 @@
                 generados = limite;
 
                 if (generados < totalEspacios) {
-                    // Usamos requestAnimationFrame para dejar que el navegador respire
+                    // Mantiene la web fluida mientras se crean los 500k divs
                     requestAnimationFrame(renderBatch);
                 }
             }
