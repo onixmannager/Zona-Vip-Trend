@@ -3,40 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 10k - Estilo Million Dollar</title>
+    <title>Mosaico Million Dollar - Multitamaño</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0; /* Fondo gris claro tipo web antigua */
-            overflow-x: hidden; 
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
         }
 
         #contenedor-mosaico {
-            display: flex;
-            flex-wrap: wrap; 
-            width: 100vw;    
-            background-color: #fff; /* Fondo blanco para los espacios */
-            align-content: flex-start;
+            display: grid;
+            /* Creamos columnas de 10px fijas */
+            grid-template-columns: repeat(auto-fill, 10px);
+            /* Creamos filas automáticas de 10px */
+            grid-auto-rows: 10px;
+            width: 100vw;
+            background-color: #fff;
         }
 
+        /* El cuadro básico de 10x10 */
         .espacio {
-            width: 10px;      
-            height: 10px;     
-            box-sizing: border-box;
-            background-color: #fff; 
-            /* Borde sutil para ver la rejilla */
+            width: 10px;
+            height: 10px;
             border: 0.5px solid #ddd;
-            flex-shrink: 0;
-            transition: background-color 0.2s;
+            box-sizing: border-box;
+            background-size: cover;
+            background-position: center;
         }
 
-        /* Efecto al pasar el ratón */
-        .espacio:hover {
-            background-color: #000; /* Se pinta de negro al pasar */
-            border-color: #000;
+        /* Clase para imágenes que ocupan más espacio */
+        .imagen-grande {
+            border: 0.5px solid #bbb;
+            background-color: #eee;
+            background-size: cover;
+            /* Por defecto ocupan 1x1, pero lo cambiaremos con JS o CSS manual */
+        }
+
+        .espacio:hover, .imagen-grande:hover {
+            outline: 1px solid #ff00ff;
+            z-index: 10;
         }
     </style>
 </head>
@@ -45,22 +52,47 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 10000; // 10.000 bloques de 10x10 = 1.000.000 px
         const contenedor = document.getElementById('contenedor-mosaico');
 
-        function generarMosaico() {
-            const fragmento = document.createDocumentFragment();
-            
-            for (let i = 0; i < totalEspacios; i++) {
-                const div = document.createElement('div');
-                div.className = 'espacio';
-                fragmento.appendChild(div);
-            }
-            
-            contenedor.appendChild(fragmento);
+        // Función para añadir un cuadro normal (1x1)
+        function crearCuadroNormal() {
+            const div = document.createElement('div');
+            div.className = 'espacio';
+            return div;
         }
 
-        // Carga inmediata
+        // Función para añadir una imagen que ocupe varios cuadros
+        // ancho y alto son multiplicadores de 10px (ej: 3 es 30px)
+        function crearImagenGrande(url, ancho, alto) {
+            const div = document.createElement('div');
+            div.className = 'imagen-grande';
+            div.style.backgroundImage = `url('${url}')`;
+            
+            // Aquí ocurre la magia:
+            div.style.gridColumn = `span ${ancho}`;
+            div.style.gridRow = `span ${alto}`;
+            
+            return div;
+        }
+
+        function generarMosaico() {
+            // Ejemplo: Añadimos 50 cuadros normales
+            for (let i = 0; i < 50; i++) {
+                contenedor.appendChild(crearCuadroNormal());
+            }
+
+            // Ejemplo: Añadimos una imagen de 30x20 píxeles (ocupa 3x2 cuadritos)
+            contenedor.appendChild(crearImagenGrande('https://picsum.photos/30/20', 3, 2));
+
+            // Ejemplo: Una imagen de 50x50 (5x5 cuadritos)
+            contenedor.appendChild(crearImagenGrande('https://picsum.photos/50/50', 5, 5));
+
+            // Rellenamos el resto hasta llegar a los 10.000 (aproximado)
+            for (let i = 0; i < 9000; i++) {
+                contenedor.appendChild(crearCuadroNormal());
+            }
+        }
+
         window.onload = generarMosaico;
     </script>
 </body>
