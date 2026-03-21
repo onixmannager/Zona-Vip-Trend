@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mosaico 500k - 4x4 Vertical</title>
+    <title>Mosaico 20k - 10x10 Vertical</title>
     <style>
         body {
             margin: 0;
@@ -22,12 +22,12 @@
         }
 
         .espacio {
-            width: 4px;      /* Tamaño ajustado a 4x4 */
-            height: 4px;     /* Tamaño ajustado a 4x4 */
+            width: 100px;      /* Tamaño ajustado a 10x10 */
+            height: 100px;     /* Tamaño ajustado a 10x10 */
             box-sizing: border-box;
             background-color: #1a1a1a; 
-            /* Mantenemos el borde ultra fino para distinguir los huecos */
-            border: 0.1px solid #111;
+            /* Borde fino para distinguir los huecos */
+            border: 0.5px solid #111;
             flex-shrink: 0;
         }
 
@@ -43,12 +43,12 @@
     <div id="contenedor-mosaico"></div>
 
     <script>
-        const totalEspacios = 500000;
+        const totalEspacios = 20000; // Total ajustado a 20.000
         const contenedor = document.getElementById('contenedor-mosaico');
 
         function generarMosaico() {
             let generados = 0;
-            const lote = 15000; // Mantenemos la carga por lotes para fluidez
+            const lote = 5000; // Lote de carga
 
             function dibujar() {
                 const fragmento = document.createDocumentFragment();
@@ -63,7 +63,6 @@
                 contenedor.appendChild(fragmento);
 
                 if (generados < totalEspacios) {
-                    // Sincroniza con el refresco del monitor para no laggear
                     requestAnimationFrame(dibujar);
                 }
             }
@@ -71,8 +70,7 @@
             dibujar();
         }
 
-        // Retraso de seguridad para carga de DOM
-        setTimeout(generarMosaico, 300);
+        setTimeout(generarMosaico, 100);
     </script>
 </body>
 </html>
