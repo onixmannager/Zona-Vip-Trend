@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZonaVIP Trends — Mosaico</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --bg:      #06080F;
+      --card:    #0C1022;
+      --gold:    #C9A84C;
+      --gold-lt: #EDD780;
+      --gold-dk: #7A6020;
+      --cyan:    #00E5FF;
+      --white:   #EEF2FF;
+      --muted:   #4A5878;
+      --muted2:  #8A99BB;
+      --border:  rgba(201,168,76,0.15);
+      --sel:     rgba(201,168,76,0.45);
+      --sold:    rgba(0,229,255,0.18);
+      --fh:      'Bebas Neue', sans-serif;
+      --fb:      'DM Sans', sans-serif;
+      --fm:      'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--fb);
+      background: var(--bg);
+      color: var(--white);
+      overflow: hidden;
+    }
+
+    /* ── BARRA ── */
+    #barra {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 52px;
+      background: rgba(6,8,15,0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      display: flex; align-items: center;
+      padding: 0 16px;
+      z-index: 100;
+      gap: 10px;
+    }
+
+    /* Logo — ancho fijo para que no se mueva */
+    .barra-logo {
+      display: flex; align-items: center; gap: 6px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .barra-logo-main {
+      font-family: var(--fh); font-size: 1.2rem; letter-spacing: .06em;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .barra-logo-tag {
+      font-family: var(--fm); font-size: .5rem; letter-spacing: .14em;
+      color: var(--cyan); border: 1px solid rgba(0,229,255,0.2);
+      padding: 2px 5px; border-radius: 3px; text-transform: uppercase;
+    }
+
+    /* Info central — ancho fijo, texto no empuja botones */
+    #barra-info {
+      font-family: var(--fm); font-size: .65rem;
+      color: var(--muted2); letter-spacing: .04em;
+      flex: 1; text-align: center;
+      overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+      min-width: 0;
+    }
+    #barra-info b    { color: var(--white); }
+    #barra-info .g   { color: var(--gold); }
+
+    /* Precio — ancho fijo para que no desplace nada */
+    #precio-fijo {
+      font-family: var(--fm); font-size: .8rem; font-weight: 500;
+      color: var(--gold);
+      min-width: 72px; text-align: right;
+      flex-shrink: 0;
+      opacity: 0; transition: opacity .2s;
+      white-space: nowrap;
+    }
+    #precio-fijo.visible { opacity: 1; }
+
+    /* Botones — siempre al final, nunca se mueven */
+    #barra-btns {
+      display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+
+    #btn-pagar {
+      display: none; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      font-family: var(--fb); font-size: .78rem; font-weight: 600;
+      color: #000;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      border: none; border-radius: 6px; cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 0 16px rgba(201,168,76,0.25);
+      transition: transform .2s, box-shadow .2s;
+    }
+    #btn-pagar.visible { display: flex; }
+    #btn-pagar:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(201,168,76,0.45); }
+
+    #btn-cancelar {
+      display: none; align-items: center; gap: 5px;
+      padding: 7px 10px;
+      font-family: var(--fm); font-size: .7rem;
+      color: var(--muted2);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+    #btn-cancelar.visible { display: flex; }
+    #btn-cancelar:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
+
+    #btn-comprar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      font-family: var(--fb); font-size: .78rem; font-weight: 600;
+      color: var(--gold);
+      background: rgba(201,168,76,0.08);
+      border: 1px solid var(--border);
+      border-radius: 6px; cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+    #btn-comprar:hover { background: rgba(201,168,76,0.16); border-color: var(--gold); }
+    #btn-comprar.oculto { display: none; }
+
+    /* ── WRAP ── */
+    #wrap {
+      position: fixed;
+      top: 52px; left: 0; right: 0; bottom: 0;
+      overflow: auto;
+      cursor: default;
+      user-select: none;
+      /* En modo compra bloqueamos el scroll táctil desde JS */
+    }
+    #wrap.activo { cursor: crosshair; }
+
+    /* ── MOSAICO ── */
+    #mosaico {
+      display: grid;
+      background: var(--bg);
+    }
+
+    .celda {
+      width: 10px; height: 10px;
+      border-right: 0.5px solid rgba(201,168,76,0.07);
+      border-bottom: 0.5px solid rgba(201,168,76,0.07);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fm); font-size: 3px;
+      color: rgba(201,168,76,0.2);
+      line-height: 1;
+    }
+    .celda.vendida     { background: var(--sold); color: transparent; cursor: not-allowed; }
+    .celda.seleccionada{ background: var(--sel);  color: transparent; }
+
+    /* ── SELECTOR VISUAL ── */
+    #selector {
+      position: absolute;
+      border: 1.5px solid rgba(201,168,76,0.9);
+      background: rgba(201,168,76,0.06);
+      pointer-events: none;
+      display: none;
+      z-index: 10;
+      box-shadow: 0 0 18px rgba(201,168,76,0.14), inset 0 0 18px rgba(201,168,76,0.03);
+    }
+    #selector::before, #selector::after {
+      content: ''; position: absolute;
+      width: 8px; height: 8px;
+      border-color: var(--gold-lt); border-style: solid;
+    }
+    #selector::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+    #selector::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+
+    /* ── HINT MÓVIL ── */
+    #hint-movil {
+      display: none;
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 200;
+      font-family: var(--fm); font-size: .62rem; letter-spacing: .12em;
+      color: var(--muted2); text-transform: uppercase;
+      background: rgba(6,8,15,0.85); backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      padding: 8px 16px; border-radius: 99px;
+      white-space: nowrap;
+      animation: hintFade 3s ease forwards;
+    }
+    @keyframes hintFade { 0%{opacity:1} 70%{opacity:1} 100%{opacity:0} }
+  </style>
+</head>
+<body>
+
+<div id="barra">
+  <a class="barra-logo" href="index.html">
+    <span class="barra-logo-main">ZonaVIP</span>
+    <span class="barra-logo-tag">Trends</span>
+  </a>
+
+  <div id="barra-info">20 € / cuadrito</div>
+  <div id="precio-fijo"></div>
+
+  <div id="barra-btns">
+    <button id="btn-pagar"    onclick="irAComprar()"><i class="fas fa-bolt"></i> Pagar</button>
+    <button id="btn-cancelar" onclick="cancelar()"><i class="fas fa-times"></i></button>
+    <button id="btn-comprar"  onclick="activar()"><i class="fas fa-mouse-pointer"></i> Comprar zona</button>
+  </div>
+</div>
+
+<div id="hint-movil" id="hintMovil"></div>
+
+<div id="wrap">
+  <div id="mosaico"></div>
+  <div id="selector"></div>
+</div>
+
+<script>
+  var PRECIO = 20;
+  var TOTAL  = 50000;
+  var COLS   = 0;
+
+  var mosaico     = document.getElementById('mosaico');
+  var selector    = document.getElementById('selector');
+  var wrap        = document.getElementById('wrap');
+  var barraInfo   = document.getElementById('barra-info');
+  var precioFijo  = document.getElementById('precio-fijo');
+  var btnPagar    = document.getElementById('btn-pagar');
+  var btnComprar  = document.getElementById('btn-comprar');
+  var btnCancelar = document.getElementById('btn-cancelar');
+
+  var vendidas = new Set();
+  var celdas   = [];
+  var activo   = false;
+  var resizeTimer = null;
+  var esTactil = ('ontouchstart' in window);
+
+  // ── INICIALIZAR ──────────────────────────────────────────────────
+  function iniciar() {
+    COLS = Math.floor(window.innerWidth / 10);
+    mosaico.style.gridTemplateColumns = 'repeat(' + COLS + ', 10px)';
+    mosaico.innerHTML = '';
+    celdas = [];
+    selActual.clear();
+    selStart = null; selEnd = null;
+    selector.style.display = 'none';
+    precioFijo.classList.remove('visible');
+    btnPagar.classList.remove('visible');
+    renderLote(0, 5000);
+  }
+
+  function renderLote(desde, hasta) {
+    var frag = document.createDocumentFragment();
+    for (var i = desde; i < hasta && i < TOTAL; i++) {
+      var d = document.createElement('div');
+      d.className = vendidas.has(i) ? 'celda vendida' : 'celda';
+      d.textContent = i + 1;
+      celdas[i] = d;
+      frag.appendChild(d);
+    }
+    mosaico.appendChild(frag);
+    if (hasta < TOTAL) requestAnimationFrame(function() { renderLote(hasta, hasta + 5000); });
+  }
+
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(iniciar, 250);
+  });
+  window.addEventListener('load', iniciar);
+
+  // ── MODOS ────────────────────────────────────────────────────────
+  function activar() {
+    activo = true;
+    btnComprar.classList.add('oculto');
+    btnCancelar.classList.add('visible');
+    wrap.classList.add('activo');
+    barraInfo.innerHTML = 'Arrastra para seleccionar tu zona';
+
+    // Hint para móvil
+    if (esTactil) {
+      var hint = document.getElementById('hint-movil');
+      hint.textContent = 'Mantén y arrastra para seleccionar';
+      hint.style.display = 'block';
+      hint.style.animation = 'none';
+      void hint.offsetWidth;
+      hint.style.animation = 'hintFade 3s ease forwards';
+      setTimeout(function() { hint.style.display = 'none'; }, 3200);
+    }
+  }
+
+  function cancelar() {
+    activo = false;
+    limpiar();
+    selector.style.display = 'none';
+    precioFijo.classList.remove('visible');
+    precioFijo.textContent = '';
+    btnPagar.classList.remove('visible');
+    btnCancelar.classList.remove('visible');
+    btnComprar.classList.remove('oculto');
+    wrap.classList.remove('activo');
+    barraInfo.innerHTML = '20 € / cuadrito';
+  }
+
+  // ── SELECCIÓN ────────────────────────────────────────────────────
+  var selStart  = null;
+  var selEnd    = null;
+  var dragging  = false;
+  var selActual = new Set();
+
+  // Para táctil: detectamos si es arrastre o scroll
+  var touchStartX = 0, touchStartY = 0;
+  var touchMoving = false;
+  var UMBRAL_PX   = 6; // píxeles mínimos para considerar que es selección
+
+  function toPos(idx) { return { row: Math.floor(idx / COLS), col: idx % COLS }; }
+
+  function toIdx(cx, cy) {
+    var mr  = mosaico.getBoundingClientRect();
+    var col = Math.floor((cx - mr.left) / 10);
+    var row = Math.floor((cy - mr.top)  / 10);
+    if (col < 0 || col >= COLS || row < 0) return null;
+    var idx = row * COLS + col;
+    return idx < TOTAL ? idx : null;
+  }
+
+  function limpiar() {
+    selActual.forEach(function(i) { if (celdas[i]) celdas[i].classList.remove('seleccionada'); });
+    selActual.clear();
+    selStart = null; selEnd = null;
+  }
+
+  function refrescar() {
+    if (selStart === null || selEnd === null) return;
+    var p1 = toPos(selStart), p2 = toPos(selEnd);
+    var r1 = Math.min(p1.row, p2.row), r2 = Math.max(p1.row, p2.row);
+    var c1 = Math.min(p1.col, p2.col), c2 = Math.max(p1.col, p2.col);
+
+    selActual.forEach(function(i) { if (celdas[i]) celdas[i].classList.remove('seleccionada'); });
+    selActual.clear();
+
+    for (var r = r1; r <= r2; r++) {
+      for (var c = c1; c <= c2; c++) {
+        var i = r * COLS + c;
+        if (i < TOTAL && celdas[i] && !vendidas.has(i)) {
+          celdas[i].classList.add('seleccionada');
+          selActual.add(i);
+        }
+      }
+    }
+
+    var mr = mosaico.getBoundingClientRect();
+    var wr = wrap.getBoundingClientRect();
+    selector.style.display = 'block';
+    selector.style.left    = (c1 * 10 + mr.left - wr.left + wrap.scrollLeft) + 'px';
+    selector.style.top     = (r1 * 10 + mr.top  - wr.top  + wrap.scrollTop)  + 'px';
+    selector.style.width   = ((c2 - c1 + 1) * 10) + 'px';
+    selector.style.height  = ((r2 - r1 + 1) * 10) + 'px';
+
+    var n = selActual.size;
+    if (n > 0) {
+      var total = n * PRECIO;
+      // Info central: dimensiones
+      barraInfo.innerHTML =
+        '<b>' + (c2-c1+1) + '×' + (r2-r1+1) + '</b> — ' + n + ' zonas';
+      // Precio en zona fija para que no mueva nada
+      precioFijo.textContent = total.toLocaleString('es-ES') + ' €';
+      precioFijo.classList.add('visible');
+      btnPagar.classList.add('visible');
+    } else {
+      barraInfo.textContent = 'Zona ocupada — prueba otra área';
+      precioFijo.classList.remove('visible');
+      btnPagar.classList.remove('visible');
+    }
+  }
+
+  // RATÓN
+  wrap.addEventListener('mousedown', function(e) {
+    if (!activo) return;
+    var idx = toIdx(e.clientX, e.clientY);
+    if (idx === null) return;
+    selStart = selEnd = idx; dragging = true;
+    refrescar(); e.preventDefault();
+  });
+  wrap.addEventListener('mousemove', function(e) {
+    if (!dragging || !activo) return;
+    var idx = toIdx(e.clientX, e.clientY);
+    if (idx !== null && idx !== selEnd) { selEnd = idx; refrescar(); }
+  });
+  window.addEventListener('mouseup', function() { dragging = false; });
+
+  // TÁCTIL — con umbral para distinguir scroll de selección
+  wrap.addEventListener('touchstart', function(e) {
+    if (!activo) return;
+    touchStartX  = e.touches[0].clientX;
+    touchStartY  = e.touches[0].clientY;
+    touchMoving  = false;
+    dragging     = false;
+    var idx = toIdx(touchStartX, touchStartY);
+    if (idx !== null) {
+      selStart = selEnd = idx;
+    }
+  }, { passive: true });
+
+  wrap.addEventListener('touchmove', function(e) {
+    if (!activo) return;
+    var cx = e.touches[0].clientX;
+    var cy = e.touches[0].clientY;
+
+    if (!touchMoving) {
+      var dx = Math.abs(cx - touchStartX);
+      var dy = Math.abs(cy - touchStartY);
+      if (dx < UMBRAL_PX && dy < UMBRAL_PX) return; // aún no supera umbral
+      touchMoving = true;
+      dragging    = true;
+    }
+
+    // Una vez que es arrastre real, bloqueamos el scroll
+    if (dragging) {
+      e.preventDefault();
+      var idx = toIdx(cx, cy);
+      if (idx !== null && idx !== selEnd) { selEnd = idx; refrescar(); }
+    }
+  }, { passive: false }); // passive:false para poder llamar preventDefault
+
+  wrap.addEventListener('touchend', function() {
+    dragging    = false;
+    touchMoving = false;
+  });
+
+  // ── PAGO ─────────────────────────────────────────────────────────
+  function irAComprar() {
+    var n     = selActual.size;
+    var total = n * PRECIO;
+    var arr   = Array.from(selActual).sort(function(a,b){return a-b;});
+    var p1    = toPos(arr[0]);
+    var p2    = toPos(arr[arr.length-1]);
+    alert(
+      'Resumen de compra:\n' +
+      '• ' + n + ' cuadritos\n' +
+      '• Filas ' + (p1.row+1) + ' – ' + (p2.row+1) + '\n' +
+      '• Columnas ' + (p1.col+1) + ' – ' + (p2.col+1) + '\n' +
+      '• Total: ' + total.toLocaleString('es-ES') + ' €'
+    );
+    // TODO Paso 2: Firebase Function → Stripe Checkout
+  }
+</script>
+</body>
+</html>
