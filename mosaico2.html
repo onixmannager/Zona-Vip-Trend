@@ -499,12 +499,12 @@
 var CFG = {
   PRECIO:     50,
   TOTAL:      13040,
-  WORKER_URL: 'https://TU_WORKER.TU_SUBDOMINIO.workers.dev',
-  GH_REPOS:   ['TU_USUARIO/mosaico-imgs-1'],   // añade más repos aquí cuando llegues a 1000
+  API_BASE:   '/api',
+  GH_REPOS:   ['TU_USUARIO/mosaico-imgs-1'],   // cambia TU_USUARIO por tu usuario de GitHub
   STRIPE_URL: ''
 };
 var DEMO_SECS = 30;
-var isDemoMode = (CFG.WORKER_URL === 'https://TU_WORKER.TU_SUBDOMINIO.workers.dev');
+var isDemoMode = (CFG.GH_REPOS[0] === 'TU_USUARIO/mosaico-imgs-1');
 
 // 2) REFERENCIAS DOM  ← deben ir antes de cualquier addEventListener
 var mosaico    = document.getElementById('mosaico');
@@ -908,7 +908,7 @@ async function subirGitHub(){
     var activeRepo = await getActiveRepo();
 
     // El Worker recibe la petición, añade el token de GitHub y llama a la API
-    var res = await fetch(CFG.WORKER_URL + '/upload', {
+    var res = await fetch(CFG.API_BASE + '/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ repo: activeRepo, filename: filename, content: base64 })
@@ -950,7 +950,7 @@ async function publicar(){
       var targetRepo = repoMatch ? repoMatch[1] : CFG.GH_REPOS[0];
 
       // El Worker lee el zones.json actual, añade la zona y lo vuelve a guardar
-      var res = await fetch(CFG.WORKER_URL + '/publish', {
+      var res = await fetch(CFG.API_BASE + '/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ repo: targetRepo, zone: zone })
@@ -1035,100 +1035,109 @@ if(isDemoMode){
 
 <!--
 ══════════════════════════════════════════════════════
-  SETUP: GITHUB + JSDELIVR + CLOUDFLARE WORKER
+  SETUP: GITHUB + JSDELIVR + VERCEL
   ─────────────────────────────────────────────────
   PASO 1 — REPO DE GITHUB
   ────────────────────────
-  1. Crea un repo público en GitHub, p.ej: TU_USUARIO/mosaico-imgs-1
-  2. Crea un archivo vacío llamado zones.json con contenido: []
-     (sin esto jsDelivr no puede leer el archivo)
-  3. Cuando llegues a ~1000 imágenes, crea mosaico-imgs-2 y añádelo
-     a CFG.GH_REPOS. El código lo usará automáticamente.
+  1. Crea un repo público en GitHub: TU_USUARIO/mosaico-imgs-1
+  2. Añade un archivo zones.json con contenido: []
+  3. Cuando llegues a ~1000 imágenes crea mosaico-imgs-2
+     y añádelo a CFG.GH_REPOS en el HTML.
 
   PASO 2 — PERSONAL ACCESS TOKEN DE GITHUB
   ──────────────────────────────────────────
-  1. GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-  2. Permisos: Contents → Read and write  (solo el repo de imágenes)
-  3. Copia el token — lo necesitarás en el Worker
+  1. GitHub → Settings → Developer settings
+     → Personal access tokens → Fine-grained tokens
+  2. Permisos: Contents → Read and write (solo el repo de imágenes)
+  3. Copia el token (ghp_...)
 
-  PASO 3 — CLOUDFLARE WORKER  (gratis, sin tarjeta)
-  ────────────────────────────────────────────────────
-  1. Crea cuenta en cloudflare.com
-  2. Workers & Pages → Create Worker → pega este código:
+  PASO 3 — VARIABLE DE ENTORNO EN VERCEL
+  ────────────────────────────────────────
+  En tu proyecto de Vercel:
+  Settings → Environment Variables → Add:
+    Nombre:  GH_TOKEN
+    Valor:   ghp_tu_token_aqui
+    Entorno: Production + Preview + Development
 
-  ─────────────────────────────────────
-  const GH_TOKEN = 'ghp_TU_TOKEN_AQUI';   // ← pega tu token aquí
+  PASO 4 — ESTRUCTURA DE ARCHIVOS EN VERCEL
+  ───────────────────────────────────────────
+  Sube estos archivos a tu proyecto de Vercel:
 
-  export default {
-    async fetch(req) {
-      const cors = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Content-Type': 'application/json'
-      };
-      if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
+    /
+    ├── index.html         (este archivo, renombrado)
+    ├── api/
+    │   ├── upload.js      (ver contenido abajo)
+    │   └── publish.js     (ver contenido abajo)
+    └── vercel.json        (ver contenido abajo)
 
-      const url = new URL(req.url);
-      const body = await req.json();
+  ── api/upload.js ──────────────────────────────────
+  export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).end();
 
-      // ── /upload — sube imagen al repo ─────────────────────────
-      if (url.pathname === '/upload') {
-        const { repo, filename, content } = body;
-        const r = await fetch(
-          `https://api.github.com/repos/${repo}/contents/${filename}`,
-          { method:'PUT', headers:{
-              Authorization: `Bearer ${GH_TOKEN}`,
-              'Content-Type': 'application/json',
-              'User-Agent': 'mosaico-worker'
-            },
-            body: JSON.stringify({ message: `add ${filename}`, content })
-          }
-        );
-        return new Response(JSON.stringify({ ok: r.ok }), { headers: cors });
-      }
-
-      // ── /publish — añade zona a zones.json ────────────────────
-      if (url.pathname === '/publish') {
-        const { repo, zone } = body;
-        const apiBase = `https://api.github.com/repos/${repo}/contents/zones.json`;
-        const headers = {
-          Authorization: `Bearer ${GH_TOKEN}`,
+    const { repo, filename, content } = req.body;
+    const r = await fetch(
+      `https://api.github.com/repos/${repo}/contents/${filename}`,
+      { method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${process.env.GH_TOKEN}`,
           'Content-Type': 'application/json',
-          'User-Agent': 'mosaico-worker'
-        };
-
-        // Leer zones.json actual (puede no existir)
-        let zones = [], sha;
-        const get = await fetch(apiBase, { headers });
-        if (get.ok) {
-          const j = await get.json();
-          sha = j.sha;
-          zones = JSON.parse(atob(j.content.replace(/\n/g,'')));
-        }
-
-        zones.push(zone);
-        const put = await fetch(apiBase, {
-          method: 'PUT', headers,
-          body: JSON.stringify({
-            message: `zone ${zone.id}`,
-            content: btoa(JSON.stringify(zones)),
-            ...(sha ? { sha } : {})
-          })
-        });
-        return new Response(JSON.stringify({ ok: put.ok }), { headers: cors });
+          'User-Agent': 'mosaico-vercel'
+        },
+        body: JSON.stringify({ message: `add ${filename}`, content })
       }
+    );
+    res.status(200).json({ ok: r.ok });
+  }
 
-      return new Response('not found', { status: 404, headers: cors });
+  ── api/publish.js ─────────────────────────────────
+  export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') return res.status(200).end();
+    if (req.method !== 'POST') return res.status(405).end();
+
+    const { repo, zone } = req.body;
+    const apiBase = `https://api.github.com/repos/${repo}/contents/zones.json`;
+    const headers = {
+      Authorization: `Bearer ${process.env.GH_TOKEN}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'mosaico-vercel'
+    };
+
+    let zones = [], sha;
+    const get = await fetch(apiBase, { headers });
+    if (get.ok) {
+      const j = await get.json();
+      sha = j.sha;
+      zones = JSON.parse(Buffer.from(j.content, 'base64').toString());
     }
-  };
-  ─────────────────────────────────────
 
-  3. Despliega → copia la URL del worker
-  4. Pégala en CFG.WORKER_URL del HTML
+    zones.push(zone);
+    const put = await fetch(apiBase, {
+      method: 'PUT', headers,
+      body: JSON.stringify({
+        message: `zone ${zone.id}`,
+        content: Buffer.from(JSON.stringify(zones)).toString('base64'),
+        ...(sha ? { sha } : {})
+      })
+    });
+    res.status(200).json({ ok: put.ok });
+  }
 
-  PASO 4 — STRIPE
+  ── vercel.json ────────────────────────────────────
+  {
+    "functions": {
+      "api/upload.js":  { "memory": 256 },
+      "api/publish.js": { "memory": 256 }
+    }
+  }
+
+  PASO 5 — STRIPE
   ─────────────────
-  Payment Link con ?payment=success en la URL de éxito → CFG.STRIPE_URL
+  Payment Link → URL de éxito con ?payment=success → CFG.STRIPE_URL
 
 ══════════════════════════════════════════════════════
 -->
