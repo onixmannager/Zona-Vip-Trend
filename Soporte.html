@@ -463,8 +463,6 @@
         </div>
     </form>
 </div>
-
-
     <script>
     // ===========================
     // BASE DE CONOCIMIENTO AMPLIADA
@@ -619,8 +617,22 @@
         });
     }
 
-    function scrollToBottom() {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+    function scrollToBottom(force = false) {
+        const behavior = force ? "auto" : "smooth";
+
+        requestAnimationFrame(() => {
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior
+            });
+
+            setTimeout(() => {
+                chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: "auto"
+                });
+            }, 80);
+        });
     }
 
     function scoreFAQ(query, faq) {
@@ -736,8 +748,9 @@
                     chipBtn.className = "chip";
                     chipBtn.type = "button";
                     chipBtn.textContent = chip.label;
-                    chipBtn.addEventListener("click", () => {
-                        sendUserMessage(chip.label, chip.id);
+                    chipBtn.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        sendUserMessage(chip.label, chip.id, true);
                     });
                     actions.appendChild(chipBtn);
                 });
@@ -761,7 +774,7 @@
     function addMessage(payload) {
         const element = createMessageElement(payload);
         chatMessages.appendChild(element);
-        scrollToBottom();
+        scrollToBottom(true);
     }
 
     function showTyping() {
@@ -772,7 +785,7 @@
         });
         typingElement.id = "typingIndicator";
         chatMessages.appendChild(typingElement);
-        scrollToBottom();
+        scrollToBottom(true);
     }
 
     function removeTyping() {
@@ -793,6 +806,7 @@
                 text,
                 chips
             });
+            scrollToBottom(true);
         }, delay);
     }
 
@@ -854,9 +868,16 @@
         });
     }
 
-    function sendUserMessage(text, forcedFaqId = null) {
+    function sendUserMessage(text, forcedFaqId = null, fromChip = false) {
         const cleanText = text.trim();
         if (!cleanText) return;
+
+        if (fromChip) {
+            if (document.activeElement && typeof document.activeElement.blur === "function") {
+                document.activeElement.blur();
+            }
+            userInput.blur();
+        }
 
         addMessage({
             sender: "user",
@@ -864,6 +885,7 @@
         });
 
         userInput.value = "";
+        scrollToBottom(true);
 
         if (forcedFaqId && FAQ_INDEX[forcedFaqId]) {
             sendFaqResponse(FAQ_INDEX[forcedFaqId], cleanText);
@@ -909,6 +931,11 @@
         resetChat();
     });
 </script>
+
+
+
+    
+        
 
 </body>
 </html>
