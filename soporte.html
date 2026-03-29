@@ -780,7 +780,6 @@ let busy = false;
 const msgsEl   = document.getElementById("msgs");
 const inp      = document.getElementById("inp");
 const sendBtn  = document.getElementById("sendBtn");
-const resetBtn = document.getElementById("resetBtn");
 const sfab     = document.getElementById("sfab");
 const charsEl  = document.getElementById("chars");
 
@@ -826,7 +825,7 @@ inp.addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) {e.preventDefault(); if (!sendBtn.disabled) doSend();}
 });
 sendBtn.addEventListener("click", doSend);
-resetBtn.addEventListener("click", resetChat);
+
 
 /* ─── DIVISOR DE FECHA ────────────────────────────── */
 function addDateDivider() {
