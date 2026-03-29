@@ -4,32 +4,62 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zona VIP Trends Bot</title>
 <style>
-    body {margin:0; font-family:'Arial', sans-serif; background:#0b0b0b; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;}
-    .chat-container {width:95%; max-width:600px; background:#1c1c1c; border-radius:12px; overflow:hidden; box-shadow:0 0 20px rgba(0,0,0,0.7);}
-    .chat-header {background:#a78b1f; padding:15px; font-size:1.2em; font-weight:bold; text-align:center;}
-    .chat-body {padding:20px; background:#fff; color:#000; max-height:80vh; overflow-y:auto;}
-    .message {margin-bottom:15px;}
-    .message strong {color:#a78b1f;}
-    .button {display:block; width:100%; padding:10px; margin:5px 0; background:#a78b1f; color:#fff; text-align:center; border-radius:6px; cursor:pointer; text-decoration:none;}
-    .button:hover {background:#d4af37;}
+  body { margin: 0; font-family: 'Arial', sans-serif; background-color: #121212; color: #f0f0f0; }
+  .chat-container { display: flex; flex-direction: column; max-width: 600px; margin: 50px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
+  .chat-header { background: linear-gradient(90deg, #bfa022, #805e0f); padding: 15px; font-weight: bold; font-size: 18px; }
+  .chat-messages { background-color: #ffffff; color: #000000; flex: 1; padding: 15px; overflow-y: auto; min-height: 400px; }
+  .chat-message { margin-bottom: 12px; }
+  .chat-message.bot { font-weight: bold; }
+  .chat-buttons { display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: #1e1e1e; }
+  .chat-buttons button { padding: 12px; border: none; border-radius: 8px; background-color: #bfa022; color: #121212; font-weight: bold; cursor: pointer; transition: 0.3s; }
+  .chat-buttons button:hover { background-color: #805e0f; }
+  @media (max-width: 600px) { .chat-container { margin: 20px; } }
 </style>
 </head>
-<body>
-<div class="chat-container">
-    <div class="chat-header">Zona VIP Trends Bot</div>
-    <div class="chat-body">
-        <div class="message"><strong>¿Quiénes somos?</strong> <br>Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador para que marcas y creadores conecten de forma efectiva.</div>
-        <div class="message"><strong>Qué ofrecemos</strong> <br>Brindamos a marcas y creadores visibilidad, exposición y conexión dentro de una plataforma viral. Incorporamos premios y un sistema social que fomenta la participación y el engagement.</div>
-        <div class="message"><strong>Cómo lo ofrecemos</strong> <br>Nuestra plataforma genera tráfico y participación mediante estrategias de marketing innovadoras y gamificación. Además, contamos con campañas de marcas activas, garantizando oportunidades de exposición reales.</div>
-        <div class="message"><strong>Quién puede participar</strong> <br>Creadorxs, influencers, marcas y cualquier usuario que quiera aumentar su visibilidad y crecer en seguidores dentro de un entorno gamificado y dinámico.</div>
-        <div class="message"><strong>Beneficios para creadores</strong> <br>Visibilidad dentro del mosaico global, acceso a información exclusiva, participación en premios y un sistema social que potencia tu alcance y engagement.</div>
-        <div class="message"><strong>Premios y sistema social</strong> <br>Premios distribuidos entre la comunidad en 3 niveles de red social. Cada usuario que participa se integra en la comunidad de socios de Zona VIP Trends y su espacio queda activo y vinculado automáticamente a su perfil. Conexión entre participantes y crecimiento del engagement de manera natural.</div>
-        <div class="message"><strong>Participación</strong> <br>Selecciona tu espacio en la plataforma y empieza a formar parte del mosaico viral. Comparte tu enlace y participa en premios y campañas activas. Cada espacio es garantizado y para siempre, con campañas gestionadas de forma transparente.</div>
-        <div class="message"><strong>Opciones</strong></div>
-        <a class="button" href="#informacion">Ver más información</a>
-        <a class="button" href="#premios">Ver premios y distribución</a>
-        <a class="button" href="#participacion">Cómo participar</a>
-    </div>
-</div>
-</body>
+<body><div class="chat-container">
+  <div class="chat-header">ZonaVipTrendsBot</div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-message bot">Bienvenido a Zona VIP Trends. Aquí encontrarás toda la información sobre nuestra plataforma, premios y cómo participar.</div>
+  </div>
+  <div class="chat-buttons" id="chatButtons">
+    <button onclick="showInfo('quienSomos')">Quiénes somos</button>
+    <button onclick="showInfo('queOfrecemos')">Qué ofrecemos</button>
+    <button onclick="showInfo('comoFunciona')">Cómo funciona</button>
+    <button onclick="showInfo('participacion')">Quién puede participar</button>
+    <button onclick="showInfo('premios')">Premios y sistema social</button>
+    <button onclick="showInfo('comenzar')">Cómo empezar</button>
+  </div>
+</div><script>
+function showInfo(section) {
+  const chat = document.getElementById('chatMessages');
+  let message = '';
+
+  switch(section) {
+    case 'quienSomos':
+      message = 'Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador para que marcas y creadores conecten de forma efectiva.';
+      break;
+    case 'queOfrecemos':
+      message = 'Brindamos a marcas y creadores visibilidad, exposición y conexión dentro de una plataforma viral, con premios y un sistema social que fomenta la participación y el engagement.';
+      break;
+    case 'comoFunciona':
+      message = 'Nuestra plataforma genera tráfico y participación mediante estrategias de marketing innovadoras y un sistema gamificado de premios, con campañas de marcas activas garantizando oportunidades reales de exposición.';
+      break;
+    case 'participacion':
+      message = 'Nuestra plataforma está pensada para creadores, influencers, marcas y cualquier usuario que quiera aumentar su visibilidad y crecer en seguidores dentro de un entorno gamificado y dinámico.';
+      break;
+    case 'premios':
+      message = 'Cada usuario que participa se integra en la comunidad de socios de Zona VIP Trends. Los premios se asignan de manera organizada y transparente. Además, la plataforma permite que los participantes se conecten entre sí y formen su propia red social, aumentando la viralidad y alcance.';
+      break;
+    case 'comenzar':
+      message = 'Selecciona tu espacio en la plataforma para formar parte del mosaico viral. Desde allí, podrás compartir tu link, participar en premios y campañas activas de marcas.';
+      break;
+  }
+
+  const newMessage = document.createElement('div');
+  newMessage.classList.add('chat-message', 'bot');
+  newMessage.innerText = message;
+  chat.appendChild(newMessage);
+  chat.scrollTop = chat.scrollHeight;
+}
+</script></body>
 </html>
