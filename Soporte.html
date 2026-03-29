@@ -2,138 +2,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zona VIP Trends - Soporte</title>
+<title>Zona VIP Trends Bot</title>
 <style>
-    /* Reset básico */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html { height: 100%; font-family: 'Arial', sans-serif; }body { background-color: #121212; color: #fff; display: flex; justify-content: center; align-items: center; }
-
-/* Contenedor principal */
-.chat-container { width: 100%; max-width: 450px; height: 80vh; background-color: #1e1e1e; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-
-/* Header */
-.chat-header { background-color: #000; padding: 15px; text-align: center; font-size: 1.2em; font-weight: bold; color: #FFD700; }
-
-/* Area de mensajes */
-.chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-.message { padding: 10px 15px; border-radius: 12px; max-width: 80%; position: relative; }
-.bot-message { background-color: #333; align-self: flex-start; }
-.user-message { background-color: #FFD700; color: #000; align-self: flex-end; }
-
-/* Avatar */
-.bot-message::before { content: '\1F916'; position: absolute; left: -30px; top: 10px; font-size: 1.4em; }
-
-/* Input */
-.chat-input { display: flex; border-top: 1px solid #444; }
-.chat-input input { flex: 1; padding: 12px 15px; border: none; outline: none; background: #2c2c2c; color: #fff; }
-.chat-input button { background-color: #FFD700; color: #000; border: none; padding: 12px 20px; cursor: pointer; font-weight: bold; }
-
-/* Botones de opciones */
-.option-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
-.option-buttons button { background-color: #FFD700; color: #000; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; }
-
-/* Scroll automático suave */
-.chat-messages::-webkit-scrollbar { width: 6px; }
-.chat-messages::-webkit-scrollbar-thumb { background-color: #555; border-radius: 3px; }
-
+    body {margin:0; font-family:'Arial', sans-serif; background:#0b0b0b; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh;}
+    .chat-container {width:95%; max-width:600px; background:#1c1c1c; border-radius:12px; overflow:hidden; box-shadow:0 0 20px rgba(0,0,0,0.7);}
+    .chat-header {background:#a78b1f; padding:15px; font-size:1.2em; font-weight:bold; text-align:center;}
+    .chat-body {padding:20px; background:#fff; color:#000; max-height:80vh; overflow-y:auto;}
+    .message {margin-bottom:15px;}
+    .message strong {color:#a78b1f;}
+    .button {display:block; width:100%; padding:10px; margin:5px 0; background:#a78b1f; color:#fff; text-align:center; border-radius:6px; cursor:pointer; text-decoration:none;}
+    .button:hover {background:#d4af37;}
 </style>
 </head>
 <body>
 <div class="chat-container">
     <div class="chat-header">Zona VIP Trends Bot</div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Escribe aquí..." />
-        <button id="sendBtn">Enviar</button>
+    <div class="chat-body">
+        <div class="message"><strong>¿Quiénes somos?</strong> <br>Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador para que marcas y creadores conecten de forma efectiva.</div>
+        <div class="message"><strong>Qué ofrecemos</strong> <br>Brindamos a marcas y creadores visibilidad, exposición y conexión dentro de una plataforma viral. Incorporamos premios y un sistema social que fomenta la participación y el engagement.</div>
+        <div class="message"><strong>Cómo lo ofrecemos</strong> <br>Nuestra plataforma genera tráfico y participación mediante estrategias de marketing innovadoras y gamificación. Además, contamos con campañas de marcas activas, garantizando oportunidades de exposición reales.</div>
+        <div class="message"><strong>Quién puede participar</strong> <br>Creadorxs, influencers, marcas y cualquier usuario que quiera aumentar su visibilidad y crecer en seguidores dentro de un entorno gamificado y dinámico.</div>
+        <div class="message"><strong>Beneficios para creadores</strong> <br>Visibilidad dentro del mosaico global, acceso a información exclusiva, participación en premios y un sistema social que potencia tu alcance y engagement.</div>
+        <div class="message"><strong>Premios y sistema social</strong> <br>Premios distribuidos entre la comunidad en 3 niveles de red social. Cada usuario que participa se integra en la comunidad de socios de Zona VIP Trends y su espacio queda activo y vinculado automáticamente a su perfil. Conexión entre participantes y crecimiento del engagement de manera natural.</div>
+        <div class="message"><strong>Participación</strong> <br>Selecciona tu espacio en la plataforma y empieza a formar parte del mosaico viral. Comparte tu enlace y participa en premios y campañas activas. Cada espacio es garantizado y para siempre, con campañas gestionadas de forma transparente.</div>
+        <div class="message"><strong>Opciones</strong></div>
+        <a class="button" href="#informacion">Ver más información</a>
+        <a class="button" href="#premios">Ver premios y distribución</a>
+        <a class="button" href="#participacion">Cómo participar</a>
     </div>
-</div><script>
-const chatMessages = document.getElementById('chatMessages');
-const userInput = document.getElementById('userInput');
-const sendBtn = document.getElementById('sendBtn');
-
-// Respuestas predeterminadas
-const botResponses = {
-    inicio: {
-        text: '¡Hola! Bienvenido a Zona VIP Trends. Soy tu asistente virtual y puedo guiarte para entender nuestra plataforma y oportunidades.',
-        options: ['¿Quiénes somos?', '¿Qué ofrecemos?', 'Cómo participar']
-    },
-    '¿Quiénes somos?': {
-        text: 'Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador para que marcas y creadores conecten de forma efectiva.',
-        options: ['¿Qué ofrecemos?', 'Cómo participar']
-    },
-    '¿Qué ofrecemos?': {
-        text: 'Brindamos a marcas y creadores visibilidad, exposición y conexión dentro de una plataforma viral, incorporando premios y un sistema social que fomenta la participación y engagement.',
-        options: ['Cómo participar', 'Premios']
-    },
-    'Cómo participar': {
-        text: 'Es muy sencillo: solo selecciona tu espacio en la plataforma, sube tu imagen y link, y empieza a formar parte del mosaico viral. Desde allí, podrás compartir y participar en premios y campañas activas.',
-        options: ['Premios', 'Sistema social']
-    },
-    'Premios': {
-        text: 'Hay aproximadamente 200-300 espacios premiados con un total de 150.000€. Para marcas: campañas pagadas a influencers que generan promoción real. Para influencers/usuarios: campañas ya cerradas garantizando exposición destacada.',
-        options: ['Sistema social', 'Beneficios para creadores']
-    },
-    'Sistema social': {
-        text: 'Cada participante se integra en la comunidad de Zona VIP Trends. Al entrar, tu espacio queda activo y vinculado a tu perfil. Los premios se asignan en redes de 3 niveles, asegurando reparto justo dentro de tu red social.',
-        options: ['Beneficios para creadores', 'Seguridad']
-    },
-    'Beneficios para creadores': {
-        text: 'Ganas visibilidad dentro del mosaico global, acceso a un asesor digital, posibilidad de participar en premios y un sistema social que potencia tu alcance y engagement.',
-        options: ['Seguridad']
-    },
-    'Seguridad': {
-        text: 'Sí. Cada espacio es garantizado y para siempre, los premios se gestionan de manera transparente, con campañas de marcas que ya están activas y colaborando.',
-        options: ['Inicio']
-    }
-};
-
-// Función para mostrar mensajes
-function addMessage(text, sender='bot') {
-    const div = document.createElement('div');
-    div.classList.add('message', sender === 'bot' ? 'bot-message' : 'user-message');
-    div.innerText = text;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Función para mostrar botones de opciones
-function showOptions(options) {
-    const container = document.createElement('div');
-    container.classList.add('option-buttons');
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.innerText = opt;
-        btn.addEventListener('click', () => handleUserInput(opt));
-        container.appendChild(btn);
-    });
-    chatMessages.appendChild(container);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Manejar entrada de usuario
-function handleUserInput(input) {
-    addMessage(input, 'user');
-    const response = botResponses[input] || { text: 'Lo siento, no entendí eso. Por favor selecciona una opción.', options: ['Inicio'] };
-    setTimeout(() => {
-        addMessage(response.text);
-        if(response.options) showOptions(response.options);
-    }, 500);
-}
-
-// Enviar al presionar botón o Enter
-sendBtn.addEventListener('click', () => {
-    const text = userInput.value.trim();
-    if(text) {
-        handleUserInput(text);
-        userInput.value = '';
-    }
-});
-userInput.addEventListener('keypress', e => {
-    if(e.key === 'Enter') sendBtn.click();
-});
-
-// Inicio del chat
-addMessage(botResponses['inicio'].text);
-showOptions(botResponses['inicio'].options);
-</script></body>
+</div>
+</body>
 </html>
