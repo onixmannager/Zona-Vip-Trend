@@ -1,213 +1,139 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zona VIP Trends - Chat Soporte</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<title>Zona VIP Trends - Soporte</title>
 <style>
-  * {box-sizing: border-box; margin:0; padding:0;}
-  body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #111 0%, #1c1c1c 100%);
-    color: #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+    /* Reset básico */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body, html { height: 100%; font-family: 'Arial', sans-serif; }body { background-color: #121212; color: #fff; display: flex; justify-content: center; align-items: center; }
 
-  #chat-container {
-    width: 400px;
-    max-width: 95%;
-    height: 600px;
-    border-radius: 15px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 0 20px rgba(212,175,55,0.7);
-    border: 2px solid #d4af37;
-    background-color: #222;
-  }
+/* Contenedor principal */
+.chat-container { width: 100%; max-width: 450px; height: 80vh; background-color: #1e1e1e; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
 
-  #chat-header {
-    background-color: #333;
-    padding: 15px;
-    text-align: center;
-    font-weight: bold;
-    color: #d4af37;
-    font-size: 18px;
-  }
+/* Header */
+.chat-header { background-color: #000; padding: 15px; text-align: center; font-size: 1.2em; font-weight: bold; color: #FFD700; }
 
-  #chat-body {
-    flex: 1;
-    padding: 15px;
-    overflow-y: auto;
-    background-color: #111;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+/* Area de mensajes */
+.chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.message { padding: 10px 15px; border-radius: 12px; max-width: 80%; position: relative; }
+.bot-message { background-color: #333; align-self: flex-start; }
+.user-message { background-color: #FFD700; color: #000; align-self: flex-end; }
 
-  .message {
-    max-width: 80%;
-    padding: 10px 15px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    animation: fadeIn 0.3s ease;
-  }
+/* Avatar */
+.bot-message::before { content: '\1F916'; position: absolute; left: -30px; top: 10px; font-size: 1.4em; }
 
-  .message.bot {
-    background-color: #f5f5f5;
-    color: #111;
-    align-self: flex-start;
-  }
+/* Input */
+.chat-input { display: flex; border-top: 1px solid #444; }
+.chat-input input { flex: 1; padding: 12px 15px; border: none; outline: none; background: #2c2c2c; color: #fff; }
+.chat-input button { background-color: #FFD700; color: #000; border: none; padding: 12px 20px; cursor: pointer; font-weight: bold; }
 
-  .message.user {
-    background-color: #d4af37;
-    color: #111;
-    align-self: flex-end;
-    justify-content: flex-end;
-  }
+/* Botones de opciones */
+.option-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+.option-buttons button { background-color: #FFD700; color: #000; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9em; }
 
-  .avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background-color: #d4af37;
-    display: inline-block;
-  }
+/* Scroll automático suave */
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-thumb { background-color: #555; border-radius: 3px; }
 
-  #chat-input-container {
-    display: flex;
-    border-top: 2px solid #d4af37;
-  }
-
-  #chat-input {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    outline: none;
-    font-size: 14px;
-    background-color: #111;
-    color: #fff;
-  }
-
-  #send-btn {
-    background-color: #d4af37;
-    border: none;
-    padding: 12px 18px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #111;
-    transition: background 0.3s;
-  }
-
-  #send-btn:hover {
-    background-color: #b8972d;
-  }
-
-  #quick-buttons {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-bottom: 5px;
-  }
-
-  .quick-btn {
-    background-color: #333;
-    color: #d4af37;
-    border: 1px solid #d4af37;
-    border-radius: 12px;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-
-  .quick-btn:hover {
-    background-color: #d4af37;
-    color: #111;
-  }
-
-  @keyframes fadeIn {
-    from {opacity:0; transform: translateY(10px);}
-    to {opacity:1; transform: translateY(0);}
-  }
 </style>
 </head>
 <body>
-<div id="chat-container">
-  <div id="chat-header">ZonaVipTrendsBot</div>
-  <div id="chat-body">
-    <div class="message bot">
-      <div class="avatar"></div>
-      ¡Hola! Soy tu asistente ZonaVIP Trends. Pregúntame sobre la plataforma, premios y cómo participar.
+<div class="chat-container">
+    <div class="chat-header">Zona VIP Trends Bot</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Escribe aquí..." />
+        <button id="sendBtn">Enviar</button>
     </div>
-  </div>
-  <div id="quick-buttons">
-    <div class="quick-btn">Quiénes somos</div>
-    <div class="quick-btn">Qué ofrecemos</div>
-    <div class="quick-btn">Cómo participar</div>
-    <div class="quick-btn">Premios</div>
-  </div>
-  <div id="chat-input-container">
-    <input type="text" id="chat-input" placeholder="Escribe tu mensaje...">
-    <button id="send-btn">Enviar</button>
-  </div>
-</div>
+</div><script>
+const chatMessages = document.getElementById('chatMessages');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
 
-<script>
-const chatBody = document.getElementById('chat-body');
-const chatInput = document.getElementById('chat-input');
-const sendBtn = document.getElementById('send-btn');
-const quickButtons = document.querySelectorAll('.quick-btn');
-
-// Mensajes predefinidos
-const responses = {
-  "quienes somos": "Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación para conectar marcas y creadores.",
-  "qué ofrecemos": "Ofrecemos visibilidad, conexión y participación en premios y campañas activas dentro de nuestra plataforma viral.",
-  "cómo participar": "Selecciona tu espacio en la plataforma, comparte tu link y empieza a formar parte del mosaico viral.",
-  "premios": "Los premios se distribuyen en tu red social en 3 niveles, incentivando la viralización y participación activa.",
-  "default": "Disculpa, no entiendo tu pregunta. Usa los botones rápidos o escribe 'quienes somos', 'qué ofrecemos', 'cómo participar' o 'premios'."
+// Respuestas predeterminadas
+const botResponses = {
+    inicio: {
+        text: '¡Hola! Bienvenido a Zona VIP Trends. Soy tu asistente virtual y puedo guiarte para entender nuestra plataforma y oportunidades.',
+        options: ['¿Quiénes somos?', '¿Qué ofrecemos?', 'Cómo participar']
+    },
+    '¿Quiénes somos?': {
+        text: 'Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador para que marcas y creadores conecten de forma efectiva.',
+        options: ['¿Qué ofrecemos?', 'Cómo participar']
+    },
+    '¿Qué ofrecemos?': {
+        text: 'Brindamos a marcas y creadores visibilidad, exposición y conexión dentro de una plataforma viral, incorporando premios y un sistema social que fomenta la participación y engagement.',
+        options: ['Cómo participar', 'Premios']
+    },
+    'Cómo participar': {
+        text: 'Es muy sencillo: solo selecciona tu espacio en la plataforma, sube tu imagen y link, y empieza a formar parte del mosaico viral. Desde allí, podrás compartir y participar en premios y campañas activas.',
+        options: ['Premios', 'Sistema social']
+    },
+    'Premios': {
+        text: 'Hay aproximadamente 200-300 espacios premiados con un total de 150.000€. Para marcas: campañas pagadas a influencers que generan promoción real. Para influencers/usuarios: campañas ya cerradas garantizando exposición destacada.',
+        options: ['Sistema social', 'Beneficios para creadores']
+    },
+    'Sistema social': {
+        text: 'Cada participante se integra en la comunidad de Zona VIP Trends. Al entrar, tu espacio queda activo y vinculado a tu perfil. Los premios se asignan en redes de 3 niveles, asegurando reparto justo dentro de tu red social.',
+        options: ['Beneficios para creadores', 'Seguridad']
+    },
+    'Beneficios para creadores': {
+        text: 'Ganas visibilidad dentro del mosaico global, acceso a un asesor digital, posibilidad de participar en premios y un sistema social que potencia tu alcance y engagement.',
+        options: ['Seguridad']
+    },
+    'Seguridad': {
+        text: 'Sí. Cada espacio es garantizado y para siempre, los premios se gestionan de manera transparente, con campañas de marcas que ya están activas y colaborando.',
+        options: ['Inicio']
+    }
 };
 
-function addMessage(text, type){
-  const msg = document.createElement('div');
-  msg.classList.add('message', type);
-  msg.innerHTML = type==='bot'? '<div class="avatar"></div>'+text : text;
-  chatBody.appendChild(msg);
-  chatBody.scrollTop = chatBody.scrollHeight;
+// Función para mostrar mensajes
+function addMessage(text, sender='bot') {
+    const div = document.createElement('div');
+    div.classList.add('message', sender === 'bot' ? 'bot-message' : 'user-message');
+    div.innerText = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-function botResponse(msg){
-  const response = responses[msg.toLowerCase()] || responses['default'];
-  addMessage(response, 'bot');
+// Función para mostrar botones de opciones
+function showOptions(options) {
+    const container = document.createElement('div');
+    container.classList.add('option-buttons');
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.addEventListener('click', () => handleUserInput(opt));
+        container.appendChild(btn);
+    });
+    chatMessages.appendChild(container);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Enviar mensaje
-sendBtn.addEventListener('click', ()=> {
-  const msg = chatInput.value.trim();
-  if(!msg) return;
-  addMessage(msg, 'user');
-  botResponse(msg);
-  chatInput.value='';
+// Manejar entrada de usuario
+function handleUserInput(input) {
+    addMessage(input, 'user');
+    const response = botResponses[input] || { text: 'Lo siento, no entendí eso. Por favor selecciona una opción.', options: ['Inicio'] };
+    setTimeout(() => {
+        addMessage(response.text);
+        if(response.options) showOptions(response.options);
+    }, 500);
+}
+
+// Enviar al presionar botón o Enter
+sendBtn.addEventListener('click', () => {
+    const text = userInput.value.trim();
+    if(text) {
+        handleUserInput(text);
+        userInput.value = '';
+    }
+});
+userInput.addEventListener('keypress', e => {
+    if(e.key === 'Enter') sendBtn.click();
 });
 
-chatInput.addEventListener('keypress', (e)=> {
-  if(e.key==='Enter') sendBtn.click();
-});
-
-// Botones rápidos
-quickButtons.forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    const text = btn.textContent;
-    addMessage(text, 'user');
-    botResponse(text);
-  });
-});
-</script>
-</body>
+// Inicio del chat
+addMessage(botResponses['inicio'].text);
+showOptions(botResponses['inicio'].options);
+</script></body>
 </html>
