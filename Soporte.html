@@ -1,915 +1,995 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <title>Zona VIP Trends · Soporte profesional</title>
-    <style>
-        :root{
-            --bg-1:#0a0b10;
-            --bg-2:#11131b;
-            --panel:#12151d;
-            --panel-2:#171b24;
-            --panel-3:#1c2230;
-            --gold:#d4af37;
-            --gold-2:#f2d98a;
-            --text:#f6f7fb;
-            --muted:#9da5b4;
-            --line:rgba(255,255,255,.08);
-            --bot:#1b2130;
-            --user:#d4af37;
-            --user-text:#17120a;
-            --surface:#0f1219;
-            --success:#2ecc71;
-            --shadow:0 24px 60px rgba(0,0,0,.45);
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes"/>
+<title>Zona VIP Trends · Soporte IA Premium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700;900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --ink:      #06070d;
+  --ink2:     #0a0c16;
+  --ink3:     #0d1020;
+  --surface:  #111420;
+  --surface2: #161a28;
+  --surface3: #1b2033;
+  --gold:     #d4af37;
+  --gold-lt:  #f0d06a;
+  --gold-dk:  #9a7c1e;
+  --gold-dim: rgba(212,175,55,.10);
+  --cream:    #f5edcc;
+  --text:     #e8ecf8;
+  --muted:    #6b7590;
+  --muted2:   #9aa3bc;
+  --line:     rgba(255,255,255,.055);
+  --line-g:   rgba(212,175,55,.18);
+  --ok:       #22c55e;
+  --shadow:   0 40px 100px rgba(0,0,0,.75), 0 8px 24px rgba(0,0,0,.4);
+  --ff-d:'Playfair Display', Georgia, serif;
+  --ff-b:'Outfit', system-ui, sans-serif;
+  --ease:cubic-bezier(.4,0,.2,1);
+  --ease-s:cubic-bezier(.34,1.56,.64,1);
+}
 
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
+/* ═══════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{height:100%;}
+body{
+  font-family:var(--ff-b);
+  background:var(--ink);
+  color:var(--text);
+  height:100dvh;
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  overflow:hidden;
+}
+::selection{background:rgba(212,175,55,.28);color:#fff;}
 
-        html, body{
-            min-height:100%;
-        }
+/* ═══════════════════════════════════════════
+   AMBIENT LAYERS
+═══════════════════════════════════════════ */
+.bg-canvas{
+  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+}
+.orb{
+  position:absolute;border-radius:50%;filter:blur(100px);
+  animation:orbDrift 16s ease-in-out infinite alternate;
+}
+.orb-1{
+  width:520px;height:520px;top:-180px;left:-150px;
+  background:radial-gradient(circle,rgba(212,175,55,.13) 0%,transparent 70%);
+  animation-delay:0s;
+}
+.orb-2{
+  width:380px;height:380px;bottom:-120px;right:-100px;
+  background:radial-gradient(circle,rgba(50,70,210,.09) 0%,transparent 70%);
+  animation-delay:-6s;
+}
+.orb-3{
+  width:280px;height:280px;top:45%;right:5%;
+  background:radial-gradient(circle,rgba(212,175,55,.07) 0%,transparent 70%);
+  animation-delay:-11s;
+}
+@keyframes orbDrift{
+  from{transform:translate(0,0) scale(1);}
+  to{transform:translate(28px,18px) scale(1.10);}
+}
+.bg-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(212,175,55,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(212,175,55,.022) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask-image:radial-gradient(ellipse 75% 75% at 50% 50%,black 0%,transparent 100%);
+}
+/* floating particles */
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.par{
+  position:absolute;border-radius:50%;
+  background:var(--gold);
+  animation:parFloat linear infinite;
+  opacity:0;
+}
+@keyframes parFloat{
+  0%{opacity:0;transform:translateY(0) scale(0);}
+  10%{opacity:.5;}
+  90%{opacity:.15;}
+  100%{opacity:0;transform:translateY(-120px) scale(1.4);}
+}
 
-        body{
-            font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(212,175,55,.12), transparent 28%),
-                radial-gradient(circle at bottom right, rgba(84,98,255,.10), transparent 25%),
-                linear-gradient(135deg, var(--bg-1), var(--bg-2));
-            color: var(--text);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-        }
+/* ═══════════════════════════════════════════
+   SHELL
+═══════════════════════════════════════════ */
+.shell{
+  position:relative;z-index:2;
+  width:100%;max-width:880px;
+  height:100%;max-height:840px;
+  display:flex;flex-direction:column;
+  border-radius:28px;
+  border:1px solid var(--line-g);
+  background:rgba(9,11,20,.93);
+  backdrop-filter:blur(28px) saturate(1.5);
+  box-shadow:var(--shadow);
+  overflow:hidden;
+  animation:shellIn .65s var(--ease) both;
+}
+@keyframes shellIn{
+  from{opacity:0;transform:translateY(30px) scale(.97);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+/* top accent line — animated */
+.shell::after{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:1px;z-index:10;
+  background:linear-gradient(90deg,
+    transparent 0%,
+    var(--gold-dk) 20%,
+    var(--gold) 40%,
+    var(--gold-lt) 50%,
+    var(--gold) 60%,
+    var(--gold-dk) 80%,
+    transparent 100%
+  );
+  background-size:200% 100%;
+  animation:topLine 3s linear infinite;
+}
+@keyframes topLine{
+  from{background-position:200% 0;}
+  to{background-position:-200% 0;}
+}
+/* inner grain */
+.shell::before{
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity:.016;border-radius:inherit;
+}
 
-        .chat-shell{
-            width:100%;
-            max-width:900px;
-            min-height:720px;
-            display:flex;
-            flex-direction:column;
-            overflow:hidden;
-            border-radius:28px;
-            border:1px solid rgba(212,175,55,.18);
-            background:rgba(14,17,24,.92);
-            box-shadow:var(--shadow);
-            backdrop-filter: blur(12px);
-        }
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:18px 22px;
+  background:linear-gradient(180deg,rgba(18,14,5,.96) 0%,rgba(9,11,20,.88) 100%);
+  border-bottom:1px solid var(--line-g);
+  flex-shrink:0;position:relative;z-index:5;
+  animation:slideDown .5s var(--ease) .1s both;
+}
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-14px);}
+  to{opacity:1;transform:translateY(0);}
+}
+.hdr-left{display:flex;align-items:center;gap:14px;min-width:0;}
 
-        .chat-header{
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:16px;
-            padding:18px 20px;
-            background:
-                linear-gradient(135deg, rgba(212,175,55,.10), rgba(255,255,255,.02)),
-                linear-gradient(180deg, #17130c, #12161e);
-            border-bottom:1px solid rgba(212,175,55,.14);
-        }
+/* logo */
+.logo-wrap{position:relative;flex-shrink:0;}
+.logo{
+  width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,var(--gold-lt) 0%,var(--gold) 50%,var(--gold-dk) 100%);
+  display:flex;align-items:center;justify-content:center;
+  color:#130e02;font-size:1.4rem;font-weight:900;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(212,175,55,.45), 0 8px 30px rgba(212,175,55,.25);
+  animation:logoGlow 3.5s ease-in-out infinite;
+}
+@keyframes logoGlow{
+  0%,100%{box-shadow:0 0 0 1px rgba(212,175,55,.4),0 8px 30px rgba(212,175,55,.22);}
+  50%{box-shadow:0 0 0 2px rgba(212,175,55,.65),0 8px 44px rgba(212,175,55,.42);}
+}
+.logo-sweep{
+  position:absolute;top:0;left:-80%;width:60%;height:100%;
+  background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.35) 50%,transparent 65%);
+  animation:logoSweep 3.8s ease-in-out infinite;
+}
+@keyframes logoSweep{0%,65%,100%{left:-80%;}32%{left:130%;}}
+.logo-symbol{position:relative;z-index:1;}
 
-        .header-left{
-            display:flex;
-            align-items:center;
-            gap:14px;
-            min-width:0;
-        }
+.presence{
+  position:absolute;bottom:-3px;right:-3px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--ok);border:2.5px solid var(--ink);
+  animation:presIn .5s var(--ease-s) .6s both, presGlow 2.6s ease-in-out infinite 1s;
+}
+@keyframes presIn{from{transform:scale(0);}to{transform:scale(1);}}
+@keyframes presGlow{
+  0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.18);}
+  50%{box-shadow:0 0 0 8px rgba(34,197,94,.05);}
+}
 
-        .avatar{
-            width:48px;
-            height:48px;
-            border-radius:16px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background:linear-gradient(135deg, var(--gold), #8f6b11);
-            color:#18120a;
-            font-size:22px;
-            font-weight:700;
-            box-shadow:0 10px 25px rgba(212,175,55,.20);
-            flex-shrink:0;
-        }
+/* brand text */
+.brand{min-width:0;}
+.brand-name{
+  font-family:var(--ff-d);
+  font-size:1.12rem;font-weight:700;
+  letter-spacing:.015em;color:#fff;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.brand-sub{font-size:.77rem;color:var(--muted2);margin-top:2px;font-weight:400;}
+.pills{display:flex;gap:7px;margin-top:8px;flex-wrap:wrap;}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:99px;font-size:.71rem;white-space:nowrap;
+  border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  color:var(--muted2);
+  animation:pillIn .4s var(--ease-s) both;
+}
+.pill:nth-child(1){animation-delay:.3s;}
+.pill:nth-child(2){animation-delay:.4s;}
+@keyframes pillIn{from{opacity:0;transform:translateX(-8px);}to{opacity:1;transform:translateX(0);}}
+.pill-live{border-color:rgba(34,197,94,.22);background:rgba(34,197,94,.05);color:#4ade80;}
+.pill-ai{border-color:var(--line-g);background:var(--gold-dim);color:var(--gold-lt);}
+.pdot{width:6px;height:6px;border-radius:50%;}
+.pill-live .pdot{background:var(--ok);animation:presGlow 2s infinite;}
+.pill-ai .pdot{background:var(--gold);animation:logoGlow 2s infinite;}
 
-        .brand{
-            min-width:0;
-        }
+/* header actions */
+.hdr-right{display:flex;gap:8px;flex-shrink:0;}
+.hbtn{
+  border:1px solid var(--line);border-radius:12px;
+  padding:9px 14px;background:rgba(255,255,255,.04);
+  color:var(--muted2);cursor:pointer;
+  transition:all .22s var(--ease);
+  font-family:var(--ff-b);font-size:.82rem;font-weight:500;
+  display:flex;align-items:center;gap:7px;
+}
+.hbtn:hover{
+  background:var(--gold-dim);border-color:var(--line-g);
+  color:var(--gold-lt);transform:translateY(-2px);
+  box-shadow:0 4px 18px rgba(212,175,55,.12);
+}
+.hbtn svg{transition:transform .4s var(--ease);}
+.hbtn:hover svg{transform:rotate(-180deg);}
 
-        .brand h1{
-            font-size:1.1rem;
-            font-weight:800;
-            letter-spacing:-0.02em;
-            color:#fff;
-        }
+/* ═══════════════════════════════════════════
+   MESSAGES
+═══════════════════════════════════════════ */
+.msgs{
+  flex:1;overflow-y:auto;
+  padding:22px 20px 14px;
+  display:flex;flex-direction:column;gap:16px;
+  scroll-behavior:smooth;position:relative;
+}
+.msgs::-webkit-scrollbar{width:4px;}
+.msgs::-webkit-scrollbar-track{background:transparent;}
+.msgs::-webkit-scrollbar-thumb{background:rgba(212,175,55,.22);border-radius:99px;}
 
-        .brand p{
-            margin-top:4px;
-            font-size:.86rem;
-            color:var(--muted);
-        }
+/* date row */
+.date-row{
+  display:flex;align-items:center;gap:12px;margin:4px 0;
+  animation:fadeIn .4s var(--ease);
+}
+.date-row::before,.date-row::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--line-g),transparent);
+}
+.date-row span{
+  font-size:.68rem;color:var(--muted);
+  letter-spacing:.09em;text-transform:uppercase;font-weight:500;white-space:nowrap;
+}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 
-        .status-row{
-            display:flex;
-            align-items:center;
-            gap:10px;
-            flex-wrap:wrap;
-            margin-top:6px;
-        }
+/* message wrapper */
+.msg{
+  display:flex;flex-direction:column;gap:5px;
+  max-width:80%;
+}
+.msg.bot{align-self:flex-start;animation:msgBot .35s var(--ease-s) both;}
+.msg.user{align-self:flex-end;animation:msgUser .3s var(--ease-s) both;}
+@keyframes msgBot{
+  from{opacity:0;transform:translateX(-18px) translateY(8px);}
+  to{opacity:1;transform:translateX(0) translateY(0);}
+}
+@keyframes msgUser{
+  from{opacity:0;transform:translateX(18px) translateY(8px);}
+  to{opacity:1;transform:translateX(0) translateY(0);}
+}
 
-        .status-pill{
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
-            padding:6px 12px;
-            border-radius:999px;
-            border:1px solid rgba(255,255,255,.08);
-            background:rgba(255,255,255,.03);
-            color:#dbe3f1;
-            font-size:.76rem;
-            white-space:nowrap;
-        }
+/* sender label */
+.mwho{font-size:.67rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:0 5px;}
+.msg.user .mwho{text-align:right;color:var(--gold-dk);}
 
-        .status-dot{
-            width:8px;
-            height:8px;
-            border-radius:50%;
-            background:var(--success);
-            box-shadow:0 0 0 4px rgba(46,204,113,.12);
-        }
+/* bubble */
+.bubble{
+  border-radius:20px;padding:15px 18px;
+  border:1px solid var(--line);position:relative;overflow:hidden;
+}
+.msg.bot .bubble{
+  background:linear-gradient(155deg,var(--surface) 0%,var(--ink3) 100%);
+  border-color:rgba(255,255,255,.07);
+  border-bottom-left-radius:5px;
+}
+/* gold inner glow */
+.msg.bot .bubble::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(140deg,rgba(212,175,55,.07) 0%,transparent 50%);
+}
+/* shimmer on appear */
+.msg.bot .bubble::after{
+  content:'';position:absolute;top:0;left:-100%;
+  width:55%;height:100%;pointer-events:none;
+  background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.05) 50%,transparent 70%);
+  animation:bShimmer .55s var(--ease) both;
+}
+@keyframes bShimmer{from{left:-100%;}to{left:160%;}}
 
-        .reset-btn{
-            flex-shrink:0;
-            border:none;
-            border-radius:14px;
-            padding:12px 14px;
-            background:rgba(212,175,55,.12);
-            color:var(--gold-2);
-            border:1px solid rgba(212,175,55,.25);
-            cursor:pointer;
-            transition:.2s ease;
-            font-weight:700;
-        }
+.msg.user .bubble{
+  background:linear-gradient(145deg,var(--gold-lt) 0%,var(--gold) 50%,var(--gold-dk) 100%);
+  color:#120d02;border-color:rgba(255,255,255,.15);
+  border-bottom-right-radius:5px;
+  box-shadow:0 6px 28px rgba(212,175,55,.22);
+}
 
-        .reset-btn:hover{
-            transform:translateY(-1px);
-            background:rgba(212,175,55,.18);
-            color:#fff4ca;
-        }
+/* title */
+.mtitle{
+  font-family:var(--ff-d);font-size:.92rem;font-weight:700;
+  color:var(--gold-lt);margin-bottom:9px;
+  display:flex;align-items:center;gap:7px;
+  position:relative;z-index:1;
+}
+.msg.user .mtitle{color:#130e03;}
 
-        .chat-messages{
-            flex:1;
-            overflow-y:auto;
-            padding:22px 18px 14px;
-            display:flex;
-            flex-direction:column;
-            gap:16px;
-            background:
-                linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.00)),
-                radial-gradient(circle at center, rgba(255,255,255,.02) 1px, transparent 1px);
-            background-size:auto, 20px 20px;
-            scroll-behavior:smooth;
-        }
+/* text */
+.mtext{
+  font-size:.93rem;line-height:1.67;
+  color:var(--text);position:relative;z-index:1;
+}
+.mtext b{color:var(--gold-lt);font-weight:600;}
+.msg.user .mtext{color:#120d02;font-weight:500;}
 
-        .chat-messages::-webkit-scrollbar{
-            width:8px;
-        }
+/* ai badge */
+.ai-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:11px;padding:3px 10px;border-radius:99px;
+  border:1px solid rgba(212,175,55,.18);background:rgba(212,175,55,.07);
+  font-size:.65rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--gold-dk);
+  position:relative;z-index:1;
+}
+.ai-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:logoGlow 1.8s infinite;}
 
-        .chat-messages::-webkit-scrollbar-track{
-            background:transparent;
-        }
+/* chips */
+.chips{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:13px;
+  position:relative;z-index:1;
+}
+.chip{
+  border:1px solid rgba(212,175,55,.22);border-radius:99px;
+  padding:7px 14px;background:rgba(212,175,55,.07);
+  color:var(--gold-lt);font-size:.77rem;font-weight:600;
+  cursor:pointer;transition:all .22s var(--ease);
+  font-family:var(--ff-b);position:relative;overflow:hidden;
+}
+.chip::after{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(105deg,transparent 30%,rgba(212,175,55,.14) 50%,transparent 70%);
+  transform:translateX(-100%);transition:transform .4s var(--ease);
+}
+.chip:hover::after{transform:translateX(100%);}
+.chip:hover{
+  background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.5);
+  color:#fff3cc;transform:translateY(-2px);
+  box-shadow:0 4px 20px rgba(212,175,55,.16);
+}
 
-        .chat-messages::-webkit-scrollbar-thumb{
-            background:rgba(212,175,55,.32);
-            border-radius:999px;
-        }
+/* stagger chips */
+.chip:nth-child(1){animation:chipIn .28s var(--ease-s) .06s both;}
+.chip:nth-child(2){animation:chipIn .28s var(--ease-s) .12s both;}
+.chip:nth-child(3){animation:chipIn .28s var(--ease-s) .18s both;}
+.chip:nth-child(4){animation:chipIn .28s var(--ease-s) .24s both;}
+.chip:nth-child(5){animation:chipIn .28s var(--ease-s) .30s both;}
+.chip:nth-child(6){animation:chipIn .28s var(--ease-s) .36s both;}
+@keyframes chipIn{
+  from{opacity:0;transform:translateY(10px) scale(.88);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
 
-        .message{
-            display:flex;
-            flex-direction:column;
-            gap:8px;
-            max-width:85%;
-            animation:fadeUp .25s ease;
-        }
+/* timestamp */
+.mts{font-size:.66rem;color:var(--muted);padding:0 5px;}
+.msg.user .mts{text-align:right;}
 
-        .message.bot{
-            align-self:flex-start;
-        }
+/* ── TYPING BUBBLE ── */
+.typing-bbl{
+  display:flex;align-items:center;gap:7px;
+  padding:16px 20px !important;min-width:76px;
+}
+.tdot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--gold);opacity:.3;
+  animation:tdot 1.4s infinite ease-in-out;
+}
+.tdot:nth-child(2){animation-delay:.18s;}
+.tdot:nth-child(3){animation-delay:.36s;}
+@keyframes tdot{
+  0%,80%,100%{transform:scale(.65);opacity:.22;}
+  40%{transform:scale(1.1);opacity:.95;}
+}
 
-        .message.user{
-            align-self:flex-end;
-        }
+/* ── SCROLL FAB ── */
+.sfab{
+  position:absolute;bottom:16px;right:18px;z-index:20;
+  border:1px solid var(--line-g);border-radius:99px;
+  padding:8px 16px;background:rgba(212,175,55,.11);
+  color:var(--gold-lt);cursor:pointer;font-size:.74rem;font-weight:600;
+  display:flex;align-items:center;gap:6px;font-family:var(--ff-b);
+  backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(0,0,0,.3);
+  transition:all .22s var(--ease);
+  opacity:0;pointer-events:none;transform:translateY(8px);
+}
+.sfab.show{opacity:1;pointer-events:all;transform:translateY(0);}
+.sfab:hover{background:rgba(212,175,55,.22);transform:translateY(-2px);}
 
-        .bubble{
-            border-radius:22px;
-            padding:14px 16px;
-            border:1px solid var(--line);
-            position:relative;
-        }
+/* ═══════════════════════════════════════════
+   COMPOSER
+═══════════════════════════════════════════ */
+.composer{
+  padding:14px 18px 18px;
+  border-top:1px solid rgba(255,255,255,.05);
+  background:linear-gradient(0deg,rgba(6,7,13,1) 0%,rgba(9,11,20,.82) 100%);
+  flex-shrink:0;position:relative;z-index:5;
+  animation:slideUp .5s var(--ease) .15s both;
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(14px);}
+  to{opacity:1;transform:translateY(0);}
+}
 
-        .message.bot .bubble{
-            background:linear-gradient(180deg, var(--bot), #161c29);
-            border-bottom-left-radius:8px;
-        }
+.cmp-wrap{
+  display:flex;gap:10px;align-items:flex-end;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;
+  padding:10px 10px 10px 18px;
+  transition:all .28s var(--ease);
+  position:relative;
+}
+/* animated border on focus */
+.cmp-wrap::before{
+  content:'';position:absolute;inset:-1px;border-radius:21px;z-index:-1;
+  background:conic-gradient(
+    from var(--angle, 0deg),
+    transparent 0%,
+    var(--gold) 10%,
+    var(--gold-lt) 20%,
+    transparent 30%,
+    transparent 100%
+  );
+  opacity:0;transition:opacity .35s;
+  animation:rotateBorder 2.5s linear infinite;
+}
+@property --angle{syntax:"<angle>";initial-value:0deg;inherits:false;}
+@keyframes rotateBorder{to{--angle:360deg;}}
+.cmp-wrap:focus-within::before{opacity:1;}
+.cmp-wrap:focus-within{
+  background:rgba(212,175,55,.04);
+  border-color:transparent;
+  box-shadow:0 0 0 4px rgba(212,175,55,.08);
+}
 
-        .message.user .bubble{
-            background:linear-gradient(180deg, #e0bc4a, #c79f22);
-            color:var(--user-text);
-            border-color:rgba(255,255,255,.14);
-            border-bottom-right-radius:8px;
-            box-shadow:0 8px 22px rgba(212,175,55,.18);
-        }
+.cmp-wrap textarea{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--ff-b);font-size:.93rem;font-weight:400;
+  resize:none;line-height:1.56;max-height:130px;min-height:22px;
+  padding:4px 0;scrollbar-width:thin;
+}
+.cmp-wrap textarea::placeholder{color:#424d66;}
 
-        .message-title{
-            font-size:.88rem;
-            font-weight:800;
-            margin-bottom:8px;
-            color:#fff0bf;
-            letter-spacing:.01em;
-        }
+/* send button */
+.send{
+  flex-shrink:0;border:none;border-radius:14px;
+  width:46px;height:46px;
+  background:linear-gradient(145deg,var(--gold-lt) 0%,var(--gold) 55%,var(--gold-dk) 100%);
+  color:#14100a;cursor:pointer;
+  transition:all .25s var(--ease-s);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;
+  box-shadow:0 4px 18px rgba(212,175,55,.28);
+  position:relative;overflow:hidden;
+}
+.send::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(140deg,rgba(255,255,255,.25) 0%,transparent 60%);
+}
+.send svg{position:relative;z-index:1;transition:transform .22s var(--ease-s);}
+.send:hover:not(:disabled) svg{transform:translateX(2px) translateY(-1px);}
+.send:hover:not(:disabled){
+  transform:translateY(-3px) scale(1.06);
+  box-shadow:0 10px 32px rgba(212,175,55,.42);
+}
+.send:disabled{opacity:.32;cursor:not-allowed;transform:none;box-shadow:none;}
 
-        .message.user .message-title{
-            color:#2d210a;
-        }
+/* footer */
+.cmp-foot{
+  margin-top:10px;padding:0 5px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+.foot-l{font-size:.71rem;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.foot-l kbd{
+  font-size:.64rem;padding:1px 6px;border-radius:5px;
+  border:1px solid var(--line);color:var(--muted);font-family:var(--ff-b);
+}
+.foot-r{display:flex;align-items:center;gap:10px;}
 
-        .message-text{
-            white-space:pre-line;
-            line-height:1.58;
-            font-size:.96rem;
-            color:#eef2fa;
-        }
+/* ai thinking indicator */
+.ai-thinking{
+  display:none;align-items:center;gap:7px;
+  font-size:.71rem;color:var(--gold-dk);font-weight:500;
+}
+.ai-thinking.on{display:flex;animation:fadeIn .3s both;}
+.spin{
+  width:11px;height:11px;border-radius:50%;
+  border:1.5px solid var(--gold-dk);border-top-color:var(--gold-lt);
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-        .message.user .message-text{
-            color:#1d160b;
-            font-weight:600;
-        }
+/* char counter */
+.chars{font-size:.7rem;color:var(--muted);transition:.2s;}
+.chars.warn{color:var(--gold-dk);}
 
-        .message-meta{
-            display:flex;
-            align-items:center;
-            gap:8px;
-            font-size:.72rem;
-            color:var(--muted);
-            padding:0 4px;
-        }
-
-        .message.user .message-meta{
-            justify-content:flex-end;
-        }
-
-        .message-actions{
-            display:flex;
-            flex-wrap:wrap;
-            gap:8px;
-            margin-top:10px;
-        }
-
-        .chip{
-            border:none;
-            cursor:pointer;
-            padding:10px 12px;
-            border-radius:999px;
-            font-size:.82rem;
-            font-weight:700;
-            transition:.18s ease;
-            background:rgba(255,255,255,.06);
-            color:#f2f5fb;
-            border:1px solid rgba(255,255,255,.08);
-        }
-
-        .chip:hover{
-            transform:translateY(-1px);
-            background:rgba(212,175,55,.18);
-            border-color:rgba(212,175,55,.32);
-            color:#fff3cc;
-        }
-
-        .typing-dots{
-            display:flex;
-            align-items:center;
-            gap:6px;
-            min-width:52px;
-            min-height:18px;
-        }
-
-        .typing-dots span{
-            width:8px;
-            height:8px;
-            border-radius:50%;
-            background:#b7c0d6;
-            opacity:.35;
-            animation:blink 1.2s infinite ease-in-out;
-        }
-
-        .typing-dots span:nth-child(2){ animation-delay:.15s; }
-        .typing-dots span:nth-child(3){ animation-delay:.3s; }
-
-        .chat-composer{
-            padding:16px;
-            border-top:1px solid rgba(255,255,255,.06);
-            background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
-        }
-
-        .composer-shell{
-            display:flex;
-            gap:12px;
-            align-items:flex-end;
-            background:var(--surface);
-            border:1px solid rgba(255,255,255,.08);
-            border-radius:22px;
-            padding:10px;
-        }
-
-        .composer-shell:focus-within{
-            border-color:rgba(212,175,55,.36);
-            box-shadow:0 0 0 4px rgba(212,175,55,.08);
-        }
-
-        .composer-shell input{
-            flex:1;
-            background:transparent;
-            border:none;
-            outline:none;
-            color:#fff;
-            padding:12px 12px;
-            font-size:.95rem;
-        }
-
-        .composer-shell input::placeholder{
-            color:#7f8aa1;
-        }
-
-        .send-btn{
-            border:none;
-            min-width:110px;
-            border-radius:16px;
-            padding:12px 16px;
-            background:linear-gradient(180deg, #e7c45a, #c99f21);
-            color:#17120a;
-            font-weight:800;
-            cursor:pointer;
-            transition:.2s ease;
-        }
-
-        .send-btn:hover{
-            transform:translateY(-1px);
-            filter:brightness(1.03);
-        }
-
-        .composer-hint{
-            margin-top:10px;
-            font-size:.78rem;
-            color:var(--muted);
-            padding:0 6px;
-        }
-
-        @keyframes fadeUp{
-            from{
-                opacity:0;
-                transform:translateY(10px);
-            }
-            to{
-                opacity:1;
-                transform:translateY(0);
-            }
-        }
-
-        @keyframes blink{
-            0%, 80%, 100%{ transform:scale(.8); opacity:.25; }
-            40%{ transform:scale(1); opacity:1; }
-        }
-
-        @media (max-width: 700px){
-            body{
-                padding:0;
-            }
-
-            .chat-shell{
-                min-height:100vh;
-                border-radius:0;
-                max-width:none;
-            }
-
-            .chat-header{
-                padding:16px;
-            }
-
-            .brand h1{
-                font-size:1rem;
-            }
-
-            .brand p{
-                font-size:.8rem;
-            }
-
-            .message{
-                max-width:92%;
-            }
-
-            .bubble{
-                padding:12px 14px;
-            }
-
-            .message-text{
-                font-size:.92rem;
-            }
-
-            .send-btn{
-                min-width:92px;
-                padding:12px 14px;
-            }
-        }
-    </style>
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:640px){
+  body{padding:0;}
+  .shell{max-width:none;border-radius:0;max-height:none;border-left:none;border-right:none;border-bottom:none;}
+  .hdr{padding:14px 16px;}
+  .pills{display:none;}
+  .brand-name{font-size:1rem;}
+  .msgs{padding:16px 14px 10px;}
+  .msg{max-width:88%;}
+  .bubble{padding:12px 15px;}
+  .mtext{font-size:.88rem;}
+  .composer{padding:12px 14px 16px;}
+  .chip{padding:6px 12px;font-size:.74rem;}
+}
+@media(max-width:380px){
+  .msg{max-width:94%;}
+  .brand-sub{display:none;}
+}
+</style>
 </head>
 <body>
 
-<div class="chat-shell">
-    <header class="chat-header">
-        <div class="header-left">
-            <div class="avatar">✨</div>
-            <div class="brand">
-                <h1>Zona VIP Trends</h1>
-                <p>Chat de soporte · Asistente interactivo</p>
-                <div class="status-row">
-                    <div class="status-pill">
-                        <span class="status-dot"></span>
-                        <span>Asistente disponible</span>
-                    </div>
-                    <div class="status-pill">Respuestas guiadas y sugerencias inteligentes</div>
-                </div>
-            </div>
-        </div>
+<!-- AMBIENT -->
+<div class="bg-canvas">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div class="bg-grid"></div>
+<div class="particles" id="particles"></div>
 
-        <button class="reset-btn" id="resetChatBtn" type="button">⟳ Reiniciar</button>
-    </header>
+<!-- SHELL -->
+<div class="shell">
 
-    <main class="chat-messages" id="chatMessages" aria-live="polite" aria-label="Conversación de soporte"></main>
+  <!-- HEADER -->
+  <header class="hdr">
+    <div class="hdr-left">
+      <div class="logo-wrap">
+        <div class="logo">
+          <div class="logo-sweep"></div>
+          <span class="logo-symbol">✦</span>
+        </div>
+        <div class="presence"></div>
+      </div>
+      <div class="brand">
+        <div class="brand-name">Zona VIP Trends</div>
+        <div class="brand-sub">Asistente IA · Soporte profesional 24/7</div>
+        <div class="pills">
+          <span class="pill pill-live"><span class="pdot"></span>En línea ahora</span>
+          <span class="pill pill-ai"><span class="pdot"></span>Powered by IA</span>
+        </div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <button class="hbtn" id="resetBtn" title="Nueva conversación">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reiniciar
+      </button>
+    </div>
+  </header>
 
-    <form class="chat-composer" id="chatForm">
-        <div class="composer-shell">
-            <input
-                type="text"
-                id="userInput"
-                placeholder="Escribe tu pregunta... Ej: ¿cómo funciona?, ¿quién puede participar?, premios..."
-                autocomplete="off"
-            />
-            <button class="send-btn" id="sendMsgBtn" type="submit">Enviar ➜</button>
+  <!-- MESSAGES -->
+  <main class="msgs" id="msgs" aria-live="polite" aria-label="Conversación de soporte Zona VIP Trends">
+    <button class="sfab" id="sfab">↓ Nuevo mensaje</button>
+  </main>
+
+  <!-- COMPOSER -->
+  <div class="composer">
+    <div class="cmp-wrap">
+      <textarea
+        id="inp"
+        rows="1"
+        placeholder="Escribe tu pregunta… ej: ¿cómo funciona el mosaico viral?, ¿cuánto cuesta?, ¿cómo empiezo?"
+        autocomplete="off"
+        maxlength="1000"
+        aria-label="Escribe tu mensaje"
+      ></textarea>
+      <button class="send" id="sendBtn" disabled aria-label="Enviar">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+    <div class="cmp-foot">
+      <span class="foot-l">
+        <span style="width:5px;height:5px;border-radius:50%;background:var(--gold-dk);display:inline-block;"></span>
+        Respuestas en tiempo real con IA · <kbd>Enter</kbd> para enviar · <kbd>Shift+Enter</kbd> para salto
+      </span>
+      <div class="foot-r">
+        <div class="ai-thinking" id="aiThinking">
+          <div class="spin"></div>Generando…
         </div>
-        <div class="composer-hint">
-            Consejo: el asistente te mostrará preguntas relacionadas dentro del chat según lo que escribas.
-        </div>
-    </form>
+        <span class="chars" id="chars">0/1000</span>
+      </div>
+    </div>
+  </div>
+
 </div>
 
+<!-- ═══════════════ JAVASCRIPT ═══════════════ -->
 <script>
-    // ===========================
-    // BASE DE CONOCIMIENTO AMPLIADA
-    // ===========================
-    const FAQ_DB = [
-        {
-            id: "quienesSomos",
-            label: "👋 ¿Quiénes sois?",
-            title: "✨ Quiénes somos",
-            answer: "Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación. Nuestro objetivo es ayudar a marcas y creadores a conectar de forma más efectiva dentro de un entorno innovador y participativo.",
-            keywords: ["quienes", "quienes sois", "quienes son", "empresa", "agencia", "publicidad", "equipo", "zona vip", "quien esta detras"],
-            related: ["queOfrecemos", "diferencial", "comoFunciona"]
-        },
-        {
-            id: "queOfrecemos",
-            label: "🎯 ¿Qué ofrecéis?",
-            title: "🎯 Qué ofrecemos",
-            answer: "Ofrecemos visibilidad, exposición y conexión para marcas y creadores dentro de una plataforma viral. Además, integramos premios y un sistema social que impulsa la participación, el engagement y el alcance.",
-            keywords: ["ofrecen", "ofreceis", "ofrecemos", "servicios", "beneficios", "visibilidad", "exposicion", "engagement", "alcance"],
-            related: ["beneficios", "campanas", "comoFunciona"]
-        },
-        {
-            id: "comoFunciona",
-            label: "⚙️ ¿Cómo funciona?",
-            title: "⚙️ Cómo funciona la plataforma",
-            answer: "La plataforma genera tráfico y participación mediante estrategias de marketing innovadoras y un sistema gamificado de premios. Además, trabaja con campañas activas de marcas, lo que crea oportunidades reales de exposición para los participantes.",
-            keywords: ["funciona", "como funciona", "sistema", "mecanismo", "plataforma", "trafico", "gamificacion", "operativa"],
-            related: ["premios", "campanas", "visibilidad", "comenzar"]
-        },
-        {
-            id: "participacion",
-            label: "🙋 ¿Quién puede participar?",
-            title: "👥 Quién puede participar",
-            answer: "La plataforma está pensada para creadores, influencers, marcas y cualquier usuario que quiera aumentar su visibilidad y crecer dentro de un entorno dinámico, social y gamificado.",
-            keywords: ["participar", "participacion", "quien puede participar", "requisitos", "usuarios", "creadores", "influencers", "marcas"],
-            related: ["comenzar", "beneficios", "comunidad"]
-        },
-        {
-            id: "premios",
-            label: "🏆 Premios y sistema social",
-            title: "🏆 Premios y red social",
-            answer: "Cada usuario que participa se integra en la comunidad de socios de Zona VIP Trends. Los premios se asignan de forma organizada y transparente. Además, la plataforma permite conectar con otros participantes, creando una red social que aumenta la viralidad y el alcance.",
-            keywords: ["premios", "premio", "red social", "social", "socios", "viralidad", "alcance", "transparente", "comunidad"],
-            related: ["comunidad", "comoFunciona", "beneficios"]
-        },
-        {
-            id: "comenzar",
-            label: "🚀 ¿Cómo empiezo?",
-            title: "🚀 Cómo empezar",
-            answer: "Para empezar, debes seleccionar tu espacio dentro de la plataforma y formar parte del mosaico viral. Desde ahí podrás compartir tu enlace, participar en premios y aprovechar campañas activas de marcas.",
-            keywords: ["empezar", "comenzar", "como empiezo", "primeros pasos", "registro", "unirme", "mosaico", "link", "enlace"],
-            related: ["enlace", "visibilidad", "participacion"]
-        },
-        {
-            id: "beneficios",
-            label: "📈 ¿Qué beneficios obtengo?",
-            title: "📈 Beneficios principales",
-            answer: "Los principales beneficios son la visibilidad, la exposición, la conexión con otros perfiles, la participación en dinámicas gamificadas y el acceso a campañas activas que ayudan a impulsar el alcance y la interacción.",
-            keywords: ["beneficios", "ventajas", "gano", "obtengo", "para que sirve", "valor", "utilidad"],
-            related: ["queOfrecemos", "visibilidad", "premios"]
-        },
-        {
-            id: "diferencial",
-            label: "💎 ¿Qué os hace diferentes?",
-            title: "💎 Qué hace diferente a Zona VIP Trends",
-            answer: "La diferencia está en la combinación de creatividad, tecnología, gamificación, premios y componente social. No es solo visibilidad: es una experiencia participativa pensada para generar interacción real y mayor alcance.",
-            keywords: ["diferente", "diferencial", "por que elegir", "que os hace diferentes", "valor diferencial", "innovador"],
-            related: ["quienesSomos", "comoFunciona", "beneficios"]
-        },
-        {
-            id: "visibilidad",
-            label: "📣 ¿Cómo gano visibilidad?",
-            title: "📣 Cómo se impulsa tu visibilidad",
-            answer: "La visibilidad se potencia gracias a la combinación de campañas activas, participación dentro del sistema gamificado, presencia en la plataforma y posibilidad de compartir tu enlace para amplificar el alcance.",
-            keywords: ["visibilidad", "alcance", "crecer", "mas gente", "audiencia", "exposicion", "viral", "viralidad"],
-            related: ["enlace", "campanas", "beneficios"]
-        },
-        {
-            id: "campanas",
-            label: "🧩 ¿Qué papel tienen las campañas?",
-            title: "🧩 Campañas activas de marcas",
-            answer: "Las campañas activas de marcas son una parte importante del funcionamiento de la plataforma, ya que generan oportunidades reales de exposición y refuerzan la participación dentro del ecosistema.",
-            keywords: ["campanas", "campaña", "marcas", "anuncios", "acciones", "publicidad"],
-            related: ["queOfrecemos", "comoFunciona", "visibilidad"]
-        },
-        {
-            id: "comunidad",
-            label: "🤝 ¿Hay comunidad entre usuarios?",
-            title: "🤝 Comunidad y conexión entre participantes",
-            answer: "Sí. La plataforma no solo está orientada a la exposición, sino también a la conexión entre participantes. Esto favorece una red social propia, mayor interacción y un crecimiento más orgánico dentro del entorno.",
-            keywords: ["comunidad", "usuarios", "conectar", "conexion", "networking", "red", "social", "participantes"],
-            related: ["premios", "participacion", "visibilidad"]
-        },
-        {
-            id: "enlace",
-            label: "🔗 ¿Puedo compartir mi enlace?",
-            title: "🔗 Compartir tu enlace",
-            answer: "Sí. Una vez formas parte de la plataforma y tienes tu espacio en el mosaico viral, puedes compartir tu enlace para aumentar la difusión, atraer visitas y reforzar tu presencia dentro del ecosistema.",
-            keywords: ["enlace", "link", "compartir", "mi link", "mi enlace", "difusion", "visitas"],
-            related: ["comenzar", "visibilidad", "beneficios"]
-        },
-        {
-            id: "paraQuien",
-            label: "🌍 ¿Es solo para influencers?",
-            title: "🌍 A quién va dirigida la plataforma",
-            answer: "No. Está dirigida a influencers, creadores, marcas y también a cualquier usuario que quiera ganar visibilidad, conectar con otros perfiles y participar en una dinámica social y gamificada.",
-            keywords: ["solo influencers", "influencers", "para quien", "para quien es", "dirigido", "usuarios", "marcas"],
-            related: ["participacion", "beneficios", "quienesSomos"]
-        },
-        {
-            id: "ayuda",
-            label: "🆘 ¿En qué me puedes ayudar?",
-            title: "🆘 Cómo puede ayudarte este asistente",
-            answer: "Puedo responder preguntas sobre quiénes somos, qué ofrecemos, cómo funciona la plataforma, quién puede participar, cómo empezar, cómo se impulsa la visibilidad, el sistema de premios y las preguntas relacionadas que vayan surgiendo.",
-            keywords: ["ayuda", "soporte", "que puedes hacer", "que me puedes ayudar", "asistente", "chat"],
-            related: ["comenzar", "comoFunciona", "participacion"]
-        }
-    ];
+"use strict";
 
-    const FEATURED_IDS = ["comoFunciona", "participacion", "premios", "comenzar", "beneficios", "diferencial"];
+/* ─── SYSTEM PROMPT ─────────────────────────────── */
+const SYS = `Eres el asistente virtual oficial de Zona VIP Trends, una plataforma premium de publicidad digital, marketing gamificado y crecimiento viral para marcas y creadores de contenido. Representas la marca con profesionalidad, calidez y autoridad. Respondes siempre en español. Te diriges al usuario de "tú".
 
-    const STOP_WORDS = new Set([
-        "de", "la", "el", "los", "las", "un", "una", "unos", "unas", "y", "o", "u", "en",
-        "para", "por", "con", "sin", "que", "como", "qué", "cual", "cuál", "me", "mi",
-        "mis", "tu", "tus", "su", "sus", "al", "del", "se", "es", "sois", "son", "a",
-        "lo", "le", "les", "quiero", "necesito", "hay", "puedo"
-    ]);
+## Conocimiento completo de la plataforma
 
-    const FAQ_INDEX = Object.fromEntries(FAQ_DB.map(item => [item.id, item]));
+### ¿Qué es Zona VIP Trends?
+Una agencia de publicidad digital que fusiona creatividad, tecnología avanzada y gamificación para que marcas y creadores conecten de forma efectiva. Su sistema estrella es el "Mosaico Viral", una cuadrícula interactiva donde cada participante ocupa un espacio y gana visibilidad real.
 
-    const chatMessages = document.getElementById("chatMessages");
-    const userInput = document.getElementById("userInput");
-    const chatForm = document.getElementById("chatForm");
-    const resetChatBtn = document.getElementById("resetChatBtn");
+### El Mosaico Viral
+- Cada participante reserva un espacio único dentro del mosaico.
+- Los espacios son visibles para todos los visitantes de la plataforma.
+- La actividad y participación aumentan el posicionamiento dentro del mosaico.
+- Cada participante tiene un enlace personal compartible para amplificar su alcance.
+- El efecto viral ocurre cuando varios participantes comparten simultáneamente.
 
-    let typingTimeout = null;
+### ¿Quién puede participar?
+- Influencers y creadores de contenido de cualquier tamaño de audiencia.
+- Marcas, empresas y startups que buscan exposición digital.
+- Emprendedores, freelancers y profesionales independientes.
+- Cualquier persona que quiera aumentar su presencia online.
+- No se requiere tener muchos seguidores ni experiencia previa.
 
-    function normalizeText(text = "") {
-        return text
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^\w\s]/g, " ")
-            .replace(/\s+/g, " ")
-            .trim();
+### Beneficios principales
+- Visibilidad real y continua ante una audiencia activa y en crecimiento.
+- Sistema gamificado de premios con recompensas transparentes y periódicas.
+- Networking directo con otros creadores, influencers y marcas.
+- Acceso a campañas activas de marcas que generan exposición extra.
+- Enlace personal compartible para amplificar el alcance viralmente.
+- Comunidad de socios con red social integrada dentro de la plataforma.
+- Panel de control para monitorear visibilidad e interacciones.
+
+### Sistema de premios
+- Los premios se asignan de forma periódica, organizada y 100% transparente.
+- Tipos de premios: económicos, en especie, servicios digitales y colaboraciones.
+- Los participantes acumulan puntos según su actividad y participación.
+- El proceso completo es verificable y auditable por los participantes.
+- No hay sorteos ocultos: todo el sistema es justo y abierto.
+
+### Campañas activas de marcas
+- Las marcas lanzan campañas dentro de la plataforma que benefician a todos los participantes.
+- Los participantes pueden asociarse a campañas relevantes para su nicho.
+- Zona VIP Trends actúa como intermediario de confianza entre marcas y creadores.
+- Las campañas generan oportunidades de exposición adicional y colaboraciones.
+
+### Comunidad y red social interna
+- La plataforma incluye una capa social para conectar participantes entre sí.
+- Puedes seguir, interactuar y colaborar con otros socios VIP.
+- La red interna amplifica el alcance orgánico de cada participante.
+- El networking entre socios es uno de los mayores valores añadidos.
+
+### Precios y planes
+- Existen planes para todos los presupuestos: desde creadores individuales hasta grandes marcas.
+- Los precios varían según el espacio elegido en el mosaico y el nivel de exposición.
+- Planes disponibles: Básico, Premium y Enterprise.
+- Los precios exactos son personalizados según las necesidades del cliente.
+- Para consultar tarifas concretas, se recomienda contacto directo.
+
+### Privacidad y seguridad
+- Todos los datos se tratan conforme al RGPD europeo.
+- Los datos personales nunca se ceden a terceros sin consentimiento explícito.
+- Cada usuario controla completamente su perfil, visibilidad y privacidad.
+- La plataforma utiliza cifrado de extremo a extremo y protocolos de seguridad actualizados.
+- Los pagos se procesan a través de pasarelas certificadas y seguras.
+
+### Diferencial competitivo
+- Única plataforma que combina Mosaico Viral + Gamificación + Premios + Red Social.
+- Tecnología propietaria desarrollada para maximizar el alcance viral.
+- Sistema de premios transparente que genera confianza real.
+- Comunidad activa con networking de valor entre creadores y marcas.
+- No es solo visibilidad: es una experiencia participativa con retorno medible.
+
+### Preguntas sobre el proceso de inicio
+1. Elige tu espacio en el Mosaico Viral.
+2. Personaliza tu perfil con tu información y redes.
+3. Comparte tu enlace personal para comenzar a generar tráfico.
+4. Participa activamente para acumular puntos y optar a premios.
+5. Conecta con otros socios y marcas dentro de la comunidad.
+
+## Instrucciones de respuesta
+
+1. Sé conciso, directo y útil. Máximo 3-4 párrafos.
+2. Usa **negrita** para resaltar conceptos clave importantes.
+3. Si no tienes datos específicos (precio exacto, fecha), indica que deben contactar directamente.
+4. Nunca inventes información que no tengas confirmada.
+5. Responde ÚNICAMENTE con este JSON exacto, sin markdown exterior ni texto adicional:
+{"answer":"respuesta completa con saltos de línea como \\n y **negrita** para conceptos clave","chips":[{"label":"texto del chip 1"},{"label":"texto del chip 2"},{"label":"texto del chip 3"}]}
+6. Genera siempre entre 2 y 4 chips que sean preguntas relevantes y distintas entre sí.
+7. Si la pregunta es completamente ajena a Zona VIP Trends, redirige con amabilidad.`;
+
+/* ─── QUICK RESPONSES (sin API) ──────────────────── */
+const QUICK = [
+  {
+    rx:/^(hola|buenas|hey|saludos|buenos\s?d[ií]as|buenas\s?tardes|buenas\s?noches|hi|hello|ola)\b/i,
+    answer:"¡Hola! Bienvenido a **Zona VIP Trends** ✦\n\nSoy tu asistente IA y puedo responder cualquier pregunta sobre la plataforma en tiempo real: cómo funciona el **Mosaico Viral**, quién puede participar, el sistema de premios, precios, privacidad o cómo dar tus primeros pasos.\n\n¿Por dónde quieres empezar?",
+    chips:["⚙️ ¿Cómo funciona el mosaico?","🚀 ¿Cómo empiezo?","🏆 Sistema de premios","💎 ¿Qué os hace diferentes?"]
+  },
+  {
+    rx:/(gracias|muchas\s?gracias|thank\s?you|genial|perfecto|ok\s?gracias|excelente)/i,
+    answer:"¡De nada! Ha sido un placer ayudarte 😊\n\n¿Tienes alguna otra duda sobre **Zona VIP Trends**? Estoy aquí para lo que necesites.",
+    chips:["⚙️ ¿Cómo funciona?","📈 ¿Qué beneficios obtengo?","🤝 ¿Hay comunidad?","💰 ¿Cuánto cuesta?"]
+  }
+];
+
+/* ─── STATE ───────────────────────────────────────── */
+let busy = false;
+let history = [];
+const MAX_H = 16;
+
+/* ─── ELEMENTS ────────────────────────────────────── */
+const msgsEl    = document.getElementById("msgs");
+const inp       = document.getElementById("inp");
+const sendBtn   = document.getElementById("sendBtn");
+const resetBtn  = document.getElementById("resetBtn");
+const sfab      = document.getElementById("sfab");
+const aiThink   = document.getElementById("aiThinking");
+const charsEl   = document.getElementById("chars");
+
+/* ─── PARTICLES ───────────────────────────────────── */
+(function spawnParticles(){
+  const c = document.getElementById("particles");
+  for(let i=0;i<18;i++){
+    const p = document.createElement("div");
+    p.className = "par";
+    const size = Math.random()*3+1;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      bottom:${Math.random()*30}%;
+      opacity:0;
+      animation-duration:${6+Math.random()*10}s;
+      animation-delay:${Math.random()*8}s;
+    `;
+    c.appendChild(p);
+  }
+})();
+
+/* ─── UTILS ───────────────────────────────────────── */
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const now   = () => new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+const norm  = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w\s]/g," ").trim();
+
+/* ─── SCROLL ──────────────────────────────────────── */
+function scrollDown(smooth=true){
+  msgsEl.scrollTo({top:msgsEl.scrollHeight,behavior:smooth?"smooth":"instant"});
+}
+msgsEl.addEventListener("scroll",()=>{
+  const atBottom = msgsEl.scrollHeight-msgsEl.scrollTop-msgsEl.clientHeight<100;
+  sfab.classList.toggle("show",!atBottom);
+});
+sfab.addEventListener("click",()=>scrollDown());
+
+/* ─── TEXTAREA ────────────────────────────────────── */
+inp.addEventListener("input",()=>{
+  inp.style.height="auto";
+  inp.style.height=Math.min(inp.scrollHeight,130)+"px";
+  const l=inp.value.length;
+  sendBtn.disabled=!inp.value.trim()||busy;
+  charsEl.textContent=`${l}/1000`;
+  charsEl.classList.toggle("warn",l>850);
+});
+inp.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();if(!sendBtn.disabled)doSend();}
+});
+sendBtn.addEventListener("click",doSend);
+resetBtn.addEventListener("click",resetChat);
+
+/* ─── DATE DIVIDER ────────────────────────────────── */
+function addDateDivider(){
+  const d=document.createElement("div");
+  d.className="date-row";
+  const label=new Date().toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});
+  d.innerHTML=`<span>${label[0].toUpperCase()+label.slice(1)}</span>`;
+  msgsEl.insertBefore(d,sfab);
+}
+
+/* ─── ADD MESSAGE ─────────────────────────────────── */
+function addMsg({sender,title="",text="",chips=[],isTyping=false,isAi=false}){
+  const wrap=document.createElement("div");
+  wrap.className=`msg ${sender}`;
+  if(isTyping) wrap.id="typing";
+
+  const who=document.createElement("div");
+  who.className="mwho";
+  who.textContent=sender==="bot"?"Asistente Zona VIP":"Tú";
+
+  const bbl=document.createElement("div");
+  bbl.className="bubble";
+
+  if(isTyping){
+    bbl.classList.add("typing-bbl");
+    bbl.innerHTML="<span class='tdot'></span><span class='tdot'></span><span class='tdot'></span>";
+  }else{
+    if(title){
+      const t=document.createElement("div");
+      t.className="mtitle";t.textContent=title;bbl.appendChild(t);
+    }
+    const p=document.createElement("div");
+    p.className="mtext";
+    p.innerHTML=text
+      .replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")
+      .replace(/\n/g,"<br>");
+    bbl.appendChild(p);
+
+    if(isAi){
+      const badge=document.createElement("div");
+      badge.className="ai-badge";
+      badge.innerHTML="<span class='ai-dot'></span>Generado por IA";
+      bbl.appendChild(badge);
     }
 
-    function getCurrentTime() {
-        return new Date().toLocaleTimeString("es-ES", {
-            hour: "2-digit",
-            minute: "2-digit"
+    if(chips.length){
+      const cw=document.createElement("div");
+      cw.className="chips";
+      chips.forEach(c=>{
+        const label=typeof c==="string"?c:(c.label||c);
+        const btn=document.createElement("button");
+        btn.className="chip";btn.textContent=label;
+        btn.addEventListener("click",()=>{
+          inp.value=label;inp.style.height="auto";
+          sendBtn.disabled=false;doSend();
         });
+        cw.appendChild(btn);
+      });
+      bbl.appendChild(cw);
     }
+  }
 
-    function scrollToBottom() {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+  const ts=document.createElement("div");
+  ts.className="mts";
+  ts.textContent=sender==="bot"?`Asistente · ${now()}`:`Tú · ${now()}`;
+
+  wrap.appendChild(who);wrap.appendChild(bbl);wrap.appendChild(ts);
+  msgsEl.insertBefore(wrap,sfab);
+  scrollDown();
+  return wrap;
+}
+
+/* ─── TYPING INDICATOR ────────────────────────────── */
+function showTyping(){removeTyping();addMsg({sender:"bot",isTyping:true});}
+function removeTyping(){const e=document.getElementById("typing");if(e)e.remove();}
+
+/* ─── AI CALL ─────────────────────────────────────── */
+async function callAI(userMsg){
+  history.push({role:"user",content:userMsg});
+  const slice=history.slice(-MAX_H);
+
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      model:"claude-sonnet-4-20250514",
+      max_tokens:1000,
+      system:SYS,
+      messages:slice
+    })
+  });
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data=await res.json();
+  const raw=data.content.map(b=>b.type==="text"?b.text:"").join("").trim();
+  history.push({role:"assistant",content:raw});
+
+  try{
+    const clean=raw.replace(/^```json\s*/,"").replace(/\s*```$/,"").trim();
+    return JSON.parse(clean);
+  }catch{
+    return {answer:raw,chips:[]};
+  }
+}
+
+/* ─── MAIN SEND ───────────────────────────────────── */
+async function doSend(){
+  const text=inp.value.trim();
+  if(!text||busy)return;
+
+  addMsg({sender:"user",text});
+  inp.value="";inp.style.height="auto";
+  sendBtn.disabled=true;charsEl.textContent="0/1000";
+
+  // Quick match
+  for(const q of QUICK){
+    if(q.rx.test(norm(text))){
+      showTyping();
+      await sleep(440);
+      removeTyping();
+      addMsg({sender:"bot",text:q.answer,chips:q.chips||[]});
+      return;
     }
+  }
 
-    function scoreFAQ(query, faq) {
-        const normalizedQuery = normalizeText(query);
-        if (!normalizedQuery) return 0;
+  // AI
+  busy=true;
+  aiThink.classList.add("on");
+  showTyping();
 
-        const queryWords = normalizedQuery
-            .split(" ")
-            .filter(word => word.length > 1 && !STOP_WORDS.has(word));
-
-        const fullText = normalizeText([
-            faq.title,
-            faq.label,
-            faq.answer,
-            ...(faq.keywords || [])
-        ].join(" "));
-
-        let score = 0;
-
-        (faq.keywords || []).forEach(keyword => {
-            const normalizedKeyword = normalizeText(keyword);
-            if (normalizedKeyword && normalizedQuery.includes(normalizedKeyword)) {
-                score += normalizedKeyword.includes(" ") ? 10 : 6;
-            }
-        });
-
-        queryWords.forEach(word => {
-            if (fullText.includes(word)) {
-                score += word.length >= 5 ? 3 : 1.5;
-            }
-        });
-
-        if (normalizeText(faq.label).includes(normalizedQuery)) score += 5;
-        if (normalizeText(faq.title).includes(normalizedQuery)) score += 5;
-
-        return score;
-    }
-
-    function findMatches(query, limit = 4) {
-        return FAQ_DB
-            .map(faq => ({ faq, score: scoreFAQ(query, faq) }))
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, limit);
-    }
-
-    function getFeaturedChips(limit = 6) {
-        return FEATURED_IDS
-            .map(id => FAQ_INDEX[id])
-            .filter(Boolean)
-            .slice(0, limit)
-            .map(faq => ({
-                id: faq.id,
-                label: faq.label
-            }));
-    }
-
-    function getRelatedChips(faq, userQuery = "") {
-        const relatedFromFaq = (faq.related || [])
-            .map(id => FAQ_INDEX[id])
-            .filter(Boolean);
-
-        const relatedFromQuery = findMatches(userQuery, 6)
-            .map(item => item.faq)
-            .filter(item => item.id !== faq.id);
-
-        const uniqueMap = new Map();
-
-        [...relatedFromFaq, ...relatedFromQuery].forEach(item => {
-            if (!uniqueMap.has(item.id) && item.id !== faq.id) {
-                uniqueMap.set(item.id, {
-                    id: item.id,
-                    label: item.label
-                });
-            }
-        });
-
-        return Array.from(uniqueMap.values()).slice(0, 5);
-    }
-
-    function createMessageElement({ sender, title = "", text = "", chips = [], isTyping = false }) {
-        const message = document.createElement("div");
-        message.className = `message ${sender}`;
-        if (isTyping) message.classList.add("typing-message");
-
-        const bubble = document.createElement("div");
-        bubble.className = "bubble";
-
-        if (isTyping) {
-            const typingDots = document.createElement("div");
-            typingDots.className = "typing-dots";
-            typingDots.innerHTML = "<span></span><span></span><span></span>";
-            bubble.appendChild(typingDots);
-        } else {
-            if (title) {
-                const titleEl = document.createElement("div");
-                titleEl.className = "message-title";
-                titleEl.textContent = title;
-                bubble.appendChild(titleEl);
-            }
-
-            const textEl = document.createElement("div");
-            textEl.className = "message-text";
-            textEl.textContent = text;
-            bubble.appendChild(textEl);
-
-            if (chips.length) {
-                const actions = document.createElement("div");
-                actions.className = "message-actions";
-
-                chips.forEach(chip => {
-                    const chipBtn = document.createElement("button");
-                    chipBtn.className = "chip";
-                    chipBtn.type = "button";
-                    chipBtn.textContent = chip.label;
-                    chipBtn.addEventListener("click", () => {
-                        sendUserMessage(chip.label, chip.id);
-                    });
-                    actions.appendChild(chipBtn);
-                });
-
-                bubble.appendChild(actions);
-            }
-        }
-
-        const meta = document.createElement("div");
-        meta.className = "message-meta";
-        meta.textContent = sender === "bot"
-            ? `Asistente · ${getCurrentTime()}`
-            : `Tú · ${getCurrentTime()}`;
-
-        message.appendChild(bubble);
-        message.appendChild(meta);
-
-        return message;
-    }
-
-    function addMessage(payload) {
-        const element = createMessageElement(payload);
-        chatMessages.appendChild(element);
-        scrollToBottom();
-    }
-
-    function showTyping() {
-        removeTyping();
-        const typingElement = createMessageElement({
-            sender: "bot",
-            isTyping: true
-        });
-        typingElement.id = "typingIndicator";
-        chatMessages.appendChild(typingElement);
-        scrollToBottom();
-    }
-
-    function removeTyping() {
-        const existing = document.getElementById("typingIndicator");
-        if (existing) existing.remove();
-    }
-
-    function botReply({ title = "", text = "", chips = [] }, delay = 320) {
-        showTyping();
-
-        if (typingTimeout) clearTimeout(typingTimeout);
-
-        typingTimeout = setTimeout(() => {
-            removeTyping();
-            addMessage({
-                sender: "bot",
-                title,
-                text,
-                chips
-            });
-        }, delay);
-    }
-
-    function sendFaqResponse(faq, originalQuery = "") {
-        botReply({
-            title: faq.title,
-            text: faq.answer,
-            chips: getRelatedChips(faq, originalQuery)
-        });
-    }
-
-    function handleGreeting(query) {
-        const normalized = normalizeText(query);
-
-        if (/^(hola|buenas|hey|saludos|buenos dias|buenas tardes|buenas noches)\b/.test(normalized)) {
-            botReply({
-                title: "👋 Bienvenido al soporte",
-                text: "¡Hola! Estoy aquí para ayudarte con todo lo relacionado con Zona VIP Trends.\n\nPuedes preguntarme cómo funciona la plataforma, quién puede participar, qué beneficios ofrece o cómo empezar.",
-                chips: getFeaturedChips()
-            });
-            return true;
-        }
-
-        if (/(gracias|muchas gracias|thank you|thanks|agradecido)/.test(normalized)) {
-            botReply({
-                title: "😊 Encantado de ayudarte",
-                text: "¡De nada! Si quieres, puedo seguir guiándote con preguntas sobre funcionamiento, participación, premios, visibilidad o primeros pasos.",
-                chips: getFeaturedChips(5)
-            });
-            return true;
-        }
-
-        if (/(ayuda|soporte|no se por donde empezar|que puedes hacer)/.test(normalized)) {
-            sendFaqResponse(FAQ_INDEX.ayuda, query);
-            return true;
-        }
-
-        return false;
-    }
-
-    function processQuery(query) {
-        if (!query.trim()) return;
-
-        if (handleGreeting(query)) return;
-
-        const matches = findMatches(query, 5);
-
-        if (matches.length && matches[0].score > 0) {
-            sendFaqResponse(matches[0].faq, query);
-            return;
-        }
-
-        botReply({
-            title: "🔎 No he encontrado una coincidencia exacta",
-            text: "Prueba con una de estas preguntas relacionadas o reformula tu consulta con otras palabras. Por ejemplo: “cómo funciona”, “premios”, “quién puede participar” o “cómo empezar”.",
-            chips: matches.length
-                ? matches.map(item => ({ id: item.faq.id, label: item.faq.label }))
-                : getFeaturedChips()
-        });
-    }
-
-    function sendUserMessage(text, forcedFaqId = null) {
-        const cleanText = text.trim();
-        if (!cleanText) return;
-
-        addMessage({
-            sender: "user",
-            text: cleanText
-        });
-
-        userInput.value = "";
-        userInput.focus();
-
-        if (forcedFaqId && FAQ_INDEX[forcedFaqId]) {
-            sendFaqResponse(FAQ_INDEX[forcedFaqId], cleanText);
-            return;
-        }
-
-        processQuery(cleanText);
-    }
-
-    function resetChat() {
-        if (typingTimeout) clearTimeout(typingTimeout);
-        removeTyping();
-        chatMessages.innerHTML = "";
-
-        botReply({
-            title: "✨ Bienvenido a Zona VIP Trends",
-            text: "Soy tu asistente de soporte y puedo ayudarte a resolver dudas sobre la plataforma.\n\nAquí debajo te dejo preguntas sugeridas. También puedes escribir libremente y te mostraré opciones relacionadas dentro del propio chat.",
-            chips: getFeaturedChips()
-        }, 150);
-
-        setTimeout(() => {
-            botReply({
-                title: "💡 Preguntas frecuentes",
-                text: "Puedes empezar por cualquiera de estas consultas. Las siguientes sugerencias cambiarán según lo que escribas o la respuesta que estés viendo.",
-                chips: [
-                    { id: "quienesSomos", label: "👋 ¿Quiénes sois?" },
-                    { id: "queOfrecemos", label: "🎯 ¿Qué ofrecéis?" },
-                    { id: "visibilidad", label: "📣 ¿Cómo gano visibilidad?" },
-                    { id: "comunidad", label: "🤝 ¿Hay comunidad entre usuarios?" }
-                ]
-            }, 450);
-        }, 220);
-    }
-
-    chatForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        sendUserMessage(userInput.value);
+  try{
+    const result=await callAI(text);
+    removeTyping();
+    addMsg({
+      sender:"bot",
+      text:result.answer||"No he podido generar una respuesta. Inténtalo de nuevo.",
+      chips:(result.chips||[]).map(c=>typeof c==="string"?c:(c.label||c)),
+      isAi:true
     });
-
-    resetChatBtn.addEventListener("click", resetChat);
-
-    document.addEventListener("DOMContentLoaded", () => {
-        resetChat();
-        userInput.focus();
+  }catch(err){
+    removeTyping();
+    history.pop();
+    addMsg({
+      sender:"bot",
+      title:"⚠️ Error de conexión",
+      text:"No he podido conectar con el servicio de IA. Comprueba tu conexión e inténtalo de nuevo, o reinicia el chat.",
+      chips:["🔄 Intentar de nuevo","⚙️ ¿Cómo funciona?","🚀 ¿Cómo empiezo?"]
     });
+  }finally{
+    busy=false;
+    aiThink.classList.remove("on");
+    sendBtn.disabled=!inp.value.trim();
+  }
+}
+
+/* ─── RESET ───────────────────────────────────────── */
+function resetChat(){
+  history=[];
+  [...msgsEl.children].forEach(c=>{if(c.id!=="sfab")c.remove();});
+  init();
+}
+
+/* ─── INIT ────────────────────────────────────────── */
+async function init(){
+  addDateDivider();
+  await sleep(280);
+  showTyping();
+  await sleep(700);
+  removeTyping();
+
+  addMsg({
+    sender:"bot",
+    title:"✦ Bienvenido a Zona VIP Trends",
+    text:"Hola, soy tu asistente con **inteligencia artificial** y puedo responder cualquier pregunta sobre la plataforma de forma precisa y en tiempo real.\n\nDesde cómo funciona el **Mosaico Viral** hasta precios, premios, privacidad o primeros pasos. ¿Qué quieres saber?",
+    chips:["⚙️ ¿Cómo funciona el mosaico?","🚀 ¿Cómo empiezo?","🙋 ¿Quién puede participar?","🏆 Sistema de premios"]
+  });
+
+  await sleep(1000);
+  addMsg({
+    sender:"bot",
+    text:"También puedo ayudarte con **precios y planes**, **privacidad de datos**, cómo sacar partido a las **campañas de marcas** o cómo crecer dentro de la comunidad de socios. Pregunta lo que necesites 👇",
+    chips:["💰 ¿Cuánto cuesta?","🔒 ¿Cómo protegéis mis datos?","🤝 ¿Hay comunidad entre socios?","💎 ¿Qué os hace únicos?"]
+  });
+
+  inp.focus();
+}
+
+window.addEventListener("DOMContentLoaded",init);
 </script>
-
 </body>
 </html>
