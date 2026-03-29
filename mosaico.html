@@ -687,7 +687,7 @@ function refrescar() {
   selDiv.style.width=((c2-c1+1)*10)+'px'; selDiv.style.height=((r2-r1+1)*10)+'px';
   var n=selActual.size;
   if(n>0){
-    barraInfo.innerHTML = 'Selección activa';   // ← texto fijo sin contador
+    barraInfo.innerHTML = '';   // ← texto fijo sin contador
     precioFijo.textContent=(n*CFG.PRECIO).toLocaleString('es-ES')+' €';
     precioFijo.classList.add('visible'); btnPagar.classList.add('visible');
   } else {
