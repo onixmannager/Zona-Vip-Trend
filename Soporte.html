@@ -1,65 +1,915 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zona VIP Trends Bot</title>
-<style>
-  body { margin: 0; font-family: 'Arial', sans-serif; background-color: #121212; color: #f0f0f0; }
-  .chat-container { display: flex; flex-direction: column; max-width: 600px; margin: 50px auto; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.7); }
-  .chat-header { background: linear-gradient(90deg, #bfa022, #805e0f); padding: 15px; font-weight: bold; font-size: 18px; }
-  .chat-messages { background-color: #ffffff; color: #000000; flex: 1; padding: 15px; overflow-y: auto; min-height: 400px; }
-  .chat-message { margin-bottom: 12px; }
-  .chat-message.bot { font-weight: bold; }
-  .chat-buttons { display: flex; flex-direction: column; gap: 10px; padding: 15px; background-color: #1e1e1e; }
-  .chat-buttons button { padding: 12px; border: none; border-radius: 8px; background-color: #bfa022; color: #121212; font-weight: bold; cursor: pointer; transition: 0.3s; }
-  .chat-buttons button:hover { background-color: #805e0f; }
-  @media (max-width: 600px) { .chat-container { margin: 20px; } }
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>Zona VIP Trends · Soporte profesional</title>
+    <style>
+        :root{
+            --bg-1:#0a0b10;
+            --bg-2:#11131b;
+            --panel:#12151d;
+            --panel-2:#171b24;
+            --panel-3:#1c2230;
+            --gold:#d4af37;
+            --gold-2:#f2d98a;
+            --text:#f6f7fb;
+            --muted:#9da5b4;
+            --line:rgba(255,255,255,.08);
+            --bot:#1b2130;
+            --user:#d4af37;
+            --user-text:#17120a;
+            --surface:#0f1219;
+            --success:#2ecc71;
+            --shadow:0 24px 60px rgba(0,0,0,.45);
+        }
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        html, body{
+            min-height:100%;
+        }
+
+        body{
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(212,175,55,.12), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(84,98,255,.10), transparent 25%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2));
+            color: var(--text);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+        }
+
+        .chat-shell{
+            width:100%;
+            max-width:900px;
+            min-height:720px;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+            border-radius:28px;
+            border:1px solid rgba(212,175,55,.18);
+            background:rgba(14,17,24,.92);
+            box-shadow:var(--shadow);
+            backdrop-filter: blur(12px);
+        }
+
+        .chat-header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            padding:18px 20px;
+            background:
+                linear-gradient(135deg, rgba(212,175,55,.10), rgba(255,255,255,.02)),
+                linear-gradient(180deg, #17130c, #12161e);
+            border-bottom:1px solid rgba(212,175,55,.14);
+        }
+
+        .header-left{
+            display:flex;
+            align-items:center;
+            gap:14px;
+            min-width:0;
+        }
+
+        .avatar{
+            width:48px;
+            height:48px;
+            border-radius:16px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:linear-gradient(135deg, var(--gold), #8f6b11);
+            color:#18120a;
+            font-size:22px;
+            font-weight:700;
+            box-shadow:0 10px 25px rgba(212,175,55,.20);
+            flex-shrink:0;
+        }
+
+        .brand{
+            min-width:0;
+        }
+
+        .brand h1{
+            font-size:1.1rem;
+            font-weight:800;
+            letter-spacing:-0.02em;
+            color:#fff;
+        }
+
+        .brand p{
+            margin-top:4px;
+            font-size:.86rem;
+            color:var(--muted);
+        }
+
+        .status-row{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            flex-wrap:wrap;
+            margin-top:6px;
+        }
+
+        .status-pill{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:6px 12px;
+            border-radius:999px;
+            border:1px solid rgba(255,255,255,.08);
+            background:rgba(255,255,255,.03);
+            color:#dbe3f1;
+            font-size:.76rem;
+            white-space:nowrap;
+        }
+
+        .status-dot{
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:var(--success);
+            box-shadow:0 0 0 4px rgba(46,204,113,.12);
+        }
+
+        .reset-btn{
+            flex-shrink:0;
+            border:none;
+            border-radius:14px;
+            padding:12px 14px;
+            background:rgba(212,175,55,.12);
+            color:var(--gold-2);
+            border:1px solid rgba(212,175,55,.25);
+            cursor:pointer;
+            transition:.2s ease;
+            font-weight:700;
+        }
+
+        .reset-btn:hover{
+            transform:translateY(-1px);
+            background:rgba(212,175,55,.18);
+            color:#fff4ca;
+        }
+
+        .chat-messages{
+            flex:1;
+            overflow-y:auto;
+            padding:22px 18px 14px;
+            display:flex;
+            flex-direction:column;
+            gap:16px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.00)),
+                radial-gradient(circle at center, rgba(255,255,255,.02) 1px, transparent 1px);
+            background-size:auto, 20px 20px;
+            scroll-behavior:smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar{
+            width:8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track{
+            background:transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb{
+            background:rgba(212,175,55,.32);
+            border-radius:999px;
+        }
+
+        .message{
+            display:flex;
+            flex-direction:column;
+            gap:8px;
+            max-width:85%;
+            animation:fadeUp .25s ease;
+        }
+
+        .message.bot{
+            align-self:flex-start;
+        }
+
+        .message.user{
+            align-self:flex-end;
+        }
+
+        .bubble{
+            border-radius:22px;
+            padding:14px 16px;
+            border:1px solid var(--line);
+            position:relative;
+        }
+
+        .message.bot .bubble{
+            background:linear-gradient(180deg, var(--bot), #161c29);
+            border-bottom-left-radius:8px;
+        }
+
+        .message.user .bubble{
+            background:linear-gradient(180deg, #e0bc4a, #c79f22);
+            color:var(--user-text);
+            border-color:rgba(255,255,255,.14);
+            border-bottom-right-radius:8px;
+            box-shadow:0 8px 22px rgba(212,175,55,.18);
+        }
+
+        .message-title{
+            font-size:.88rem;
+            font-weight:800;
+            margin-bottom:8px;
+            color:#fff0bf;
+            letter-spacing:.01em;
+        }
+
+        .message.user .message-title{
+            color:#2d210a;
+        }
+
+        .message-text{
+            white-space:pre-line;
+            line-height:1.58;
+            font-size:.96rem;
+            color:#eef2fa;
+        }
+
+        .message.user .message-text{
+            color:#1d160b;
+            font-weight:600;
+        }
+
+        .message-meta{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-size:.72rem;
+            color:var(--muted);
+            padding:0 4px;
+        }
+
+        .message.user .message-meta{
+            justify-content:flex-end;
+        }
+
+        .message-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin-top:10px;
+        }
+
+        .chip{
+            border:none;
+            cursor:pointer;
+            padding:10px 12px;
+            border-radius:999px;
+            font-size:.82rem;
+            font-weight:700;
+            transition:.18s ease;
+            background:rgba(255,255,255,.06);
+            color:#f2f5fb;
+            border:1px solid rgba(255,255,255,.08);
+        }
+
+        .chip:hover{
+            transform:translateY(-1px);
+            background:rgba(212,175,55,.18);
+            border-color:rgba(212,175,55,.32);
+            color:#fff3cc;
+        }
+
+        .typing-dots{
+            display:flex;
+            align-items:center;
+            gap:6px;
+            min-width:52px;
+            min-height:18px;
+        }
+
+        .typing-dots span{
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:#b7c0d6;
+            opacity:.35;
+            animation:blink 1.2s infinite ease-in-out;
+        }
+
+        .typing-dots span:nth-child(2){ animation-delay:.15s; }
+        .typing-dots span:nth-child(3){ animation-delay:.3s; }
+
+        .chat-composer{
+            padding:16px;
+            border-top:1px solid rgba(255,255,255,.06);
+            background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+        }
+
+        .composer-shell{
+            display:flex;
+            gap:12px;
+            align-items:flex-end;
+            background:var(--surface);
+            border:1px solid rgba(255,255,255,.08);
+            border-radius:22px;
+            padding:10px;
+        }
+
+        .composer-shell:focus-within{
+            border-color:rgba(212,175,55,.36);
+            box-shadow:0 0 0 4px rgba(212,175,55,.08);
+        }
+
+        .composer-shell input{
+            flex:1;
+            background:transparent;
+            border:none;
+            outline:none;
+            color:#fff;
+            padding:12px 12px;
+            font-size:.95rem;
+        }
+
+        .composer-shell input::placeholder{
+            color:#7f8aa1;
+        }
+
+        .send-btn{
+            border:none;
+            min-width:110px;
+            border-radius:16px;
+            padding:12px 16px;
+            background:linear-gradient(180deg, #e7c45a, #c99f21);
+            color:#17120a;
+            font-weight:800;
+            cursor:pointer;
+            transition:.2s ease;
+        }
+
+        .send-btn:hover{
+            transform:translateY(-1px);
+            filter:brightness(1.03);
+        }
+
+        .composer-hint{
+            margin-top:10px;
+            font-size:.78rem;
+            color:var(--muted);
+            padding:0 6px;
+        }
+
+        @keyframes fadeUp{
+            from{
+                opacity:0;
+                transform:translateY(10px);
+            }
+            to{
+                opacity:1;
+                transform:translateY(0);
+            }
+        }
+
+        @keyframes blink{
+            0%, 80%, 100%{ transform:scale(.8); opacity:.25; }
+            40%{ transform:scale(1); opacity:1; }
+        }
+
+        @media (max-width: 700px){
+            body{
+                padding:0;
+            }
+
+            .chat-shell{
+                min-height:100vh;
+                border-radius:0;
+                max-width:none;
+            }
+
+            .chat-header{
+                padding:16px;
+            }
+
+            .brand h1{
+                font-size:1rem;
+            }
+
+            .brand p{
+                font-size:.8rem;
+            }
+
+            .message{
+                max-width:92%;
+            }
+
+            .bubble{
+                padding:12px 14px;
+            }
+
+            .message-text{
+                font-size:.92rem;
+            }
+
+            .send-btn{
+                min-width:92px;
+                padding:12px 14px;
+            }
+        }
+    </style>
 </head>
-<body><div class="chat-container">
-  <div class="chat-header">ZonaVipTrendsBot</div>
-  <div class="chat-messages" id="chatMessages">
-    <div class="chat-message bot">Bienvenido a Zona VIP Trends. Aquí encontrarás toda la información sobre nuestra plataforma, premios y cómo participar.</div>
-  </div>
-  <div class="chat-buttons" id="chatButtons">
-    <button onclick="showInfo('quienSomos')">Quiénes somos</button>
-    <button onclick="showInfo('queOfrecemos')">Qué ofrecemos</button>
-    <button onclick="showInfo('comoFunciona')">Cómo funciona</button>
-    <button onclick="showInfo('participacion')">Quién puede participar</button>
-    <button onclick="showInfo('premios')">Premios y sistema social</button>
-    <button onclick="showInfo('comenzar')">Cómo empezar</button>
-  </div>
-</div><script>
-function showInfo(section) {
-  const chat = document.getElementById('chatMessages');
-  let message = '';
+<body>
 
-  switch(section) {
-    case 'quienSomos':
-      message = 'Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador para que marcas y creadores conecten de forma efectiva.';
-      break;
-    case 'queOfrecemos':
-      message = 'Brindamos a marcas y creadores visibilidad, exposición y conexión dentro de una plataforma viral, con premios y un sistema social que fomenta la participación y el engagement.';
-      break;
-    case 'comoFunciona':
-      message = 'Nuestra plataforma genera tráfico y participación mediante estrategias de marketing innovadoras y un sistema gamificado de premios, con campañas de marcas activas garantizando oportunidades reales de exposición.';
-      break;
-    case 'participacion':
-      message = 'Nuestra plataforma está pensada para creadores, influencers, marcas y cualquier usuario que quiera aumentar su visibilidad y crecer en seguidores dentro de un entorno gamificado y dinámico.';
-      break;
-    case 'premios':
-      message = 'Cada usuario que participa se integra en la comunidad de socios de Zona VIP Trends. Los premios se asignan de manera organizada y transparente. Además, la plataforma permite que los participantes se conecten entre sí y formen su propia red social, aumentando la viralidad y alcance.';
-      break;
-    case 'comenzar':
-      message = 'Selecciona tu espacio en la plataforma para formar parte del mosaico viral. Desde allí, podrás compartir tu link, participar en premios y campañas activas de marcas.';
-      break;
-  }
+<div class="chat-shell">
+    <header class="chat-header">
+        <div class="header-left">
+            <div class="avatar">✨</div>
+            <div class="brand">
+                <h1>Zona VIP Trends</h1>
+                <p>Chat de soporte · Asistente interactivo</p>
+                <div class="status-row">
+                    <div class="status-pill">
+                        <span class="status-dot"></span>
+                        <span>Asistente disponible</span>
+                    </div>
+                    <div class="status-pill">Respuestas guiadas y sugerencias inteligentes</div>
+                </div>
+            </div>
+        </div>
 
-  const newMessage = document.createElement('div');
-  newMessage.classList.add('chat-message', 'bot');
-  newMessage.innerText = message;
-  chat.appendChild(newMessage);
-  chat.scrollTop = chat.scrollHeight;
-}
-</script></body>
+        <button class="reset-btn" id="resetChatBtn" type="button">⟳ Reiniciar</button>
+    </header>
+
+    <main class="chat-messages" id="chatMessages" aria-live="polite" aria-label="Conversación de soporte"></main>
+
+    <form class="chat-composer" id="chatForm">
+        <div class="composer-shell">
+            <input
+                type="text"
+                id="userInput"
+                placeholder="Escribe tu pregunta... Ej: ¿cómo funciona?, ¿quién puede participar?, premios..."
+                autocomplete="off"
+            />
+            <button class="send-btn" id="sendMsgBtn" type="submit">Enviar ➜</button>
+        </div>
+        <div class="composer-hint">
+            Consejo: el asistente te mostrará preguntas relacionadas dentro del chat según lo que escribas.
+        </div>
+    </form>
+</div>
+
+<script>
+    // ===========================
+    // BASE DE CONOCIMIENTO AMPLIADA
+    // ===========================
+    const FAQ_DB = [
+        {
+            id: "quienesSomos",
+            label: "👋 ¿Quiénes sois?",
+            title: "✨ Quiénes somos",
+            answer: "Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación. Nuestro objetivo es ayudar a marcas y creadores a conectar de forma más efectiva dentro de un entorno innovador y participativo.",
+            keywords: ["quienes", "quienes sois", "quienes son", "empresa", "agencia", "publicidad", "equipo", "zona vip", "quien esta detras"],
+            related: ["queOfrecemos", "diferencial", "comoFunciona"]
+        },
+        {
+            id: "queOfrecemos",
+            label: "🎯 ¿Qué ofrecéis?",
+            title: "🎯 Qué ofrecemos",
+            answer: "Ofrecemos visibilidad, exposición y conexión para marcas y creadores dentro de una plataforma viral. Además, integramos premios y un sistema social que impulsa la participación, el engagement y el alcance.",
+            keywords: ["ofrecen", "ofreceis", "ofrecemos", "servicios", "beneficios", "visibilidad", "exposicion", "engagement", "alcance"],
+            related: ["beneficios", "campanas", "comoFunciona"]
+        },
+        {
+            id: "comoFunciona",
+            label: "⚙️ ¿Cómo funciona?",
+            title: "⚙️ Cómo funciona la plataforma",
+            answer: "La plataforma genera tráfico y participación mediante estrategias de marketing innovadoras y un sistema gamificado de premios. Además, trabaja con campañas activas de marcas, lo que crea oportunidades reales de exposición para los participantes.",
+            keywords: ["funciona", "como funciona", "sistema", "mecanismo", "plataforma", "trafico", "gamificacion", "operativa"],
+            related: ["premios", "campanas", "visibilidad", "comenzar"]
+        },
+        {
+            id: "participacion",
+            label: "🙋 ¿Quién puede participar?",
+            title: "👥 Quién puede participar",
+            answer: "La plataforma está pensada para creadores, influencers, marcas y cualquier usuario que quiera aumentar su visibilidad y crecer dentro de un entorno dinámico, social y gamificado.",
+            keywords: ["participar", "participacion", "quien puede participar", "requisitos", "usuarios", "creadores", "influencers", "marcas"],
+            related: ["comenzar", "beneficios", "comunidad"]
+        },
+        {
+            id: "premios",
+            label: "🏆 Premios y sistema social",
+            title: "🏆 Premios y red social",
+            answer: "Cada usuario que participa se integra en la comunidad de socios de Zona VIP Trends. Los premios se asignan de forma organizada y transparente. Además, la plataforma permite conectar con otros participantes, creando una red social que aumenta la viralidad y el alcance.",
+            keywords: ["premios", "premio", "red social", "social", "socios", "viralidad", "alcance", "transparente", "comunidad"],
+            related: ["comunidad", "comoFunciona", "beneficios"]
+        },
+        {
+            id: "comenzar",
+            label: "🚀 ¿Cómo empiezo?",
+            title: "🚀 Cómo empezar",
+            answer: "Para empezar, debes seleccionar tu espacio dentro de la plataforma y formar parte del mosaico viral. Desde ahí podrás compartir tu enlace, participar en premios y aprovechar campañas activas de marcas.",
+            keywords: ["empezar", "comenzar", "como empiezo", "primeros pasos", "registro", "unirme", "mosaico", "link", "enlace"],
+            related: ["enlace", "visibilidad", "participacion"]
+        },
+        {
+            id: "beneficios",
+            label: "📈 ¿Qué beneficios obtengo?",
+            title: "📈 Beneficios principales",
+            answer: "Los principales beneficios son la visibilidad, la exposición, la conexión con otros perfiles, la participación en dinámicas gamificadas y el acceso a campañas activas que ayudan a impulsar el alcance y la interacción.",
+            keywords: ["beneficios", "ventajas", "gano", "obtengo", "para que sirve", "valor", "utilidad"],
+            related: ["queOfrecemos", "visibilidad", "premios"]
+        },
+        {
+            id: "diferencial",
+            label: "💎 ¿Qué os hace diferentes?",
+            title: "💎 Qué hace diferente a Zona VIP Trends",
+            answer: "La diferencia está en la combinación de creatividad, tecnología, gamificación, premios y componente social. No es solo visibilidad: es una experiencia participativa pensada para generar interacción real y mayor alcance.",
+            keywords: ["diferente", "diferencial", "por que elegir", "que os hace diferentes", "valor diferencial", "innovador"],
+            related: ["quienesSomos", "comoFunciona", "beneficios"]
+        },
+        {
+            id: "visibilidad",
+            label: "📣 ¿Cómo gano visibilidad?",
+            title: "📣 Cómo se impulsa tu visibilidad",
+            answer: "La visibilidad se potencia gracias a la combinación de campañas activas, participación dentro del sistema gamificado, presencia en la plataforma y posibilidad de compartir tu enlace para amplificar el alcance.",
+            keywords: ["visibilidad", "alcance", "crecer", "mas gente", "audiencia", "exposicion", "viral", "viralidad"],
+            related: ["enlace", "campanas", "beneficios"]
+        },
+        {
+            id: "campanas",
+            label: "🧩 ¿Qué papel tienen las campañas?",
+            title: "🧩 Campañas activas de marcas",
+            answer: "Las campañas activas de marcas son una parte importante del funcionamiento de la plataforma, ya que generan oportunidades reales de exposición y refuerzan la participación dentro del ecosistema.",
+            keywords: ["campanas", "campaña", "marcas", "anuncios", "acciones", "publicidad"],
+            related: ["queOfrecemos", "comoFunciona", "visibilidad"]
+        },
+        {
+            id: "comunidad",
+            label: "🤝 ¿Hay comunidad entre usuarios?",
+            title: "🤝 Comunidad y conexión entre participantes",
+            answer: "Sí. La plataforma no solo está orientada a la exposición, sino también a la conexión entre participantes. Esto favorece una red social propia, mayor interacción y un crecimiento más orgánico dentro del entorno.",
+            keywords: ["comunidad", "usuarios", "conectar", "conexion", "networking", "red", "social", "participantes"],
+            related: ["premios", "participacion", "visibilidad"]
+        },
+        {
+            id: "enlace",
+            label: "🔗 ¿Puedo compartir mi enlace?",
+            title: "🔗 Compartir tu enlace",
+            answer: "Sí. Una vez formas parte de la plataforma y tienes tu espacio en el mosaico viral, puedes compartir tu enlace para aumentar la difusión, atraer visitas y reforzar tu presencia dentro del ecosistema.",
+            keywords: ["enlace", "link", "compartir", "mi link", "mi enlace", "difusion", "visitas"],
+            related: ["comenzar", "visibilidad", "beneficios"]
+        },
+        {
+            id: "paraQuien",
+            label: "🌍 ¿Es solo para influencers?",
+            title: "🌍 A quién va dirigida la plataforma",
+            answer: "No. Está dirigida a influencers, creadores, marcas y también a cualquier usuario que quiera ganar visibilidad, conectar con otros perfiles y participar en una dinámica social y gamificada.",
+            keywords: ["solo influencers", "influencers", "para quien", "para quien es", "dirigido", "usuarios", "marcas"],
+            related: ["participacion", "beneficios", "quienesSomos"]
+        },
+        {
+            id: "ayuda",
+            label: "🆘 ¿En qué me puedes ayudar?",
+            title: "🆘 Cómo puede ayudarte este asistente",
+            answer: "Puedo responder preguntas sobre quiénes somos, qué ofrecemos, cómo funciona la plataforma, quién puede participar, cómo empezar, cómo se impulsa la visibilidad, el sistema de premios y las preguntas relacionadas que vayan surgiendo.",
+            keywords: ["ayuda", "soporte", "que puedes hacer", "que me puedes ayudar", "asistente", "chat"],
+            related: ["comenzar", "comoFunciona", "participacion"]
+        }
+    ];
+
+    const FEATURED_IDS = ["comoFunciona", "participacion", "premios", "comenzar", "beneficios", "diferencial"];
+
+    const STOP_WORDS = new Set([
+        "de", "la", "el", "los", "las", "un", "una", "unos", "unas", "y", "o", "u", "en",
+        "para", "por", "con", "sin", "que", "como", "qué", "cual", "cuál", "me", "mi",
+        "mis", "tu", "tus", "su", "sus", "al", "del", "se", "es", "sois", "son", "a",
+        "lo", "le", "les", "quiero", "necesito", "hay", "puedo"
+    ]);
+
+    const FAQ_INDEX = Object.fromEntries(FAQ_DB.map(item => [item.id, item]));
+
+    const chatMessages = document.getElementById("chatMessages");
+    const userInput = document.getElementById("userInput");
+    const chatForm = document.getElementById("chatForm");
+    const resetChatBtn = document.getElementById("resetChatBtn");
+
+    let typingTimeout = null;
+
+    function normalizeText(text = "") {
+        return text
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^\w\s]/g, " ")
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function getCurrentTime() {
+        return new Date().toLocaleTimeString("es-ES", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function scoreFAQ(query, faq) {
+        const normalizedQuery = normalizeText(query);
+        if (!normalizedQuery) return 0;
+
+        const queryWords = normalizedQuery
+            .split(" ")
+            .filter(word => word.length > 1 && !STOP_WORDS.has(word));
+
+        const fullText = normalizeText([
+            faq.title,
+            faq.label,
+            faq.answer,
+            ...(faq.keywords || [])
+        ].join(" "));
+
+        let score = 0;
+
+        (faq.keywords || []).forEach(keyword => {
+            const normalizedKeyword = normalizeText(keyword);
+            if (normalizedKeyword && normalizedQuery.includes(normalizedKeyword)) {
+                score += normalizedKeyword.includes(" ") ? 10 : 6;
+            }
+        });
+
+        queryWords.forEach(word => {
+            if (fullText.includes(word)) {
+                score += word.length >= 5 ? 3 : 1.5;
+            }
+        });
+
+        if (normalizeText(faq.label).includes(normalizedQuery)) score += 5;
+        if (normalizeText(faq.title).includes(normalizedQuery)) score += 5;
+
+        return score;
+    }
+
+    function findMatches(query, limit = 4) {
+        return FAQ_DB
+            .map(faq => ({ faq, score: scoreFAQ(query, faq) }))
+            .filter(item => item.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit);
+    }
+
+    function getFeaturedChips(limit = 6) {
+        return FEATURED_IDS
+            .map(id => FAQ_INDEX[id])
+            .filter(Boolean)
+            .slice(0, limit)
+            .map(faq => ({
+                id: faq.id,
+                label: faq.label
+            }));
+    }
+
+    function getRelatedChips(faq, userQuery = "") {
+        const relatedFromFaq = (faq.related || [])
+            .map(id => FAQ_INDEX[id])
+            .filter(Boolean);
+
+        const relatedFromQuery = findMatches(userQuery, 6)
+            .map(item => item.faq)
+            .filter(item => item.id !== faq.id);
+
+        const uniqueMap = new Map();
+
+        [...relatedFromFaq, ...relatedFromQuery].forEach(item => {
+            if (!uniqueMap.has(item.id) && item.id !== faq.id) {
+                uniqueMap.set(item.id, {
+                    id: item.id,
+                    label: item.label
+                });
+            }
+        });
+
+        return Array.from(uniqueMap.values()).slice(0, 5);
+    }
+
+    function createMessageElement({ sender, title = "", text = "", chips = [], isTyping = false }) {
+        const message = document.createElement("div");
+        message.className = `message ${sender}`;
+        if (isTyping) message.classList.add("typing-message");
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        if (isTyping) {
+            const typingDots = document.createElement("div");
+            typingDots.className = "typing-dots";
+            typingDots.innerHTML = "<span></span><span></span><span></span>";
+            bubble.appendChild(typingDots);
+        } else {
+            if (title) {
+                const titleEl = document.createElement("div");
+                titleEl.className = "message-title";
+                titleEl.textContent = title;
+                bubble.appendChild(titleEl);
+            }
+
+            const textEl = document.createElement("div");
+            textEl.className = "message-text";
+            textEl.textContent = text;
+            bubble.appendChild(textEl);
+
+            if (chips.length) {
+                const actions = document.createElement("div");
+                actions.className = "message-actions";
+
+                chips.forEach(chip => {
+                    const chipBtn = document.createElement("button");
+                    chipBtn.className = "chip";
+                    chipBtn.type = "button";
+                    chipBtn.textContent = chip.label;
+                    chipBtn.addEventListener("click", () => {
+                        sendUserMessage(chip.label, chip.id);
+                    });
+                    actions.appendChild(chipBtn);
+                });
+
+                bubble.appendChild(actions);
+            }
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "message-meta";
+        meta.textContent = sender === "bot"
+            ? `Asistente · ${getCurrentTime()}`
+            : `Tú · ${getCurrentTime()}`;
+
+        message.appendChild(bubble);
+        message.appendChild(meta);
+
+        return message;
+    }
+
+    function addMessage(payload) {
+        const element = createMessageElement(payload);
+        chatMessages.appendChild(element);
+        scrollToBottom();
+    }
+
+    function showTyping() {
+        removeTyping();
+        const typingElement = createMessageElement({
+            sender: "bot",
+            isTyping: true
+        });
+        typingElement.id = "typingIndicator";
+        chatMessages.appendChild(typingElement);
+        scrollToBottom();
+    }
+
+    function removeTyping() {
+        const existing = document.getElementById("typingIndicator");
+        if (existing) existing.remove();
+    }
+
+    function botReply({ title = "", text = "", chips = [] }, delay = 320) {
+        showTyping();
+
+        if (typingTimeout) clearTimeout(typingTimeout);
+
+        typingTimeout = setTimeout(() => {
+            removeTyping();
+            addMessage({
+                sender: "bot",
+                title,
+                text,
+                chips
+            });
+        }, delay);
+    }
+
+    function sendFaqResponse(faq, originalQuery = "") {
+        botReply({
+            title: faq.title,
+            text: faq.answer,
+            chips: getRelatedChips(faq, originalQuery)
+        });
+    }
+
+    function handleGreeting(query) {
+        const normalized = normalizeText(query);
+
+        if (/^(hola|buenas|hey|saludos|buenos dias|buenas tardes|buenas noches)\b/.test(normalized)) {
+            botReply({
+                title: "👋 Bienvenido al soporte",
+                text: "¡Hola! Estoy aquí para ayudarte con todo lo relacionado con Zona VIP Trends.\n\nPuedes preguntarme cómo funciona la plataforma, quién puede participar, qué beneficios ofrece o cómo empezar.",
+                chips: getFeaturedChips()
+            });
+            return true;
+        }
+
+        if (/(gracias|muchas gracias|thank you|thanks|agradecido)/.test(normalized)) {
+            botReply({
+                title: "😊 Encantado de ayudarte",
+                text: "¡De nada! Si quieres, puedo seguir guiándote con preguntas sobre funcionamiento, participación, premios, visibilidad o primeros pasos.",
+                chips: getFeaturedChips(5)
+            });
+            return true;
+        }
+
+        if (/(ayuda|soporte|no se por donde empezar|que puedes hacer)/.test(normalized)) {
+            sendFaqResponse(FAQ_INDEX.ayuda, query);
+            return true;
+        }
+
+        return false;
+    }
+
+    function processQuery(query) {
+        if (!query.trim()) return;
+
+        if (handleGreeting(query)) return;
+
+        const matches = findMatches(query, 5);
+
+        if (matches.length && matches[0].score > 0) {
+            sendFaqResponse(matches[0].faq, query);
+            return;
+        }
+
+        botReply({
+            title: "🔎 No he encontrado una coincidencia exacta",
+            text: "Prueba con una de estas preguntas relacionadas o reformula tu consulta con otras palabras. Por ejemplo: “cómo funciona”, “premios”, “quién puede participar” o “cómo empezar”.",
+            chips: matches.length
+                ? matches.map(item => ({ id: item.faq.id, label: item.faq.label }))
+                : getFeaturedChips()
+        });
+    }
+
+    function sendUserMessage(text, forcedFaqId = null) {
+        const cleanText = text.trim();
+        if (!cleanText) return;
+
+        addMessage({
+            sender: "user",
+            text: cleanText
+        });
+
+        userInput.value = "";
+        userInput.focus();
+
+        if (forcedFaqId && FAQ_INDEX[forcedFaqId]) {
+            sendFaqResponse(FAQ_INDEX[forcedFaqId], cleanText);
+            return;
+        }
+
+        processQuery(cleanText);
+    }
+
+    function resetChat() {
+        if (typingTimeout) clearTimeout(typingTimeout);
+        removeTyping();
+        chatMessages.innerHTML = "";
+
+        botReply({
+            title: "✨ Bienvenido a Zona VIP Trends",
+            text: "Soy tu asistente de soporte y puedo ayudarte a resolver dudas sobre la plataforma.\n\nAquí debajo te dejo preguntas sugeridas. También puedes escribir libremente y te mostraré opciones relacionadas dentro del propio chat.",
+            chips: getFeaturedChips()
+        }, 150);
+
+        setTimeout(() => {
+            botReply({
+                title: "💡 Preguntas frecuentes",
+                text: "Puedes empezar por cualquiera de estas consultas. Las siguientes sugerencias cambiarán según lo que escribas o la respuesta que estés viendo.",
+                chips: [
+                    { id: "quienesSomos", label: "👋 ¿Quiénes sois?" },
+                    { id: "queOfrecemos", label: "🎯 ¿Qué ofrecéis?" },
+                    { id: "visibilidad", label: "📣 ¿Cómo gano visibilidad?" },
+                    { id: "comunidad", label: "🤝 ¿Hay comunidad entre usuarios?" }
+                ]
+            }, 450);
+        }, 220);
+    }
+
+    chatForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        sendUserMessage(userInput.value);
+    });
+
+    resetChatBtn.addEventListener("click", resetChat);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        resetChat();
+        userInput.focus();
+    });
+</script>
+
+</body>
 </html>
