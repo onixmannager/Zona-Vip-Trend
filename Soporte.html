@@ -1,131 +1,150 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Zona VIP Trends - Soporte</title>
-  <style>
-    /* Diseño general de la página */
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #111;
-      color: #fff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zona VIP Trends - Chat de Soporte</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
 
-    header {
-      background-color: #222;
-      color: #d4af37;
-      text-align: center;
-      padding: 20px;
-      font-size: 24px;
-      font-weight: bold;
-    }
+  #chat-container {
+    width: 400px;
+    max-width: 90%;
+    height: 600px;
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    background-color: #222;
+  }
 
-    main {
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
+  #chat-header {
+    padding: 15px;
+    background-color: #333;
+    text-align: center;
+    font-weight: bold;
+    color: #d4af37;
+  }
 
-    #chat-container {
-      width: 90%;
-      max-width: 600px;
-      border: 2px solid #d4af37;
-      border-radius: 12px;
-      overflow: hidden;
-      background-color: #111;
-    }
+  #chat-body {
+    flex: 1;
+    padding: 15px;
+    background-color: #fff;
+    color: #111;
+    overflow-y: auto;
+    font-size: 14px;
+  }
 
-    #chat-header {
-      background-color: #222;
-      color: #d4af37;
-      padding: 15px;
-      font-weight: bold;
-      text-align: center;
-    }
+  .message {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    max-width: 80%;
+  }
 
-    #chat-body {
-      background-color: #fff;
-      color: #111;
-      max-height: 600px;
-      overflow-y: auto;
-      padding: 20px;
-      font-size: 14px;
-    }
+  .bot {
+    background-color: #f1f1f1;
+    color: #111;
+    align-self: flex-start;
+  }
 
-    #chat-body p {
-      margin-bottom: 15px;
-    }
+  .user {
+    background-color: #d4af37;
+    color: #111;
+    align-self: flex-end;
+  }
 
-    #chat-body strong {
-      color: #d4af37;
-    }
-  </style>
+  #chat-input-container {
+    display: flex;
+    border-top: 2px solid #d4af37;
+  }
+
+  #chat-input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+  }
+
+  #send-btn {
+    background-color: #d4af37;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #111;
+  }
+
+  #send-btn:hover {
+    background-color: #b8972d;
+  }
+</style>
 </head>
 <body>
 
-  <header>
-    Zona VIP Trends - Soporte
-  </header>
+<div id="chat-container">
+  <div id="chat-header">ZonaVipTrendsBot</div>
+  <div id="chat-body">
+    <div class="message bot">¡Hola! Soy ZonaVipTrendsBot, tu asistente de soporte. Puedes preguntarme sobre cómo funciona nuestra plataforma, premios, participación y más.</div>
+  </div>
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Escribe tu mensaje...">
+    <button id="send-btn">Enviar</button>
+  </div>
+</div>
 
-  <main>
-    <div id="chat-container">
-      <div id="chat-header">ZonaVipTrendsBot</div>
-      <div id="chat-body">
-        <p><strong>Quiénes somos:</strong><br>
-        Somos una <strong>agencia de publicidad digital</strong> que combina creatividad, tecnología y gamificación, ofreciendo un modelo <strong>innovador</strong> para que marcas y creadores conecten de forma efectiva y con visibilidad real.</p>
+<script>
+  const chatBody = document.getElementById('chat-body');
+  const chatInput = document.getElementById('chat-input');
+  const sendBtn = document.getElementById('send-btn');
 
-        <p><strong>Qué ofrecemos:</strong><br>
-        - Visibilidad y exposición dentro de una <strong>plataforma viral global</strong>.<br>
-        - Conexión con marcas, creadores y usuarios.<br>
-        - Participación en <strong>premios y campañas activas</strong> dentro de un sistema gamificado.<br>
-        - Oportunidad de generar <strong>engagement y crecimiento de seguidores</strong>.</p>
+  // Mensajes automáticos predefinidos
+  const responses = {
+    "quien somos": "Somos una agencia de publicidad digital que combina creatividad, tecnología y gamificación, ofreciendo un modelo innovador.",
+    "que ofrecemos": "Ofrecemos visibilidad, conexión y participación en premios y campañas activas dentro de nuestra plataforma viral.",
+    "como funciona": "Cada usuario tiene un espacio en el mosaico, vinculado a su perfil. Participa en premios, comparte tu link y aumenta tu exposición.",
+    "premios": "Los premios se distribuyen en tu red social en 3 niveles, incentivando la viralización y participación activa.",
+    "como participar": "Selecciona tu espacio en la plataforma, comparte tu link y empieza a formar parte del mosaico viral.",
+    "seguro": "Sí. Cada espacio es garantizado para siempre y los premios se gestionan de forma transparente con marcas activas.",
+    "default": "Disculpa, no entiendo tu pregunta. Puedes escribir 'quien somos', 'que ofrecemos', 'como funciona', 'premios', 'como participar' o 'seguro'."
+  };
 
-        <p><strong>Cómo lo ofrecemos:</strong><br>
-        Nuestra plataforma crea tráfico y participación mediante estrategias de marketing digital innovadoras, un sistema gamificado de premios y campañas de marcas ya activas, asegurando oportunidades de exposición reales.</p>
+  function addMessage(text, type) {
+    const msg = document.createElement('div');
+    msg.classList.add('message', type);
+    msg.textContent = text;
+    chatBody.appendChild(msg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
 
-        <p><strong>Quién puede participar:</strong><br>
-        Creadores, influencers, marcas, sitios web y cualquier usuario que quiera aumentar su visibilidad en un entorno <strong>gamificado y dinámico</strong>.</p>
+  function botResponse(userMsg) {
+    const msg = userMsg.toLowerCase();
+    const response = responses[msg] || responses["default"];
+    addMessage(response, 'bot');
+  }
 
-        <p><strong>Qué ganas como creador:</strong><br>
-        - Integración en el <strong>mosaico global</strong>.<br>
-        - Acceso a un <strong>asesor digital</strong>.<br>
-        - Participación en <strong>premios activos</strong> y campañas de marcas.<br>
-        - Sistema social que potencia tu <strong>alcance y engagement</strong>.</p>
+  sendBtn.addEventListener('click', () => {
+    const userMsg = chatInput.value.trim();
+    if(userMsg === '') return;
+    addMessage(userMsg, 'user');
+    botResponse(userMsg);
+    chatInput.value = '';
+  });
 
-        <p><strong>Sistema social y premios:</strong><br>
-        Cada usuario que participa queda vinculado a su espacio en el mosaico. Los premios se asignan de forma transparente, con oportunidad de ganar y conectar con otros participantes.</p>
-
-        <p><strong>Premios distribuidos en tu red social (3 niveles):</strong><br>
-        1. Nivel 1: Participante directo que gana el premio principal.<br>
-        2. Nivel 2: Usuarios conectados directamente en tu red social.<br>
-        3. Nivel 3: Usuarios un nivel más arriba en tu red social.<br>
-        Esto incentiva participación activa y viralización, asegurando que tu red social se beneficie.</p>
-
-        <p><strong>Cómo empezar:</strong><br>
-        1. Selecciona tu espacio en la plataforma.<br>
-        2. Comparte tu link de participación.<br>
-        3. Participa en premios y campañas activas.</p>
-
-        <p><strong>Seguridad y transparencia:</strong><br>
-        Cada espacio es garantizado y para siempre. Los premios se gestionan de forma transparente, con campañas de marcas activas y colaborando.</p>
-
-        <p><strong>Beneficios clave:</strong><br>
-        - Espacio en el mosaico: permanente y visible.<br>
-        - Visibilidad: viralización mediante nuestra red de influencers y campañas.<br>
-        - Acceso a premios: reparto en tu red social de 3 niveles.<br>
-        - Sistema de conexión: si participas con otros, los premios se pueden repartir entre tu red social.</p>
-
-        <p><strong>Tip final:</strong><br>
-        Únete a nuestra plataforma y <strong>transforma tu visibilidad en oportunidades reales de conexión y premios</strong>.</p>
-
-        <p><strong>Mensaje limpio para compartir:</strong><br>
-        “He entrado en una plataforma publicitaria donde puedes tener visibilidad tipo mosaico (rollo páginas virales) y además hay premios bastante grandes activos. La verdad es que está guay e interesante porque no es lo típico. Si quieres verlo te dejo el link.”</p>
-
-      </div>
-    </div>
-  </main>
+  chatInput.addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') sendBtn.click();
+  });
+</script>
 
 </body>
 </html>
