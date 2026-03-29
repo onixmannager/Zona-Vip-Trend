@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
   <style>
-    :root {
+:root {
       --bg:      #06080F;
       --card:    #0C1022;
       --gold:    #C9A84C;
@@ -37,11 +37,11 @@
       background: rgba(6,8,15,0.96); border-bottom: 1px solid var(--border);
       backdrop-filter: blur(20px);
       display: flex; align-items: center;
-      padding: 0 16px; z-index: 100; gap: 10px;
+      padding: 0 8px; z-index: 100; gap: 5px;
     }
-    .barra-logo { display: flex; align-items: center; gap: 6px; text-decoration: none; flex-shrink: 0; }
+    .barra-logo { display: flex; align-items: center; gap: 5px; text-decoration: none; flex-shrink: 0; }
     .barra-logo-main {
-      font-family: var(--fh); font-size: 1.2rem; letter-spacing: .06em;
+      font-family: var(--fh); font-size: 1.1rem; letter-spacing: .06em;
       background: linear-gradient(135deg, var(--gold-lt), var(--gold));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
@@ -51,22 +51,22 @@
       padding: 2px 5px; border-radius: 3px; text-transform: uppercase;
     }
     #barra-info {
-      font-family: var(--fm); font-size: .65rem; color: var(--muted2); letter-spacing: .04em;
+      font-family: var(--fm); font-size: .6rem; color: var(--muted2); letter-spacing: .04em;
       flex: 1; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
     }
     #barra-info b { color: var(--white); }
     #barra-info .g { color: var(--gold); }
     #precio-fijo {
-      font-family: var(--fm); font-size: .8rem; font-weight: 500; color: var(--gold);
-      min-width: 72px; text-align: right; flex-shrink: 0;
+      font-family: var(--fm); font-size: .75rem; font-weight: 500; color: var(--gold);
+      min-width: 58px; text-align: right; flex-shrink: 0;
       opacity: 0; transition: opacity .2s; white-space: nowrap;
     }
     #precio-fijo.visible { opacity: 1; }
-    #barra-btns { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    #barra-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
     #btn-pagar {
-      display: none; align-items: center; gap: 6px; padding: 7px 14px;
-      font-family: var(--fb); font-size: .78rem; font-weight: 600; color: #000;
+      display: none; align-items: center; gap: 4px; padding: 5px 9px;
+      font-family: var(--fb); font-size: .72rem; font-weight: 600; color: #000;
       background: linear-gradient(135deg, var(--gold-lt), var(--gold));
       border: none; border-radius: 6px; cursor: pointer; white-space: nowrap;
       box-shadow: 0 0 16px rgba(201,168,76,0.25); transition: transform .2s, box-shadow .2s;
@@ -75,8 +75,8 @@
     #btn-pagar:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(201,168,76,0.45); }
 
     #btn-cancelar {
-      display: none; align-items: center; gap: 5px; padding: 7px 10px;
-      font-family: var(--fm); font-size: .7rem; color: var(--muted2);
+      display: none; align-items: center; gap: 4px; padding: 5px 7px;
+      font-family: var(--fm); font-size: .66rem; color: var(--muted2);
       background: transparent; border: 1px solid rgba(255,255,255,0.08);
       border-radius: 6px; cursor: pointer; white-space: nowrap; transition: all .2s;
     }
@@ -84,13 +84,29 @@
     #btn-cancelar:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
 
     #btn-comprar {
-      display: flex; align-items: center; gap: 6px; padding: 7px 14px;
-      font-family: var(--fb); font-size: .78rem; font-weight: 600; color: var(--gold);
+      display: flex; align-items: center; gap: 4px; padding: 5px 9px;
+      font-family: var(--fb); font-size: .72rem; font-weight: 600; color: var(--gold);
       background: rgba(201,168,76,0.08); border: 1px solid var(--border);
       border-radius: 6px; cursor: pointer; white-space: nowrap; transition: all .2s;
     }
     #btn-comprar:hover { background: rgba(201,168,76,0.16); border-color: var(--gold); }
     #btn-comprar.oculto { display: none; }
+
+    /* Botón soporte — responsive */
+    #btn-soporte {
+      display: flex; align-items: center; gap: 4px; padding: 5px 8px;
+      font-family: var(--fm); font-size: .63rem; color: var(--muted2);
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 6px; text-decoration: none; white-space: nowrap;
+      transition: all .2s; flex-shrink: 0;
+    }
+    #btn-soporte:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
+
+    /* Ocultar texto "Soporte" en pantallas muy pequeñas, dejar solo icono */
+    @media (max-width: 400px) {
+  #btn-soporte .soporte-txt { display: none; }
+  #barra-info { display: none; }
+}
 
     /* ── WRAP ── */
     #wrap {
@@ -101,7 +117,6 @@
     }
     #wrap.activo { cursor: crosshair; }
 
-    /* Contenedor zoomeable */
     #zoom-container {
       position: absolute;
       top: 0; left: 0;
@@ -305,18 +320,18 @@
   <div id="barra-info"><span class="g"></span></div>
   <div id="precio-fijo"></div>
 
-
-  <a href="soporte.html" style="display:flex;align-items:center;gap:5px;padding:6px 11px;font-family:'DM Mono',monospace;font-size:.68rem;color:#8A99BB;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:6px;text-decoration:none;white-space:nowrap;transition:all .2s;" onmouseover="this.style.color='#EEF2FF';this.style.borderColor='rgba(255,255,255,0.22)'" onmouseout="this.style.color='#8A99BB';this.style.borderColor='rgba(255,255,255,0.09)'">
-  <i class="fas fa-headset" style="font-size:.75rem;"></i> Soporte
-  </a>
-
-
   
   <div id="barra-btns">
     <button id="btn-pagar"    onclick="abrirCompra()"><i class="fas fa-bolt"></i> Comprar</button>
     <button id="btn-cancelar" onclick="cancelar()"><i class="fas fa-times"></i></button>
     <button id="btn-comprar"  onclick="activar()"><i class="fas fa-mouse-pointer"></i> Elegir zona</button>
   </div>
+
+  <a href="soporte.html" style="display:flex;align-items:center;gap:5px;padding:6px 11px;font-family:'DM Mono',monospace;font-size:.68rem;color:#8A99BB;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:6px;text-decoration:none;white-space:nowrap;transition:all .2s;" onmouseover="this.style.color='#EEF2FF';this.style.borderColor='rgba(255,255,255,0.22)'" onmouseout="this.style.color='#8A99BB';this.style.borderColor='rgba(255,255,255,0.09)'">
+  <i class="fas fa-headset" style="font-size:.75rem;"></i> Soporte
+  </a>
+
+  
 </div>
 
 <div id="wrap">
