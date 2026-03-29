@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/upload.js":  { "memory": 256 },
+    "api/publish.js": { "memory": 256 }
+  }
+}
