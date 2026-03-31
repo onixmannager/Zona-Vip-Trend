@@ -24,96 +24,114 @@
       --fb: 'DM Sans', sans-serif;
       --fm: 'DM Mono', monospace;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--fb); background: var(--bg); color: var(--white); overflow: hidden; }
 
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--fb);
+      background: var(--bg);
+      color: var(--white);
+      overflow: hidden;
+    }
 
     /* ── BARRA ── */
     #barra {
-      position: fixed; top: 0; left: 0; right: 0; height: 52px;
-      background: rgba(6,8,15,0.96); border-bottom: 1px solid var(--border);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: rgba(6,8,15,0.96);
+      border-bottom: 1px solid var(--border);
       backdrop-filter: blur(20px);
-      display: flex; align-items: center;
-      padding: 0 8px; z-index: 100; gap: 5px;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      z-index: 100;
+      gap: 5px;
     }
-    .barra-logo { display: flex; align-items: center; gap: 5px; text-decoration: none; flex-shrink: 0; }
-    .barra-logo-main {
-      font-family: var(--fh); font-size: 1.2rem; letter-spacing: .06em;
-      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .barra-logo-tag {
-      font-family: var(--fm); font-size: .4rem; letter-spacing: .14em;
-      color: var(--cyan); border: 1px solid rgba(0,229,255,0.2);
-      padding: 2px 5px; border-radius: 3px; text-transform: uppercase;
-    }
-    #barra-info {
-      font-family: var(--fm); font-size: .6rem; color: var(--muted2); letter-spacing: .04em;
-      flex: 1; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
-    }
-    #barra-info b { color: var(--white); }
-    #barra-info .g { color: var(--gold); }
-    #precio-fijo {
-      font-family: var(--fm); font-size: .75rem; font-weight: 500; color: var(--gold);
-      min-width: 58px; text-align: right; flex-shrink: 0;
-      opacity: 0; transition: opacity .2s; white-space: nowrap;
-    }
-    #precio-fijo.visible { opacity: 1; }
-    #barra-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: 10px; }
 
-    #btn-pagar {
-      display: none; align-items: center; gap: 4px; padding: 5px 9px;
-      font-family: var(--fb); font-size: .72rem; font-weight: 600; color: #000;
-      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
-      border: none; border-radius: 6px; cursor: pointer; white-space: nowrap;
-      box-shadow: 0 0 16px rgba(201,168,76,0.25); transition: transform .2s, box-shadow .2s;
-    }
-    #btn-pagar.visible { display: flex; }
-    #btn-pagar:hover { transform: translateY(-2px); box-shadow: 0 0 28px rgba(201,168,76,0.45); }
-
-    #btn-cancelar {
-      display: none; align-items: center; gap: 4px; padding: 5px 7px;
-      font-family: var(--fm); font-size: .76rem; color: var(--muted2);
-      background: transparent; border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 6px; cursor: pointer; white-space: nowrap; transition: all .2s;
-    }
-    #btn-cancelar.visible { display: flex; }
-    #btn-cancelar:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
-
-    #btn-comprar {
-      display: flex; align-items: center; gap: 4px; padding: 5px 9px;
-      font-family: var(--fb); font-size: .72rem; font-weight: 600; color: var(--gold);
-      background: rgba(201,168,76,0.08); border: 1px solid var(--border);
-      border-radius: 6px; cursor: pointer; white-space: nowrap; transition: all .2s;
-    }
-    #btn-comprar:hover { background: rgba(201,168,76,0.16); border-color: var(--gold); }
-    #btn-comprar.oculto { display: none; }
-
-    /* ── MENÚ NAVEGACIÓN ── */
+    /* ── MENÚ WRAP ── */
     #nav-menu-wrap {
-      position: relative; flex-shrink: 0;
+      position: fixed;        /* 👈 CAMBIO CLAVE */
+      top: 8px;               /* 👈 separación superior */
+      right: 10px;            /* 👈 pegado a la derecha */
+      z-index: 999;           /* 👈 por encima de todo */
     }
 
+    /* ── BOTÓN MENÚ ── */
     #btn-menu {
-      display: flex; align-items: center; gap: 6px;
-      padding: 5px 9px;
-      font-family: var(--fb); font-size: .72rem; font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;      /* 👈 ligeramente más grande */
+      font-family: var(--fb);
+      font-size: .75rem;      /* 👈 texto un pelín más visible */
+      font-weight: 600;
       color: var(--muted2);
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 6px; cursor: pointer; white-space: nowrap;
-      transition: color .18s, border-color .18s, background .18s;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s ease;
       user-select: none;
     }
-    #btn-menu:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
-    #btn-menu.open  { color: var(--gold);  border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06); }
-    #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
-    #btn-menu.open  .menu-chevron { transform: rotate(180deg); }
 
-    /* Dropdown */
+    #btn-menu:hover {
+      color: var(--white);
+      border-color: rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.08);
+    }
+
+    #btn-menu.open {
+      color: var(--gold);
+      border-color: rgba(201,168,76,0.5);
+      background: rgba(201,168,76,0.1);
+      box-shadow: 0 0 12px rgba(201,168,76,0.2);
+    }
+
+    #btn-menu .menu-chevron {
+      font-size: .6rem;
+      transition: transform .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    #btn-menu.open .menu-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* ── DROPDOWN ── */
+    #nav-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      min-width: 210px;
+      background: rgba(8,11,24,0.97);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(28px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.7),
+                  0 0 0 1px rgba(201,168,76,0.06),
+                  inset 0 1px 0 rgba(255,255,255,0.04);
+      z-index: 600;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px) scale(0.97);
+      transform-origin: top right;
+      transition: opacity .2s, transform .2s;
+    }
+
+    #nav-dropdown.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0) scale(1);
+    }
+
+  </style>
+</head>
+   
+/* Dropdown */
     #nav-dropdown {
       position: absolute; top: calc(100% + 10px); right: 0;
       min-width: 210px;
