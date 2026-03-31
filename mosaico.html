@@ -59,7 +59,7 @@
   opacity: 0; transition: opacity .2s; white-space: nowrap;  
 }  
 #precio-fijo.visible { opacity: 1; }  
-#barra-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: 10px; }  
+#barra-btns { display: flex; align-items: center; gap: 4px; flex-shrink: 0; margin-left: 10px; margin-right: 160px; }  
 
 #btn-pagar {  
   display: none; align-items: center; gap: 4px; padding: 5px 9px;  
@@ -91,7 +91,8 @@
 
 /* ── MENÚ NAVEGACIÓN ── */  
 #nav-menu-wrap {  
-  position: relative; flex-shrink: 0;  
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);  
+  display: flex; align-items: center; gap: 4px;  
 }  
 
 #btn-menu {  
@@ -432,11 +433,11 @@
   <div id="barra-btns">
     <button id="btn-cancelar" onclick="cancelar()"><i class="fas fa-times"></i></button>
     <button id="btn-pagar"    onclick="abrirCompra()"><i class="fas fa-bolt"></i> Comprar</button>    
-    <button id="btn-comprar"  onclick="activar()"><i class="fas fa-mouse-pointer"></i> Elegir zona</button>
   </div>
 
   <!-- MENÚ NAVEGACIÓN -->
   <div id="nav-menu-wrap">
+    <button id="btn-comprar"  onclick="activar()"><i class="fas fa-mouse-pointer"></i> Elegir zona</button>
     <button id="btn-menu" onclick="toggleMenu()">
       <i class="fas fa-bars"></i>
       <span>Menú</span>
@@ -1299,4 +1300,4 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMen
 ══════════════════════════════════════════════════════
 -->
 </body>
-</html>                                                                         </html>
+</html>        
