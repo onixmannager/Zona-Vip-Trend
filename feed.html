@@ -64,7 +64,9 @@
       border-radius: 6px; cursor: pointer; white-space: nowrap;
       transition: color .18s, border-color .18s, background .18s; user-select: none;
     }
-    #btn-menu:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
+    @media (hover: hover) and (pointer: fine) {
+      #btn-menu:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
+    }
     #btn-menu.open  { color: var(--gold); border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06); }
     #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
     #btn-menu.open .menu-chevron { transform: rotate(180deg); }
@@ -89,7 +91,7 @@
     .nav-item-label { flex: 1; }
     .nav-item-arrow { font-size: .55rem; color: var(--muted); opacity: 0; transition: opacity .15s, transform .15s; }
     .nav-item:hover .nav-item-arrow { opacity: 1; transform: translateX(2px); }
-    #nav-overlay { display: none; position: fixed; inset: 0; z-index: 599; }
+    #nav-overlay { display: none; position: fixed; inset: 0; z-index: 99; }
     #nav-overlay.open { display: block; }
     @media (max-width: 420px) { #barra-info { display: none; } }
 
@@ -332,7 +334,7 @@
         <span class="nav-item-label">Modo feed</span>
         <i class="fas fa-chevron-right nav-item-arrow"></i>
       </a>
-      <a class="nav-item" href="panel.html">
+      <a class="nav-item" href="paneldecontrol.html">
         <span class="nav-icon"><i class="fas fa-sliders-h"></i></span>
         <span class="nav-item-label">Panel de control</span>
         <i class="fas fa-chevron-right nav-item-arrow"></i>
@@ -448,7 +450,7 @@
 
 <script>
 // ════════════════════════════════════════════════
-//  CONFIG — mismo valor que index.html y panel.html
+//  CONFIG — mismo valor que index.html y paneldecontrol.html
 // ════════════════════════════════════════════════
 var CFG = {
   PRECIO:   50,
@@ -468,7 +470,9 @@ function toggleMenu(){
   dd.classList.contains('open')?cerrarMenu():(btn.classList.add('open'),dd.classList.add('open'),ov.classList.add('open'));
 }
 function cerrarMenu(){
+  var btn=document.getElementById('btn-menu');
   ['btn-menu','nav-dropdown','nav-overlay'].forEach(function(id){document.getElementById(id).classList.remove('open');});
+  if(document.activeElement===btn) btn.blur();
 }
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){cerrarMenu();cerrarModal();}
