@@ -107,7 +107,9 @@
   transition: color .18s, border-color .18s, background .18s;  
   user-select: none; 
 }  
-#btn-menu:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }  
+@media (hover: hover) and (pointer: fine) {
+#btn-menu:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
+}
 #btn-menu.open  { color: var(--gold);  border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06); }  
 #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }  
 #btn-menu.open  .menu-chevron { transform: rotate(180deg); }  
@@ -209,7 +211,7 @@
 
     /* Overlay invisible para cerrar */
     #nav-overlay {
-      display: none; position: fixed; inset: 0; z-index: 599;
+      display: none; position: fixed; inset: 0; z-index: 99;
     }
     #nav-overlay.open { display: block; }
 
@@ -1184,9 +1186,11 @@ function toggleMenu(){
   }
 }
 function cerrarMenu(){
-  document.getElementById('btn-menu').classList.remove('open');
+  var btn = document.getElementById('btn-menu');
+  btn.classList.remove('open');
   document.getElementById('nav-dropdown').classList.remove('open');
   document.getElementById('nav-overlay').classList.remove('open');
+  if(document.activeElement===btn) btn.blur();
 }
 // Cerrar menú con Escape
 document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMenu(); });
@@ -1301,4 +1305,4 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMen
 ══════════════════════════════════════════════════════
 -->
 </body>
-</html>        
+</html>
