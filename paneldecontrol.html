@@ -30,58 +30,22 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-    /* ── BARRA ── */
-    #barra {
-      position: fixed; top: 0; left: 0; right: 0; height: 52px;
-      background: rgba(6,8,15,0.96); border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      display: flex; align-items: center;
-      padding: 0 8px; z-index: 100; gap: 5px;
-    }
+    #barra { position: fixed; top: 0; left: 0; right: 0; height: 52px; background: rgba(6,8,15,0.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(20px); display: flex; align-items: center; padding: 0 8px; z-index: 100; gap: 5px; }
     .barra-logo { display: flex; align-items: center; gap: 5px; text-decoration: none; flex-shrink: 0; }
-    .barra-logo-main {
-      font-family: var(--fh); font-size: 1.2rem; letter-spacing: .06em;
-      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .barra-logo-tag {
-      font-family: var(--fm); font-size: .4rem; letter-spacing: .14em;
-      color: var(--cyan); border: 1px solid rgba(0,229,255,0.2);
-      padding: 2px 5px; border-radius: 3px; text-transform: uppercase;
-    }
-    #barra-info {
-      font-family: var(--fm); font-size: .6rem; color: var(--muted2); letter-spacing: .04em;
-      flex: 1; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
-    }
+    .barra-logo-main { font-family: var(--fh); font-size: 1.2rem; letter-spacing: .06em; background: linear-gradient(135deg, var(--gold-lt), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .barra-logo-tag { font-family: var(--fm); font-size: .4rem; letter-spacing: .14em; color: var(--cyan); border: 1px solid rgba(0,229,255,0.2); padding: 2px 5px; border-radius: 3px; text-transform: uppercase; }
+    #barra-info { font-family: var(--fm); font-size: .6rem; color: var(--muted2); letter-spacing: .04em; flex: 1; text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
     #barra-info .g { color: var(--gold); }
 
-    /* ── MENÚ ── */
     #nav-menu-wrap { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; }
-    #btn-menu {
-      display: flex; align-items: center; gap: 6px; padding: 5px 9px;
-      font-family: var(--fb); font-size: .72rem; font-weight: 600; color: var(--muted2);
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 6px; cursor: pointer; white-space: nowrap;
-      transition: color .18s, border-color .18s, background .18s; user-select: none;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      #btn-menu:hover { color: var(--white); border-color: rgba(255,255,255,0.22); }
-    }
-    #btn-menu.open  { color: var(--gold); border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06); }
+    #btn-menu { display: flex; align-items: center; gap: 6px; padding: 5px 9px; font-family: var(--fb); font-size: .72rem; font-weight: 600; color: var(--muted2); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09); border-radius: 6px; cursor: pointer; white-space: nowrap; transition: color .18s, border-color .18s, background .18s; user-select: none; }
+    #btn-menu.open { color: var(--gold); border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06); }
     #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
     #btn-menu.open .menu-chevron { transform: rotate(180deg); }
-    #nav-dropdown {
-      position: absolute; top: calc(100% + 10px); right: 0; min-width: 210px;
-      background: rgba(8,11,24,0.97); border: 1px solid rgba(201,168,76,0.2);
-      border-radius: 12px; backdrop-filter: blur(28px);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.06), inset 0 1px 0 rgba(255,255,255,0.04);
-      z-index: 600; overflow: hidden; opacity: 0; pointer-events: none;
-      transform: translateY(-8px) scale(0.97); transform-origin: top right;
-      transition: opacity .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1);
-    }
+    #nav-dropdown { position: absolute; top: calc(100% + 10px); right: 0; min-width: 210px; background: rgba(8,11,24,0.97); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; backdrop-filter: blur(28px); box-shadow: 0 20px 60px rgba(0,0,0,0.7); z-index: 600; overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(-8px) scale(0.97); transform-origin: top right; transition: opacity .2s, transform .2s; }
     #nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
     .nav-header { padding: 12px 16px 8px; font-family: var(--fh); font-size: .75rem; letter-spacing: .14em; color: var(--gold); text-transform: uppercase; border-bottom: 1px solid rgba(201,168,76,0.12); }
-    .nav-item { display: flex; align-items: center; gap: 12px; padding: 13px 18px; font-family: var(--fb); font-size: .8rem; font-weight: 400; color: var(--muted2); text-decoration: none; transition: background .15s, color .15s, padding-left .15s; border-bottom: 1px solid rgba(255,255,255,0.04); position: relative; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 13px 18px; font-family: var(--fb); font-size: .8rem; color: var(--muted2); text-decoration: none; transition: background .15s, color .15s, padding-left .15s; border-bottom: 1px solid rgba(255,255,255,0.04); position: relative; }
     .nav-item:last-child { border-bottom: none; }
     .nav-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--gold); opacity: 0; transition: opacity .15s; }
     .nav-item:hover { background: rgba(201,168,76,0.05); color: var(--white); padding-left: 22px; }
@@ -94,10 +58,8 @@
     #nav-overlay { display: none; position: fixed; inset: 0; z-index: 99; }
     #nav-overlay.open { display: block; }
 
-    /* ── MAIN ── */
     #main { margin-top: 52px; min-height: calc(100vh - 52px); padding: 24px 16px 48px; max-width: 1100px; margin-left: auto; margin-right: auto; }
 
-    /* ── PAGE HEADER ── */
     .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
     .page-title { font-family: var(--fh); font-size: 2rem; letter-spacing: .08em; background: linear-gradient(135deg, var(--gold-lt), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
     .page-sub { font-family: var(--fm); font-size: .58rem; color: var(--muted2); letter-spacing: .12em; text-transform: uppercase; margin-top: 5px; }
@@ -105,30 +67,17 @@
     .page-badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); animation: pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.85)} }
 
-    /* ── LOADING STATE ── */
-    #loading-state {
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      padding: 40px; margin-bottom: 20px;
-      background: var(--card); border: 1px solid var(--border2); border-radius: 12px;
-    }
+    #loading-state { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px; margin-bottom: 20px; background: var(--card); border: 1px solid var(--border2); border-radius: 12px; }
     .spinner { width: 20px; height: 20px; border: 2px solid rgba(201,168,76,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading-state span { font-family: var(--fm); font-size: .68rem; color: var(--muted2); letter-spacing: .08em; }
-
-    /* ── ERROR STATE ── */
-    #error-state {
-      display: none; padding: 18px 20px; margin-bottom: 20px;
-      background: rgba(255,90,90,0.07); border: 1px solid rgba(255,90,90,0.2);
-      border-radius: 12px; font-family: var(--fm); font-size: .72rem; color: #ff9090;
-    }
+    #error-state { display: none; padding: 18px 20px; margin-bottom: 20px; background: rgba(255,90,90,0.07); border: 1px solid rgba(255,90,90,0.2); border-radius: 12px; font-family: var(--fm); font-size: .72rem; color: #ff9090; }
     #error-state b { color: var(--white); }
 
-    /* ── SECTION LABEL ── */
     .section-label { font-family: var(--fh); font-size: .85rem; letter-spacing: .14em; color: var(--gold); text-transform: uppercase; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; margin-top: 28px; }
     .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
     .section-label i { font-size: .7rem; color: var(--gold-dk); }
 
-    /* ── CARDS GRID ── */
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
     .stat-card { background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 16px 18px; position: relative; overflow: hidden; transition: border-color .2s, transform .2s; cursor: default; }
     .stat-card:hover { border-color: rgba(201,168,76,0.25); transform: translateY(-2px); }
@@ -140,10 +89,9 @@
     .stat-card.gold-accent { border-color: rgba(201,168,76,0.2); }
     .stat-card.gold-accent::before { background: linear-gradient(90deg, transparent, var(--gold), transparent); }
     .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .8rem; margin-bottom: 12px; }
-    .stat-icon.gold  { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); color: var(--gold); }
-    .stat-icon.cyan  { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.15); color: var(--cyan); }
-    .stat-icon.green { background: rgba(72,199,120,0.1); border: 1px solid rgba(72,199,120,0.2); color: #48c778; }
-    .stat-icon.purple{ background: rgba(180,130,255,0.1); border: 1px solid rgba(180,130,255,0.2); color: #b482ff; }
+    .stat-icon.gold   { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); color: var(--gold); }
+    .stat-icon.cyan   { background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.15); color: var(--cyan); }
+    .stat-icon.green  { background: rgba(72,199,120,0.1); border: 1px solid rgba(72,199,120,0.2); color: #48c778; }
     .stat-lbl { font-family: var(--fm); font-size: .58rem; letter-spacing: .1em; color: var(--muted2); text-transform: uppercase; margin-bottom: 6px; }
     .stat-val { font-family: var(--fh); font-size: 1.7rem; letter-spacing: .04em; color: var(--white); line-height: 1; }
     .stat-val.gold  { color: var(--gold-lt); }
@@ -151,7 +99,6 @@
     .stat-val.green { color: #48c778; }
     .stat-sub { font-family: var(--fm); font-size: .58rem; color: var(--muted); margin-top: 6px; letter-spacing: .04em; }
 
-    /* ── BARRA PROGRESO ── */
     .celda-progress-wrap { background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 20px 22px; margin-bottom: 10px; }
     .cp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .cp-title { font-family: var(--fm); font-size: .65rem; letter-spacing: .1em; color: var(--muted2); text-transform: uppercase; }
@@ -164,88 +111,33 @@
     .cp-dot span.sold-dot { background: linear-gradient(135deg, var(--gold-dk), var(--gold)); }
     .cp-dot span.free-dot { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); }
 
-    /* ── MINI-MAPA ── */
-    .minimap-wrap { background: var(--card); border: 1px solid var(--border2); border-radius: 12px; padding: 18px 20px; margin-top: 10px; }
-    .minimap-title { font-family: var(--fm); font-size: .62rem; color: var(--muted2); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
-    #minimap-canvas { width: 100%; height: auto; border-radius: 6px; display: block; image-rendering: pixelated; }
-
-    /* ── HISTORIAL ── */
-    .historial-list { display: flex; flex-direction: column; gap: 6px; }
     .historial-item { background: var(--card); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; transition: border-color .15s; }
     .historial-item:hover { border-color: rgba(201,168,76,0.18); }
-    .hi-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); flex-shrink: 0; box-shadow: 0 0 6px rgba(201,168,76,0.4); }
-    .hi-dot.cyan { background: var(--cyan); box-shadow: 0 0 6px rgba(0,229,255,0.4); }
     .hi-main { flex: 1; min-width: 0; }
     .hi-title { font-size: .78rem; font-weight: 500; color: var(--white); margin-bottom: 2px; }
     .hi-meta { font-family: var(--fm); font-size: .58rem; color: var(--muted2); }
-    .hi-price { font-family: var(--fm); font-size: .72rem; color: var(--gold); flex-shrink: 0; }
 
-    /* ── PARTICIPACIÓN ── */
     .participacion-box { background: var(--card); border: 1px solid rgba(0,229,255,0.12); border-radius: 12px; padding: 18px 20px; }
     .part-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
     .part-title { font-family: var(--fm); font-size: .65rem; color: var(--muted2); text-transform: uppercase; letter-spacing: .1em; }
     .part-total { font-family: var(--fh); font-size: 1.2rem; color: var(--cyan); }
-    .part-list { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; }
+    .part-list { display: flex; flex-direction: column; gap: 5px; max-height: 220px; overflow-y: auto; }
     .part-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,0.02); font-size: .75rem; transition: background .15s; }
     .part-row:hover { background: rgba(255,255,255,0.04); }
     .part-num { width: 24px; height: 24px; border-radius: 50%; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); display: flex; align-items: center; justify-content: center; font-family: var(--fh); font-size: .65rem; color: var(--gold-lt); flex-shrink: 0; }
     .part-name { flex: 1; color: var(--white); font-family: var(--fm); font-size: .65rem; }
     .part-celdas { font-family: var(--fm); font-size: .62rem; color: var(--gold); }
 
-    /* ── ZONAS GRID ── */
-    .zonas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 8px; }
-    .zona-card { background: var(--card2); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 14px; transition: border-color .2s; }
-    .zona-card:hover { border-color: rgba(201,168,76,0.2); }
-    .zona-card .zc-name { font-family: var(--fm); font-size: .6rem; color: var(--muted2); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
-    .zona-card .zc-val  { font-family: var(--fh); font-size: 1.2rem; color: var(--white); }
-    .zona-card .zc-bar  { height: 3px; border-radius: 99px; background: rgba(255,255,255,0.05); margin-top: 8px; overflow: hidden; }
-    .zona-card .zc-fill { height: 100%; border-radius: 99px; background: var(--gold); transition: width 1s ease; }
-
-    /* ── COUNTDOWN ── */
-    .countdown-card { background: var(--card); border: 1px solid rgba(201,168,76,0.2); border-radius: 12px; padding: 20px 22px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .cd-parts { display: flex; gap: 14px; }
-    .cd-part { text-align: center; }
-    .cd-val { font-family: var(--fh); font-size: 2rem; color: var(--gold-lt); line-height: 1; }
-    .cd-lbl { font-family: var(--fm); font-size: .52rem; color: var(--muted2); text-transform: uppercase; letter-spacing: .1em; margin-top: 3px; }
-    .cd-sep { font-family: var(--fh); font-size: 1.6rem; color: var(--gold-dk); align-self: flex-start; padding-top: 4px; }
-    .cd-info { flex: 1; min-width: 180px; }
-    .cd-title { font-family: var(--fh); font-size: 1.1rem; letter-spacing: .06em; color: var(--white); margin-bottom: 4px; }
-    .cd-sub { font-family: var(--fm); font-size: .62rem; color: var(--muted2); }
-    .cd-prize { font-family: var(--fm); font-size: .68rem; color: var(--cyan); margin-top: 6px; }
-
-    /* ── CONFIG BANNER ── */
-    .config-banner { background: rgba(201,168,76,0.05); border: 1px dashed rgba(201,168,76,0.25); border-radius: 10px; padding: 14px 18px; margin-bottom: 24px; display: none; }
-    .config-banner.show { display: block; }
-    .cb-title { font-family: var(--fh); font-size: .85rem; letter-spacing: .1em; color: var(--gold); margin-bottom: 6px; }
-    .cb-body  { font-family: var(--fm); font-size: .65rem; color: var(--muted2); line-height: 1.7; }
-    .cb-body b { color: var(--white); }
-    .cb-body code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 3px; color: var(--cyan); }
-
-    /* ── DEMO MODE BADGE ── */
-    .demo-badge { display: inline-flex; align-items: center; gap: 5px; font-family: var(--fm); font-size: .6rem; letter-spacing: .1em; color: #ff9090; background: rgba(255,90,90,0.08); border: 1px solid rgba(255,90,90,0.2); padding: 3px 10px; border-radius: 20px; text-transform: uppercase; }
-
-    /* ANIMACIONES */
     .fade-in { opacity: 0; transform: translateY(12px); animation: fadeUp .45s ease forwards; }
     @keyframes fadeUp { to { opacity:1; transform: translateY(0); } }
-    .fade-in:nth-child(1) { animation-delay: .05s; }
-    .fade-in:nth-child(2) { animation-delay: .10s; }
-    .fade-in:nth-child(3) { animation-delay: .15s; }
-    .fade-in:nth-child(4) { animation-delay: .20s; }
-    .fade-in:nth-child(5) { animation-delay: .25s; }
-    .fade-in:nth-child(6) { animation-delay: .30s; }
+    .fade-in:nth-child(1){animation-delay:.05s} .fade-in:nth-child(2){animation-delay:.10s} .fade-in:nth-child(3){animation-delay:.15s} .fade-in:nth-child(4){animation-delay:.20s} .fade-in:nth-child(5){animation-delay:.25s} .fade-in:nth-child(6){animation-delay:.30s}
 
-    @media (max-width: 600px) {
-      .cards-grid { grid-template-columns: 1fr 1fr; }
-      .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-      .cd-parts { gap: 8px; }
-      .cd-val { font-size: 1.5rem; }
-    }
-    @media (max-width: 420px) { #barra-info { display: none; } }
+    @media (max-width:600px){ .cards-grid{grid-template-columns:1fr 1fr} .page-header{flex-direction:column;align-items:flex-start;gap:10px} }
+    @media (max-width:420px){ #barra-info{display:none} }
   </style>
 </head>
 <body>
 
-<!-- ── BARRA ── -->
 <div id="barra">
   <a class="barra-logo" href="index.html">
     <span class="barra-logo-main">ZonaVIP</span>
@@ -259,453 +151,302 @@
     </button>
     <div id="nav-dropdown">
       <div class="nav-header">Navegación</div>
-      <a class="nav-item" href="mosaico.html">
-        <span class="nav-icon"><i class="fas fa-th"></i></span>
-        <span class="nav-item-label">Mosaico</span>
-        <i class="fas fa-chevron-right nav-item-arrow"></i>
-      </a>
-      <a class="nav-item" href="feed.html">
-        <span class="nav-icon"><i class="fas fa-th-large"></i></span>
-        <span class="nav-item-label">Modo feed</span>
-        <i class="fas fa-chevron-right nav-item-arrow"></i>
-      </a>
-      <a class="nav-item" href="paneldecontrol.html">
-        <span class="nav-icon"><i class="fas fa-sliders-h"></i></span>
-        <span class="nav-item-label">Panel de control</span>
-        <i class="fas fa-chevron-right nav-item-arrow"></i>
-      </a>
-      <a class="nav-item" href="index.html">
-        <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
-        <span class="nav-item-label">Más info</span>
-        <i class="fas fa-chevron-right nav-item-arrow"></i>
-      </a>
-      <a class="nav-item" href="soporte.html">
-        <span class="nav-icon"><i class="fas fa-headset"></i></span>
-        <span class="nav-item-label">Soporte</span>
-        <i class="fas fa-chevron-right nav-item-arrow"></i>
-      </a>
+      <a class="nav-item" href="mosaico.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Mosaico</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="feed.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Modo feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="index.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
     </div>
   </div>
 </div>
 <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
-<!-- ── MAIN ── -->
 <div id="main">
-
-  <!-- PAGE HEADER -->
   <div class="page-header fade-in">
     <div>
       <div class="page-title">Panel de Control</div>
       <div class="page-sub">ZonaVIP Trends · Estadísticas en tiempo real</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span id="demo-badge-wrap"></span>
       <div class="page-badge">En vivo</div>
+      <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted);letter-spacing:.06em">
+        Actualiza cada <span style="color:var(--gold)">60s</span> · <span id="last-update">—</span>
+      </div>
     </div>
   </div>
 
-  <!-- CONFIG BANNER (solo en modo demo) -->
-  <div class="config-banner" id="config-banner">
-    <div class="cb-title"><i class="fas fa-wrench" style="font-size:.7rem;margin-right:6px"></i>Modo Demo — Configura tu repo</div>
-    <div class="cb-body">
-      El panel está en modo demo porque <b>GH_REPOS</b> no está configurado.<br>
-      Edita la variable <code>CFG.GH_REPOS</code> al inicio del script con tu usuario de GitHub: <code>['TU_USUARIO/mosaico-imgs-1']</code><br>
-      Una vez configurado, el panel leerá los datos reales del mosaico automáticamente.
-    </div>
-  </div>
-
-  <!-- ESTADO DE CARGA -->
   <div id="loading-state">
     <div class="spinner"></div>
     <span>Cargando datos del mosaico...</span>
   </div>
 
-  <!-- ERROR -->
   <div id="error-state">
     <b><i class="fas fa-exclamation-triangle" style="margin-right:6px"></i>Error al cargar datos</b><br>
     <span id="error-msg">No se pudo conectar con el repositorio.</span>
   </div>
 
-  <!-- CONTENIDO (oculto hasta que cargue) -->
   <div id="panel-content" style="display:none">
 
-    <!-- ① STATS PRINCIPALES -->
+    <!-- RESUMEN GENERAL -->
     <div class="section-label fade-in"><i class="fas fa-chart-bar"></i> Resumen General</div>
     <div class="cards-grid" style="margin-bottom:10px">
       <div class="stat-card gold-accent fade-in">
         <div class="stat-icon gold"><i class="fas fa-th"></i></div>
         <div class="stat-lbl">Celdas vendidas</div>
         <div class="stat-val gold" id="st-vendidas">—</div>
-        <div class="stat-sub" id="st-vendidas-sub">de 13.040 totales</div>
+        <div class="stat-sub" id="st-vendidas-sub">—</div>
       </div>
       <div class="stat-card fade-in">
         <div class="stat-icon green"><i class="fas fa-euro-sign"></i></div>
         <div class="stat-lbl">Total recaudado</div>
         <div class="stat-val green" id="st-recaudado">—</div>
-        <div class="stat-sub">a 50 € / celda</div>
+        <div class="stat-sub" id="st-precio-sub">—</div>
       </div>
       <div class="stat-card cyan-accent fade-in">
-        <div class="stat-icon cyan"><i class="fas fa-users"></i></div>
-        <div class="stat-lbl">Compradores</div>
-        <div class="stat-val cyan" id="st-compradores">—</div>
-        <div class="stat-sub">zonas registradas</div>
+        <div class="stat-icon cyan"><i class="fas fa-percentage"></i></div>
+        <div class="stat-lbl">Probabilidad de Premio</div>
+        <div class="stat-val cyan" id="st-prob">—</div>
+        <div class="stat-sub" id="st-prob-sub">—</div>
       </div>
-      <div class="stat-card fade-in">
-        <div class="stat-icon purple"><i class="fas fa-image"></i></div>
-        <div class="stat-lbl">Con imagen</div>
-        <div class="stat-val" id="st-con-img">—</div>
-        <div class="stat-sub" id="st-sin-img-sub">zonas con foto</div>
+      <div class="stat-card gold-accent fade-in">
+        <div class="stat-icon gold"><i class="fas fa-trophy"></i></div>
+        <div class="stat-lbl">Premios en Juego</div>
+        <div class="stat-val gold" id="st-premios">—</div>
+        <div class="stat-sub" id="st-premios-sub">—</div>
       </div>
     </div>
 
-    <!-- BARRA PROGRESO -->
+    <!-- OCUPACIÓN + PROBABILIDAD TIEMPO REAL -->
     <div class="celda-progress-wrap fade-in">
       <div class="cp-header">
         <div>
           <span class="cp-title">Ocupación del mosaico</span>
           <div style="margin-top:5px;display:flex;align-items:baseline;gap:4px">
             <span style="font-family:var(--fh);font-size:1.5rem;color:var(--gold-lt)" id="lbl-vendidas">—</span>
-            <span style="font-family:var(--fm);font-size:.7rem;color:var(--muted)">/ 13.040 celdas ocupadas</span>
+            <span style="font-family:var(--fm);font-size:.7rem;color:var(--muted)" id="lbl-total-celdas">—</span>
           </div>
         </div>
-        <span class="cp-pct" id="pct-label">0%</span>
+        <span class="cp-pct" id="pct-label">—</span>
       </div>
       <div class="cp-bar-track">
         <div class="cp-bar-fill" id="cp-fill" style="width:0%"></div>
       </div>
       <div class="cp-legend">
-        <div class="cp-dot"><span class="sold-dot"></span><span id="leg-vendidas">0 vendidas</span></div>
-        <div class="cp-dot"><span class="free-dot"></span><span id="leg-libres">13.040 libres</span></div>
+        <div class="cp-dot"><span class="sold-dot"></span><span id="leg-vendidas">—</span></div>
+        <div class="cp-dot"><span class="free-dot"></span><span id="leg-libres">—</span></div>
+      </div>
+      <div style="margin-top:18px;border-top:1px solid var(--border2);padding-top:16px">
+        <div style="font-family:var(--fm);font-size:.6rem;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:12px">
+          <i class="fas fa-dice" style="margin-right:6px"></i>Probabilidad de Premio — Tiempo Real
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">
+          <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:12px 14px">
+            <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Estado del sorteo</div>
+            <div style="font-family:var(--fh);font-size:.95rem;color:var(--gold-lt)" id="prob-base-label">—</div>
+          </div>
+          <div style="background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.15);border-radius:10px;padding:12px 14px">
+            <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">% éxito por celda</div>
+            <div style="font-family:var(--fh);font-size:1.4rem;color:var(--cyan)" id="prob-pct-label">—</div>
+            <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted);margin-top:3px">probabilidad individual</div>
+          </div>
+          <div style="background:rgba(180,130,255,0.05);border:1px solid rgba(180,130,255,0.15);border-radius:10px;padding:12px 14px">
+            <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px">Promedio actual</div>
+            <div style="font-family:var(--fh);font-size:1rem;color:#b482ff" id="prob-avg-label">—</div>
+            <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted);margin-top:3px">celdas por premio</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- MINI-MAPA -->
-    <div class="minimap-wrap fade-in">
-      <div class="minimap-title"><i class="fas fa-map" style="margin-right:6px;color:var(--gold-dk)"></i>Vista del mosaico — zonas ocupadas</div>
-      <canvas id="minimap-canvas" height="120"></canvas>
-    </div>
+    <!-- VIPs PREMIADOS -->
+    <div class="section-label fade-in"><i class="fas fa-crown"></i> VIPs Premiados</div>
+    <div id="premiados-list" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;padding-right:4px"></div>
 
-    <!-- ② COUNTDOWN -->
-    <div class="section-label fade-in"><i class="fas fa-clock"></i> Próximo Sorteo</div>
-    <div class="countdown-card fade-in">
-      <div class="cd-info">
-        <div class="cd-title">Premio AirPods Pro</div>
-        <div class="cd-sub">Sorteo entre todos los compradores confirmados</div>
-        <div class="cd-prize"><i class="fas fa-calendar-alt" style="margin-right:4px"></i><span id="cd-fecha-label">—</span></div>
-      </div>
-      <div class="cd-parts" id="cd-parts">
-        <div class="cd-part"><div class="cd-val" id="cd-d">--</div><div class="cd-lbl">días</div></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-part"><div class="cd-val" id="cd-h">--</div><div class="cd-lbl">horas</div></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-part"><div class="cd-val" id="cd-m">--</div><div class="cd-lbl">min</div></div>
-        <div class="cd-sep">:</div>
-        <div class="cd-part"><div class="cd-val" id="cd-s">--</div><div class="cd-lbl">seg</div></div>
-      </div>
-    </div>
-
-    <!-- ③ HISTORIAL DE COMPRAS -->
-    <div class="section-label fade-in"><i class="fas fa-history"></i> Últimas Compras</div>
-    <div class="historial-list" id="historial-list"></div>
-
-    <!-- ④ COMPRADORES CON MÁS CELDAS -->
+    <!-- TOP COMPRADORES -->
     <div class="section-label fade-in"><i class="fas fa-medal"></i> Top Compradores</div>
     <div class="participacion-box fade-in">
       <div class="part-header">
-        <span class="part-title">Zonas registradas por comprador</span>
+        <span class="part-title">Compradores por celdas</span>
         <span class="part-total" id="part-total">—</span>
       </div>
       <div class="part-list" id="part-list"></div>
     </div>
 
-    <!-- ⑤ DISTRIBUCIÓN DE ZONAS -->
-    <div class="section-label fade-in"><i class="fas fa-th-large"></i> Distribución de Zonas</div>
-    <div class="zonas-grid" id="zonas-grid"></div>
+    <!-- COMUNIDAD -->
+    <div class="section-label fade-in" style="margin-top:36px"><i class="fab fa-telegram-plane"></i> Comunidad</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:10px">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;padding:16px 18px">
+        <div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.12em;color:var(--muted2);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <i class="fab fa-telegram-plane" style="color:#29b6f6"></i> Canal Principal
+        </div>
+        <!-- Sustituye TUCANAL/NUMERODEPOST con el @canal y número de post reales -->
+        <script async src="https://telegram.org/js/telegram-widget.js?22"
+          data-telegram-post="TUCANAL/NUMERODEPOST"
+          data-width="100%" data-userpic="true"
+          data-color="C9A84C" data-dark-color="EDD780" data-dark="1"></script>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;padding:16px 18px">
+        <div style="font-family:var(--fm);font-size:.56rem;letter-spacing:.12em;color:var(--muted2);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <i class="fab fa-telegram-plane" style="color:#29b6f6"></i> Canal Novedades
+        </div>
+        <!-- Sustituye TUCANAL2/NUMERODEPOST con el @canal y número de post reales -->
+        <script async src="https://telegram.org/js/telegram-widget.js?22"
+          data-telegram-post="TUCANAL2/NUMERODEPOST"
+          data-width="100%" data-userpic="true"
+          data-color="C9A84C" data-dark-color="EDD780" data-dark="1"></script>
+      </div>
+    </div>
 
-  </div><!-- /panel-content -->
-
-</div><!-- /main -->
+  </div>
+</div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  CONFIGURACIÓN — debe coincidir con el mosaico (index.html)
-// ═══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════
+//  CONFIGURACIÓN — rellena estos valores antes de subir
+// ════════════════════════════════════════════════════
 var CFG = {
-  PRECIO:   50,
-  TOTAL:    13040,
-  GH_REPOS: ['TU_USUARIO/mosaico-imgs-1'],  // ← mismo valor que en index.html
+  PRECIO:        0,    // precio por celda en €
+  TOTAL:         0,    // número total de celdas del mosaico
+  TOTAL_PREMIOS: 0,    // número total de premios disponibles
+  GH_REPOS:      [],   // ej: ['tuusuario/mosaico-imgs-1']
 
-  // Fecha del próximo sorteo (cambia esto cuando quieras)
-  // Formato: 'YYYY-MM-DDTHH:MM:SS'
-  SORTEO_FECHA: '2025-06-30T23:59:59',
-  SORTEO_PREMIO: 'Premio AirPods Pro'
+  // Añade premiados cuando corresponda:
+  // { nombre: 'Nombre A.', premio: 'Nombre del premio', fecha: '01 Ene 2025', avatar: 'NA' }
+  PREMIADOS: []
 };
+// ════════════════════════════════════════════════════
 
-var isDemoMode = (CFG.GH_REPOS[0] === 'TU_USUARIO/mosaico-imgs-1');
-
-// ── MENÚ ──
 function toggleMenu(){
-  var btn=document.getElementById('btn-menu');
-  var dd=document.getElementById('nav-dropdown');
-  var ov=document.getElementById('nav-overlay');
-  if(dd.classList.contains('open')){ cerrarMenu(); }
-  else { btn.classList.add('open'); dd.classList.add('open'); ov.classList.add('open'); }
+  var b=document.getElementById('btn-menu'),d=document.getElementById('nav-dropdown'),o=document.getElementById('nav-overlay');
+  if(d.classList.contains('open')){cerrarMenu();}else{b.classList.add('open');d.classList.add('open');o.classList.add('open');}
 }
 function cerrarMenu(){
-  var btn=document.getElementById('btn-menu');
-  btn.classList.remove('open');
+  var b=document.getElementById('btn-menu');
+  b.classList.remove('open');
   document.getElementById('nav-dropdown').classList.remove('open');
   document.getElementById('nav-overlay').classList.remove('open');
-  if(document.activeElement===btn) btn.blur();
+  if(document.activeElement===b)b.blur();
 }
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMenu(); });
+document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarMenu();});
 
-// ── CARGA DE ZONAS (mismo sistema que el mosaico) ──
-async function loadZones() {
-  var zones = [];
-  for (var ri = 0; ri < CFG.GH_REPOS.length; ri++) {
-    var repo = CFG.GH_REPOS[ri];
-    var url = 'https://cdn.jsdelivr.net/gh/' + repo + '@main/zones.json?t=' + Date.now();
-    try {
-      var resp = await fetch(url);
-      if (!resp.ok) continue;
-      var data = await resp.json();
-      if (Array.isArray(data)) zones = zones.concat(data);
-    } catch(e) { /* repo nuevo o sin conexión */ }
+async function loadZones(){
+  var zones=[];
+  for(var i=0;i<CFG.GH_REPOS.length;i++){
+    var url='https://cdn.jsdelivr.net/gh/'+CFG.GH_REPOS[i]+'@main/zones.json?t='+Date.now();
+    try{var r=await fetch(url);if(!r.ok)continue;var d=await r.json();if(Array.isArray(d))zones=zones.concat(d);}catch(e){}
   }
   return zones;
 }
 
-// ── MINI-MAPA ──
-function dibujarMinimap(zones) {
-  var canvas = document.getElementById('minimap-canvas');
-  var COLS = 130; // 13040 / 100 filas aprox
-  var ROWS = Math.ceil(CFG.TOTAL / COLS);
-  var W = canvas.parentElement.clientWidth - 40;
-  var cellPx = Math.max(1, Math.floor(W / COLS));
-  canvas.width  = COLS * cellPx;
-  canvas.height = ROWS * cellPx;
-  canvas.style.maxHeight = '180px';
-  var ctx = canvas.getContext('2d');
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-  // Fondo
-  ctx.fillStyle = '#0C1022';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+function actualizarStats(zones){
+  var vendidas     = zones.reduce(function(a,z){return a+(z.n||0);},0);
+  var libres       = CFG.TOTAL - vendidas;
+  var pctOcup      = CFG.TOTAL>0?((vendidas/CFG.TOTAL)*100).toFixed(1):'0.0';
+  var recaudado    = (vendidas*CFG.PRECIO).toLocaleString('es-ES')+' €';
+  var premiosOtorg = CFG.PREMIADOS.length;
+  var premiosRest  = Math.max(0,CFG.TOTAL_PREMIOS-premiosOtorg);
+  var probPct      = libres>0&&premiosRest>0?(premiosRest/libres*100).toFixed(2):'0.00';
+  var probRatio    = premiosRest>0&&libres>0?Math.round(libres/premiosRest):'—';
 
-  // Grid sutil
-  ctx.strokeStyle = 'rgba(201,168,76,0.06)';
-  ctx.lineWidth = 0.5;
-  for (var c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*cellPx,0); ctx.lineTo(c*cellPx,canvas.height); ctx.stroke(); }
-  for (var r = 0; r <= ROWS; r++) { ctx.beginPath(); ctx.moveTo(0,r*cellPx); ctx.lineTo(canvas.width,r*cellPx); ctx.stroke(); }
+  document.getElementById('st-vendidas').textContent      = vendidas.toLocaleString('es-ES');
+  document.getElementById('st-vendidas-sub').textContent  = 'de '+CFG.TOTAL.toLocaleString('es-ES')+' totales';
+  document.getElementById('st-recaudado').textContent     = recaudado;
+  document.getElementById('st-precio-sub').textContent    = 'a '+CFG.PRECIO.toLocaleString('es-ES')+' € / celda';
+  document.getElementById('st-prob').textContent          = probPct+'%';
+  document.getElementById('st-prob-sub').textContent      = premiosRest>0?'1 de cada '+probRatio+' celdas':'Sin premios pendientes';
+  document.getElementById('st-premios').textContent       = premiosRest.toLocaleString('es-ES');
+  document.getElementById('st-premios-sub').textContent   = premiosOtorg+' otorgados · '+CFG.TOTAL_PREMIOS+' totales';
+  document.getElementById('lbl-vendidas').textContent     = vendidas.toLocaleString('es-ES');
+  document.getElementById('lbl-total-celdas').textContent = '/ '+CFG.TOTAL.toLocaleString('es-ES')+' celdas ocupadas';
+  document.getElementById('leg-vendidas').textContent     = vendidas.toLocaleString('es-ES')+' vendidas';
+  document.getElementById('leg-libres').textContent       = libres.toLocaleString('es-ES')+' libres';
+  document.getElementById('cp-fill').style.width          = pctOcup+'%';
+  document.getElementById('pct-label').textContent        = pctOcup+'%';
+  document.getElementById('prob-base-label').textContent  = premiosRest+' premios restantes · '+libres.toLocaleString('es-ES')+' celdas libres';
+  document.getElementById('prob-pct-label').textContent   = probPct+'%';
+  document.getElementById('prob-avg-label').textContent   = premiosRest>0?'1 de cada '+probRatio+' celdas':'Sin premios pendientes';
 
-  // Zonas ocupadas
-  zones.forEach(function(z) {
-    var x = z.c1 * cellPx;
-    var y = z.r1 * cellPx;
-    var w = (z.c2 - z.c1 + 1) * cellPx;
-    var h = (z.r2 - z.r1 + 1) * cellPx;
-    ctx.fillStyle = z.imgUrl ? 'rgba(0,229,255,0.35)' : 'rgba(201,168,76,0.3)';
-    ctx.fillRect(x, y, w, h);
-    if (z.imgUrl) {
-      ctx.strokeStyle = 'rgba(0,229,255,0.5)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x, y, w, h);
-    }
-  });
+  var lu=document.getElementById('last-update');
+  if(lu)lu.textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  renderPremiados();
+  renderTopCompradores(zones);
 }
 
-// ── HISTORIAL ──
-function renderHistorial(zones) {
-  var list = document.getElementById('historial-list');
-  list.innerHTML = '';
-  // Los últimos 8 (o todos si hay menos)
-  var recientes = zones.slice().reverse().slice(0, 8);
-  if (recientes.length === 0) {
-    list.innerHTML = '<div style="font-family:var(--fm);font-size:.65rem;color:var(--muted);padding:16px;text-align:center">Sin compras registradas todavía</div>';
+function renderPremiados(){
+  var list=document.getElementById('premiados-list');
+  list.innerHTML='';
+  if(!CFG.PREMIADOS||CFG.PREMIADOS.length===0){
+    list.innerHTML='<div style="font-family:var(--fm);font-size:.65rem;color:var(--muted);padding:20px;text-align:center;background:var(--card);border:1px solid var(--border2);border-radius:10px">Sin premiados registrados todavía</div>';
     return;
   }
-  recientes.forEach(function(z, i) {
-    var el = document.createElement('div');
-    el.className = 'historial-item';
-    var nombre = z.email ? z.email.split('@')[0] : 'Comprador #' + (zones.length - i);
-    var zona   = 'Filas '+(z.r1+1)+'–'+(z.r2+1)+' · Col '+(z.c1+1)+'–'+(z.c2+1);
-    var precio = (z.n * CFG.PRECIO).toLocaleString('es-ES') + ' €';
-    var conImg = !!z.imgUrl;
-    el.innerHTML =
-      '<div class="hi-dot' + (conImg ? ' cyan' : '') + '"></div>' +
-      '<div class="hi-main">' +
-        '<div class="hi-title">' + escapeHtml(nombre) + (conImg ? ' <span style="font-size:.55rem;color:var(--cyan);font-family:var(--fm)">· con imagen</span>' : '') + '</div>' +
-        '<div class="hi-meta">' + zona + ' &nbsp;·&nbsp; ' + z.n + ' celdas</div>' +
-      '</div>' +
-      '<div style="text-align:right">' +
-        '<div class="hi-price">' + precio + '</div>' +
-        (z.id ? '<div style="font-family:var(--fm);font-size:.54rem;color:var(--muted);margin-top:2px">#' + escapeHtml(String(z.id).slice(-6)) + '</div>' : '') +
+  CFG.PREMIADOS.forEach(function(p,i){
+    var el=document.createElement('div');
+    el.className='historial-item fade-in';
+    el.style.animationDelay=(i*0.06)+'s';
+    el.innerHTML=
+      '<div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dk),var(--gold));display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:.8rem;color:var(--bg);flex-shrink:0">'+escapeHtml(p.avatar||'??')+'</div>'+
+      '<div class="hi-main">'+
+        '<div class="hi-title" style="display:flex;align-items:center;gap:7px">'+escapeHtml(p.nombre)+
+          '<span style="font-family:var(--fm);font-size:.52rem;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.25);color:var(--gold);padding:2px 7px;border-radius:20px">VIP</span>'+
+        '</div>'+
+        '<div class="hi-meta"><i class="fas fa-calendar-alt" style="margin-right:4px;color:var(--muted)"></i>'+escapeHtml(p.fecha||'')+'</div>'+
+      '</div>'+
+      '<div style="display:flex;align-items:center;gap:6px">'+
+        '<i class="fas fa-trophy" style="font-size:.65rem;color:var(--gold)"></i>'+
+        '<span style="font-family:var(--fm);font-size:.68rem;color:var(--gold-lt)">'+escapeHtml(p.premio||'')+'</span>'+
       '</div>';
     list.appendChild(el);
   });
 }
 
-// ── TOP COMPRADORES ──
-function renderParticipacion(zones) {
-  // Agrupa por email
-  var map = {};
-  zones.forEach(function(z) {
-    var key = z.email || ('zona-' + z.r1 + '-' + z.c1);
-    if (!map[key]) map[key] = { nombre: key, celdas: 0, zonas: 0 };
-    map[key].celdas += (z.n || 0);
-    map[key].zonas++;
+function renderTopCompradores(zones){
+  var map={};
+  zones.forEach(function(z){
+    var k=z.email||('zona-'+z.r1+'-'+z.c1);
+    if(!map[k])map[k]={nombre:k,celdas:0};
+    map[k].celdas+=(z.n||0);
   });
-  var arr = Object.values(map).sort(function(a,b){ return b.celdas - a.celdas; }).slice(0, 10);
-  document.getElementById('part-total').textContent = Object.keys(map).length;
-
-  var list = document.getElementById('part-list');
-  list.innerHTML = '';
-  arr.forEach(function(u, i) {
-    var label = u.nombre.includes('@') ? u.nombre.split('@')[0] : ('Zona ' + (i+1));
-    var el = document.createElement('div');
-    el.className = 'part-row';
-    el.innerHTML =
-      '<div class="part-num">' + (i+1) + '</div>' +
-      '<span class="part-name">' + escapeHtml(label) + '</span>' +
-      '<span class="part-celdas">' + u.celdas + ' celdas</span>';
+  var arr=Object.values(map).sort(function(a,b){return b.celdas-a.celdas;}).slice(0,10);
+  document.getElementById('part-total').textContent=Object.keys(map).length;
+  var list=document.getElementById('part-list');
+  list.innerHTML='';
+  if(arr.length===0){list.innerHTML='<div style="font-family:var(--fm);font-size:.65rem;color:var(--muted);padding:12px;text-align:center">Sin compradores todavía</div>';return;}
+  arr.forEach(function(u,i){
+    var label=u.nombre.includes('@')?u.nombre.split('@')[0]:('Comprador '+(i+1));
+    var el=document.createElement('div');
+    el.className='part-row';
+    el.innerHTML='<div class="part-num">'+(i+1)+'</div><span class="part-name">'+escapeHtml(label)+'</span><span class="part-celdas">'+u.celdas.toLocaleString('es-ES')+' celdas</span>';
     list.appendChild(el);
   });
 }
 
-// ── DISTRIBUCIÓN DE ZONAS ──
-function renderZonasGrid(zones) {
-  // Agrupa por décadas de filas para dar una visión de qué zonas están más ocupadas
-  var COLS_MOSAICO = 130;
-  var buckets = {};
-  zones.forEach(function(z) {
-    var seccion = 'F' + (Math.floor(z.r1 / 10) * 10 + 1) + '–' + (Math.floor(z.r1 / 10) * 10 + 10);
-    if (!buckets[seccion]) buckets[seccion] = 0;
-    buckets[seccion] += z.n || 0;
-  });
-  var total = CFG.TOTAL;
-  var entries = Object.entries(buckets).sort(function(a,b){ return b[1]-a[1]; }).slice(0, 12);
-  var maxVal = entries.length ? entries[0][1] : 1;
-
-  var grid = document.getElementById('zonas-grid');
-  grid.innerHTML = '';
-  entries.forEach(function(entry) {
-    var pct = Math.round(entry[1] / maxVal * 100);
-    var el = document.createElement('div');
-    el.className = 'zona-card';
-    el.innerHTML =
-      '<div class="zc-name">Sección ' + entry[0] + '</div>' +
-      '<div class="zc-val">' + entry[1].toLocaleString('es-ES') + '</div>' +
-      '<div style="font-family:var(--fm);font-size:.55rem;color:var(--muted);margin-top:2px">celdas vendidas</div>' +
-      '<div class="zc-bar"><div class="zc-fill" style="width:' + pct + '%"></div></div>';
-    grid.appendChild(el);
-  });
-
-  if (entries.length === 0) {
-    grid.innerHTML = '<div style="font-family:var(--fm);font-size:.65rem;color:var(--muted);padding:16px">Sin datos de distribución todavía</div>';
-  }
-}
-
-// ── COUNTDOWN ──
-function initCountdown() {
-  var target = new Date(CFG.SORTEO_FECHA);
-  var label  = target.toLocaleDateString('es-ES', { day:'numeric', month:'long', year:'numeric' });
-  document.getElementById('cd-fecha-label').textContent = label;
-
-  function pad(n) { return String(n).padStart(2,'0'); }
-  function tick() {
-    var now  = new Date();
-    var diff = target - now;
-    if (diff <= 0) {
-      document.getElementById('cd-d').textContent = '00';
-      document.getElementById('cd-h').textContent = '00';
-      document.getElementById('cd-m').textContent = '00';
-      document.getElementById('cd-s').textContent = '00';
-      return;
+async function fetchAndRender(isFirst){
+  var loading=document.getElementById('loading-state');
+  var errorBox=document.getElementById('error-state');
+  var content=document.getElementById('panel-content');
+  try{
+    var zones=await loadZones();
+    if(isFirst){loading.style.display='none';content.style.display='block';setTimeout(function(){actualizarStats(zones);},200);}
+    else{actualizarStats(zones);}
+    errorBox.style.display='none';
+  }catch(err){
+    if(isFirst){
+      loading.style.display='none';
+      errorBox.style.display='block';
+      document.getElementById('error-msg').textContent=err.message||'Error desconocido.';
+      content.style.display='block';
+      renderPremiados();
     }
-    var d = Math.floor(diff / 86400000);
-    var h = Math.floor((diff % 86400000) / 3600000);
-    var m = Math.floor((diff % 3600000) / 60000);
-    var s = Math.floor((diff % 60000) / 1000);
-    document.getElementById('cd-d').textContent = pad(d);
-    document.getElementById('cd-h').textContent = pad(h);
-    document.getElementById('cd-m').textContent = pad(m);
-    document.getElementById('cd-s').textContent = pad(s);
   }
-  tick();
-  setInterval(tick, 1000);
 }
 
-// ── ESCAPE HTML ──
-function escapeHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── ARRANQUE PRINCIPAL ──
-(async function main() {
-  if (isDemoMode) {
-    document.getElementById('config-banner').classList.add('show');
-    document.getElementById('demo-badge-wrap').innerHTML =
-      '<span class="demo-badge"><i class="fas fa-flask" style="margin-right:4px"></i>Demo</span>';
-  }
-
-  var loading = document.getElementById('loading-state');
-  var errorBox = document.getElementById('error-state');
-  var content  = document.getElementById('panel-content');
-
-  try {
-    var zones = await loadZones();
-
-    loading.style.display = 'none';
-    content.style.display = 'block';
-
-    // Calcular stats
-    var vendidas = zones.reduce(function(acc, z){ return acc + (z.n || 0); }, 0);
-    var libres   = CFG.TOTAL - vendidas;
-    var pct      = ((vendidas / CFG.TOTAL) * 100).toFixed(1);
-    var recaudado = (vendidas * CFG.PRECIO).toLocaleString('es-ES') + ' €';
-    var conImg   = zones.filter(function(z){ return !!z.imgUrl; }).length;
-
-    // Rellenar cards
-    document.getElementById('st-vendidas').textContent     = vendidas.toLocaleString('es-ES');
-    document.getElementById('st-recaudado').textContent    = recaudado;
-    document.getElementById('st-compradores').textContent  = zones.length;
-    document.getElementById('st-con-img').textContent      = conImg;
-    document.getElementById('st-sin-img-sub').textContent  = conImg + ' de ' + zones.length + ' zonas';
-
-    // Barra
-    document.getElementById('lbl-vendidas').textContent = vendidas.toLocaleString('es-ES');
-    document.getElementById('leg-vendidas').textContent  = vendidas.toLocaleString('es-ES') + ' vendidas';
-    document.getElementById('leg-libres').textContent    = libres.toLocaleString('es-ES')   + ' libres';
-    setTimeout(function(){
-      document.getElementById('cp-fill').style.width = pct + '%';
-      document.getElementById('pct-label').textContent = pct + '%';
-    }, 200);
-
-    // Minimap
-    dibujarMinimap(zones);
-
-    // Historial
-    renderHistorial(zones);
-
-    // Participación
-    renderParticipacion(zones);
-
-    // Distribución
-    renderZonasGrid(zones);
-
-    // Countdown
-    initCountdown();
-
-  } catch(err) {
-    loading.style.display = 'none';
-    errorBox.style.display = 'block';
-    document.getElementById('error-msg').textContent = err.message || 'Error desconocido.';
-    // Aun así mostramos el countdown y la estructura
-    content.style.display = 'block';
-    initCountdown();
-  }
+(async function(){
+  await fetchAndRender(true);
+  setInterval(function(){fetchAndRender(false);},60000);
 })();
 </script>
-
 </body>
 </html>
