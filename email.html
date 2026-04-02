@@ -1,121 +1,313 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZonaVIP Trends - Email</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Helvetica', Arial, sans-serif;
-    background-color: #121212;
-    color: #f5f5f5;
-  }
-  a { text-decoration: none; }
-  .container {
-    max-width: 600px;
-    margin: auto;
-    background-color: #1c1c1c;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  }
-  .header {
-    background-color: #000;
-    padding: 20px;
-    text-align: center;
-  }
-  .header img {
-    max-width: 120px;
-  }
-  .hero {
-    padding: 30px 20px;
-    text-align: center;
-  }
-  .hero h1 {
-    color: #ffd700;
-    font-size: 28px;
-    margin-bottom: 10px;
-  }
-  .hero p {
-    font-size: 16px;
-    line-height: 1.5;
-    color: #ddd;
-  }
-  .btn {
-    display: inline-block;
-    margin: 20px 0;
-    padding: 12px 25px;
-    background-color: #ffd700;
-    color: #121212;
-    font-weight: bold;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-  }
-  .btn:hover {
-    background-color: #e6c200;
-  }
-  .content {
-    padding: 0 20px 30px 20px;
-    font-size: 15px;
-    color: #ddd;
-    line-height: 1.6;
-  }
-  .footer {
-    background-color: #000;
-    color: #777;
-    text-align: center;
-    padding: 15px 20px;
-    font-size: 12px;
-  }
-  @media (max-width: 620px){
-    .hero h1 { font-size: 24px; }
-    .hero p, .content { font-size: 14px; }
-    .btn { padding: 10px 20px; font-size: 14px; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>ZonaVIP Trends | Exclusividad Dorada</title>
+  <style>
+    /* RESET & BASE - Optimizado para clientes de correo modernos */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 20px 12px;
+      background: #070707;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Contenedor principal estilo "lujoso" */
+    .email-luxury {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #0C0B0A;
+      border-radius: 32px;
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      box-shadow: 0 25px 40px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(212,175,55,0.2) inset, 0 0 20px rgba(212,175,55,0.1);
+      overflow: hidden;
+      backdrop-filter: blur(0px);
+      transition: all 0.2s;
+    }
+    /* Borde dorado decorativo superior */
+    .gold-top-accent {
+      height: 4px;
+      background: linear-gradient(90deg, #B8860B, #F4D03F, #D4AF37, #F9E79F, #D4AF37);
+      width: 100%;
+    }
+    /* Header refinado */
+    .header-premium {
+      padding: 32px 28px 20px 28px;
+      text-align: center;
+      border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+      background: radial-gradient(circle at 50% 0%, rgba(212,175,55,0.08) 0%, rgba(0,0,0,0) 70%);
+    }
+    .logo {
+      max-width: 150px;
+      width: auto;
+      height: auto;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) brightness(1.05);
+      display: inline-block;
+    }
+    .insignia-exclusiva {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(212, 175, 55, 0.12);
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      border-radius: 60px;
+      padding: 6px 18px;
+      margin-top: 18px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      color: #F5D76E;
+      text-transform: uppercase;
+    }
+    .insignia-exclusiva span {
+      font-size: 14px;
+    }
+    /* Hero section con dorado vibrante */
+    .hero-gold {
+      padding: 20px 28px 32px;
+      text-align: center;
+      background: linear-gradient(145deg, #0F0E0C 0%, #0A0908 100%);
+    }
+    .hero-gold h1 {
+      font-size: 34px;
+      font-weight: 800;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, #F9E79F 10%, #D4AF37 40%, #B8860B 80%, #F4D03F 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .gold-divider {
+      width: 70px;
+      height: 3px;
+      background: linear-gradient(90deg, #B8860B, #F4D03F, #D4AF37);
+      margin: 14px auto 18px;
+      border-radius: 4px;
+    }
+    .hero-gold p {
+      font-size: 16px;
+      color: #E0DCD3;
+      max-width: 460px;
+      margin-left: auto;
+      margin-right: auto;
+      font-weight: 400;
+    }
+    /* Botón dorado premium */
+    .btn-gold-premium {
+      display: inline-block;
+      background: linear-gradient(105deg, #D4AF37 0%, #F9E79F 25%, #E5C158 50%, #D4AF37 100%);
+      color: #0A0804;
+      font-weight: 800;
+      font-size: 16px;
+      padding: 14px 34px;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 10px 18px -6px rgba(212, 175, 55, 0.4), 0 1px 0 rgba(255,245,180,0.5) inset;
+      transition: all 0.25s ease;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-top: 12px;
+    }
+    .btn-gold-premium:hover {
+      background: linear-gradient(105deg, #E5C158 0%, #FFEAA0 30%, #F0D15A 70%, #E5C158 100%);
+      transform: scale(1.02);
+      box-shadow: 0 14px 22px -8px rgba(212, 175, 55, 0.55);
+      color: #000000;
+    }
+    /* contenido principal */
+    .content-luxury {
+      padding: 0 28px 28px;
+    }
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 28px 0 16px 0;
+      color: #F2D86D;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-left: 4px solid #D4AF37;
+      padding-left: 16px;
+      letter-spacing: -0.2px;
+    }
+    .list-premium {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+    .list-premium li {
+      margin-bottom: 16px;
+      padding-left: 32px;
+      position: relative;
+      font-size: 15px;
+      color: #EAE5D9;
+      font-weight: 400;
+    }
+    .list-premium li:before {
+      content: "✦";
+      color: #F4D03F;
+      position: absolute;
+      left: 4px;
+      font-size: 18px;
+      text-shadow: 0 0 3px #B8860B;
+    }
+    /* tarjeta destacada exclusiva */
+    .card-exclusive {
+      background: rgba(212, 175, 55, 0.06);
+      border-radius: 28px;
+      padding: 20px 24px;
+      margin: 28px 0 24px;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      backdrop-filter: blur(2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .card-exclusive p {
+      font-size: 15px;
+      color: #F2E5C2;
+      margin-bottom: 10px;
+    }
+    .card-exclusive strong {
+      color: #F4D03F;
+      font-weight: 700;
+    }
+    .metric-gold {
+      font-size: 13px;
+      letter-spacing: 0.4px;
+      color: #C6B27A;
+      border-top: 1px dashed rgba(212, 175, 55, 0.4);
+      padding-top: 12px;
+      margin-top: 12px;
+    }
+    .cta-doble {
+      text-align: center;
+      margin: 32px 0 20px;
+    }
+    /* footer elegante */
+    .footer-luxury {
+      background: #070605;
+      padding: 24px 20px 28px;
+      text-align: center;
+      border-top: 1px solid rgba(212, 175, 55, 0.3);
+      font-size: 12px;
+      color: #9B927C;
+    }
+    .footer-luxury a {
+      color: #E5C158;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .footer-luxury a:hover {
+      color: #F9E79F;
+      text-decoration: underline;
+    }
+    .footer-luxury .social-hint {
+      margin-top: 12px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    @media (max-width: 550px) {
+      body {
+        padding: 12px 8px;
+      }
+      .hero-gold h1 {
+        font-size: 28px;
+      }
+      .section-title {
+        font-size: 20px;
+      }
+      .btn-gold-premium {
+        padding: 12px 26px;
+        font-size: 14px;
+      }
+      .header-premium {
+        padding: 24px 20px 16px;
+      }
+      .content-luxury {
+        padding: 0 20px 24px;
+      }
+    }
+    /* pequeña animación sutil para mejorar la sensación exclusiva */
+    .btn-gold-premium, .logo {
+      transition: all 0.25s;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <img src="https://raw.githubusercontent.com/onixmannager/Zona-Vip-Trend/refs/heads/main/InShot_20260401_223853566.jpg" alt="ZonaVIP Trends Logo">
-    </div>
-
-    <!-- Hero Section -->
-    <div class="hero">
-      <h1>Bienvenido a ZonaVIP Trends</h1>
-      <p>Herramienta exclusiva de monetización y visibilidad para creadores, influencers y marcas. Genera ingresos, conecta con tu audiencia y participa en nuestra red de redes única en el mercado.</p>
-      <a href="https://zonaviptrends.com" class="btn">Descubre más</a>
-    </div>
-
-    <!-- Content Section -->
-    <div class="content">
-      <h2 style="color:#ffd700;">Cómo funciona:</h2>
-      <ul>
-        <li>Crea tu perfil en la plataforma y personaliza tu parrilla VIP.</li>
-        <li>Los usuarios pueden comprar celdas y participar en premios garantizados.</li>
-        <li>Monetiza tu audiencia de forma transparente y segura.</li>
-        <li>Tu perfil se conecta al mosaico principal para máxima exposición.</li>
-      </ul>
-
-      <h2 style="color:#ffd700;">Beneficios clave:</h2>
-      <ul>
-        <li>Monetización directa para creadores e influencers.</li>
-        <li>Exposición cruzada a través de la red de redes.</li>
-        <li>Premios y gamificación para fidelizar a tu audiencia.</li>
-        <li>Acceso a campañas y marcas con visibilidad garantizada.</li>
-      </ul>
-
-      <p style="text-align:center;"><a href="https://zonaviptrends.com/signup" class="btn">Empieza hoy</a></p>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-      © 2026 ZonaVIP Trends. Todos los derechos reservados.<br>
-      <a href="mailto:contacto@zonaviptrends.com" style="color:#777;">contacto@zonaviptrends.com</a>
+<div class="email-luxury">
+  <div class="gold-top-accent"></div>
+  
+  <!-- HEADER : LOGO + INSIGNIA DORADA -->
+  <div class="header-premium">
+    <img src="https://raw.githubusercontent.com/onixmannager/Zona-Vip-Trend/refs/heads/main/InShot_20260401_223853566.jpg" alt="ZonaVIP Trends" class="logo">
+    <div class="insignia-exclusiva">
+      <span>⚜️</span> CÍRCULO PRIVADO · SOLO INVITACIÓN <span>⚜️</span>
     </div>
   </div>
+  
+  <!-- HERO CON AMARILLO DORADO Y SENSACIÓN DE LUJO -->
+  <div class="hero-gold">
+    <h1>Acceso a la Élite Digital</h1>
+    <div class="gold-divider"></div>
+    <p>Monetización, visibilidad absoluta y networking exclusivo para creadores, influencers y marcas que buscan dominar el ecosistema premium.</p>
+    <a href="https://zonaviptrends.com" class="btn-gold-premium">✦ DESCUBRIR ZONAVIP ✦</a>
+  </div>
+  
+  <!-- CONTENIDO PRINCIPAL CON DETALLES ÚNICOS -->
+  <div class="content-luxury">
+    <div class="section-title">✨ Mecánica Premium</div>
+    <ul class="list-premium">
+      <li>Diseña tu perfil y parrilla VIP con personalización exclusiva.</li>
+      <li>Los miembros adquieren celdas y participan en premios garantizados de alto valor.</li>
+      <li>Monetización transparente y segura — comisiones líderes en el sector.</li>
+      <li>Tu perfil se integra al mosaico principal de ZonaVIP Trends con máxima exposición cruzada.</li>
+    </ul>
+    
+    <div class="section-title">🏆 Beneficios Dorados</div>
+    <ul class="list-premium">
+      <li>Ingresos recurrentes directos para creadores e influencers.</li>
+      <li>Exposición en la red de redes más innovadora del mercado hispano.</li>
+      <li>Gamificación con premios exclusivos y fidelización de comunidad.</li>
+      <li>Acceso prioritario a campañas con marcas de lujo y visibilidad garantizada.</li>
+      <li>Soporte VIP y análisis de rendimiento en tiempo real.</li>
+    </ul>
+    
+    <!-- TARJETA DE EXCLUSIVIDAD + DATOS DE IMPACTO -->
+    <div class="card-exclusive">
+      <p>🔒 <strong>MEMBRESÍA POR SELECCIÓN</strong> 🔒</p>
+      <p>Solo talentos de alto impacto y marcas con visión de futuro integran la red ZonaVIP Trends. Un ecosistema donde la exclusividad y el diseño único potencian cada interacción.</p>
+      <div class="metric-gold">
+        ⚡ +78.000 usuarios activos · Tasa de engagement +43% ⚡
+      </div>
+    </div>
+    
+    <div class="cta-doble">
+      <a href="https://zonaviptrends.com/signup" class="btn-gold-premium">🔥 ACTIVAR CUENTA PREMIUM 🔥</a>
+    </div>
+    <p style="font-size: 12px; text-align: center; margin-top: 6px; color: #BBAF84; letter-spacing: 0.3px;">Plazas limitadas para creadores seleccionados</p>
+  </div>
+  
+  <!-- FOOTER CON TOQUE DORADO -->
+  <div class="footer-luxury">
+    <div>© 2026 ZonaVIP Trends — Todos los derechos reservados.</div>
+    <div style="margin-top: 8px;">
+      <a href="mailto:contacto@zonaviptrends.com">contacto@zonaviptrends.com</a> &nbsp;|&nbsp; 
+      <a href="#">Términos exclusivos</a> &nbsp;|&nbsp;
+      <a href="#">Privacidad VIP</a>
+    </div>
+    <div class="social-hint">⚜️ Diseño único · Red de creadores élite ⚜️</div>
+  </div>
+</div>
 </body>
 </html>
