@@ -128,6 +128,29 @@
     .part-name { flex: 1; color: var(--white); font-family: var(--fm); font-size: .65rem; }
     .part-celdas { font-family: var(--fm); font-size: .62rem; color: var(--gold); }
 
+    /* ── SORTEO ── */
+    .sorteo-bote { background: var(--card); border: 1px solid rgba(201,168,76,0.25); border-radius: 12px; padding: 20px 22px; margin-bottom: 10px; }
+    .sorteo-bote-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+    .sorteo-bote-val { font-family: var(--fh); font-size: 2.2rem; color: var(--gold-lt); line-height: 1; }
+    .sorteo-bote-sub { font-family: var(--fm); font-size: .58rem; color: var(--muted2); margin-top: 5px; letter-spacing: .06em; }
+    .sorteo-badge { font-family: var(--fm); font-size: .58rem; letter-spacing: .1em; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+    .sorteo-badge.ok  { color: #48c778; border: 1px solid rgba(72,199,120,0.3); background: rgba(72,199,120,0.08); }
+    .sorteo-badge.wait { color: var(--muted2); border: 1px solid var(--border2); background: transparent; }
+    .premio-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid transparent; margin-bottom: 6px; transition: border-color .2s; }
+    .premio-row.disponible { border-color: rgba(72,199,120,0.15); background: rgba(72,199,120,0.03); }
+    .premio-row.otorgado   { opacity: .45; }
+    .premio-val { font-family: var(--fh); font-size: 1rem; color: var(--gold-lt); min-width: 90px; }
+    .premio-stock { font-family: var(--fm); font-size: .62rem; color: var(--muted2); flex: 1; }
+    .premio-estado { font-family: var(--fm); font-size: .6rem; }
+    .premio-estado.ok   { color: #48c778; }
+    .premio-estado.wait { color: var(--muted); }
+    .premio-estado.done { color: var(--muted); text-decoration: line-through; }
+    .premio-btns { display: flex; gap: 5px; }
+    .btn-repartir { padding: 4px 10px; font-family: var(--fm); font-size: .62rem; font-weight: 600; color: #000; background: linear-gradient(135deg, var(--gold-lt), var(--gold)); border: none; border-radius: 5px; cursor: pointer; transition: opacity .15s; }
+    .btn-repartir:hover { opacity: .85; }
+    .btn-reservar { padding: 4px 10px; font-family: var(--fm); font-size: .62rem; color: var(--muted2); background: transparent; border: 1px solid var(--border2); border-radius: 5px; cursor: pointer; transition: all .15s; }
+    .btn-reservar:hover { color: var(--white); border-color: rgba(255,255,255,0.18); }
+
     .fade-in { opacity: 0; transform: translateY(12px); animation: fadeUp .45s ease forwards; }
     @keyframes fadeUp { to { opacity:1; transform: translateY(0); } }
     .fade-in:nth-child(1){animation-delay:.05s} .fade-in:nth-child(2){animation-delay:.10s} .fade-in:nth-child(3){animation-delay:.15s} .fade-in:nth-child(4){animation-delay:.20s} .fade-in:nth-child(5){animation-delay:.25s} .fade-in:nth-child(6){animation-delay:.30s}
@@ -272,6 +295,23 @@
       <div class="part-list" id="part-list"></div>
     </div>
 
+    <!-- SORTEO -->
+    <div class="section-label fade-in" style="margin-top:36px"><i class="fas fa-trophy"></i> Sistema de Sorteos</div>
+    <div class="sorteo-bote fade-in">
+      <div class="sorteo-bote-header">
+        <div>
+          <div style="font-family:var(--fm);font-size:.58rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Bote disponible para premios</div>
+          <div class="sorteo-bote-val" id="sorteo-bote">—</div>
+          <div class="sorteo-bote-sub" id="sorteo-bote-sub">—</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <span class="sorteo-badge wait" id="sorteo-badge">Calculando...</span>
+          <div style="font-family:var(--fm);font-size:.56rem;color:var(--muted);text-align:right">35% de la recaudación<br>destinado a premios</div>
+        </div>
+      </div>
+      <div id="premios-list" style="display:flex;flex-direction:column;gap:0"></div>
+    </div>
+
     <!-- COMUNIDAD -->
     <div class="section-label fade-in" style="margin-top:36px"><i class="fab fa-telegram-plane"></i> Comunidad</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:10px">
@@ -305,13 +345,13 @@
 //  CONFIGURACIÓN — rellena estos valores antes de subir
 // ════════════════════════════════════════════════════
 var CFG = {
-  PRECIO:        0,    // precio por celda en €
-  TOTAL:         0,    // número total de celdas del mosaico
-  TOTAL_PREMIOS: 0,    // número total de premios disponibles
-  GH_REPOS:      [],   // ej: ['tuusuario/mosaico-imgs-1']
+  PRECIO:        50,      // € por celda
+  TOTAL:         13040,   // total de celdas del mosaico
+  TOTAL_PREMIOS: 773,     // total de premios (600+100+50+10+10+1+1+1)
+  GH_REPOS:      ['TU_USUARIO/mosaico-imgs-1'],   // cambia TU_USUARIO
 
   // Añade premiados cuando corresponda:
-  // { nombre: 'Nombre A.', premio: 'Nombre del premio', fecha: '01 Ene 2025', avatar: 'NA' }
+  // { nombre: 'Nombre A.', premio: '100 €', fecha: '01 Ene 2025', avatar: 'NA' }
   PREMIADOS: []
 };
 // ════════════════════════════════════════════════════
@@ -429,8 +469,14 @@ async function fetchAndRender(isFirst){
   var content=document.getElementById('panel-content');
   try{
     var zones=await loadZones();
-    if(isFirst){loading.style.display='none';content.style.display='block';setTimeout(function(){actualizarStats(zones);},200);}
-    else{actualizarStats(zones);}
+    if(isFirst){
+      loading.style.display='none';
+      content.style.display='block';
+      setTimeout(function(){ actualizarStats(zones); renderSorteo(zones); },200);
+    } else {
+      actualizarStats(zones);
+      renderSorteo(zones);
+    }
     errorBox.style.display='none';
   }catch(err){
     if(isFirst){
@@ -444,9 +490,164 @@ async function fetchAndRender(isFirst){
 }
 
 (async function(){
+  await loadSorteoEstado();
   await fetchAndRender(true);
-  setInterval(function(){fetchAndRender(false);},60000);
+  setInterval(function(){ loadSorteoEstado().then(function(){ fetchAndRender(false); }); }, 60000);
 })();
+
+// ════════════════════════════════════════════════════
+//  CONFIGURACIÓN SORTEO
+// ════════════════════════════════════════════════════
+var SORTEO_CFG = {
+  PCT_PREMIOS:  0.35,   // % de la recaudación destinado a premios (ajustable)
+  API_BASE:     '/api', // mismo que el mosaico
+  // Clave para llamar a la API desde el panel — debe coincidir con CRON_SECRET en Vercel
+  // IMPORTANTE: en producción no pongas esta clave en el HTML público.
+  // Mejor: protege esta página con una contraseña básica (HTTP Basic Auth en Vercel).
+  ADMIN_SECRET: 'TU_CRON_SECRET_AQUI',
+
+  PREMIOS: [
+    { valor: 100,   cantidad: 600 },
+    { valor: 250,   cantidad: 100 },
+    { valor: 500,   cantidad: 50  },
+    { valor: 1000,  cantidad: 10  },
+    { valor: 3000,  cantidad: 10  },
+    { valor: 10000, cantidad: 1   },
+    { valor: 20000, cantidad: 1   },
+    { valor: 50000, cantidad: 1   },
+  ]
+};
+// ════════════════════════════════════════════════════
+
+// ── Estado del sorteo (cargado desde GitHub) ─────────────────────
+var sorteoEstado = {
+  premiosOtorgados: [],
+  boteGastado:      0,
+  ultimoAviso:      {},
+  reservas:         {},
+};
+
+async function loadSorteoEstado() {
+  try {
+    var repo = CFG.GH_REPOS[0];
+    if (!repo) return;
+    var url = 'https://cdn.jsdelivr.net/gh/' + repo + '@main/sorteo-estado.json?t=' + Date.now();
+    var r = await fetch(url);
+    if (r.ok) sorteoEstado = await r.json();
+  } catch(e) {}
+}
+
+function calcularBote(zones) {
+  var vendidas     = zones.reduce(function(a,z){ return a+(z.n||0); }, 0);
+  var recaudado    = vendidas * CFG.PRECIO;
+  var boteTotal    = recaudado * SORTEO_CFG.PCT_PREMIOS;
+  var boteDisp     = boteTotal - (sorteoEstado.boteGastado || 0);
+  return { vendidas, recaudado, boteTotal, boteDisp };
+}
+
+function stockRestante() {
+  var stock = {};
+  SORTEO_CFG.PREMIOS.forEach(function(p){ stock[p.valor] = p.cantidad; });
+  (sorteoEstado.premiosOtorgados || []).forEach(function(o){
+    if (stock[o.valor] !== undefined) stock[o.valor]--;
+  });
+  return stock;
+}
+
+function renderSorteo(zones) {
+  var b    = calcularBote(zones);
+  var stock = stockRestante();
+
+  // Actualizar cabecera del bote
+  document.getElementById('sorteo-bote').textContent =
+    b.boteDisp.toLocaleString('es-ES', { minimumFractionDigits: 0 }) + ' €';
+  document.getElementById('sorteo-bote-sub').textContent =
+    'De ' + b.boteTotal.toLocaleString('es-ES') + ' € totales · ' +
+    (sorteoEstado.boteGastado||0).toLocaleString('es-ES') + ' € ya repartidos';
+
+  // Badge estado
+  var hayDisponibles = SORTEO_CFG.PREMIOS.some(function(p){
+    return (stock[p.valor]||0) > 0 && b.boteDisp >= p.valor;
+  });
+  var badge = document.getElementById('sorteo-badge');
+  badge.textContent  = hayDisponibles ? '⚡ Sorteo disponible' : 'Acumulando bote';
+  badge.className    = 'sorteo-badge ' + (hayDisponibles ? 'ok' : 'wait');
+
+  // Renderizar lista de premios
+  var list = document.getElementById('premios-list');
+  list.innerHTML = '';
+
+  // Ordenar de mayor a menor
+  var premiosOrdenados = SORTEO_CFG.PREMIOS.slice().sort(function(a,b){ return b.valor - a.valor; });
+
+  premiosOrdenados.forEach(function(p) {
+    var s          = stock[p.valor] || 0;
+    var otorgados  = p.cantidad - s;
+    var disponible = s > 0 && b.boteDisp >= p.valor;
+    var agotado    = s === 0;
+
+    var row = document.createElement('div');
+    row.className = 'premio-row' + (disponible ? ' disponible' : '') + (agotado ? ' otorgado' : '');
+
+    var estadoTxt, estadoClass;
+    if (agotado) {
+      estadoTxt = 'Todos otorgados'; estadoClass = 'done';
+    } else if (disponible) {
+      estadoTxt = '✓ Bote suficiente'; estadoClass = 'ok';
+    } else {
+      var faltan = p.valor - b.boteDisp;
+      estadoTxt = 'Faltan ' + faltan.toLocaleString('es-ES') + ' € en el bote';
+      estadoClass = 'wait';
+    }
+
+    row.innerHTML =
+      '<div class="premio-val">' + p.valor.toLocaleString('es-ES') + ' €</div>' +
+      '<div class="premio-stock">' +
+        s + ' restantes · ' + otorgados + ' otorgados de ' + p.cantidad +
+      '</div>' +
+      '<div class="premio-estado ' + estadoClass + '">' + estadoTxt + '</div>' +
+      (disponible ? '<div class="premio-btns">' +
+        '<button class="btn-repartir" onclick="accionPremio(\'repartir\',' + p.valor + ')">Repartir</button>' +
+        '<button class="btn-reservar" onclick="accionPremio(\'reservar\',' + p.valor + ')">Reservar 7d</button>' +
+      '</div>' : '');
+
+    list.appendChild(row);
+  });
+}
+
+async function accionPremio(accion, valorPremio) {
+  var ganador = '';
+  if (accion === 'repartir') {
+    ganador = prompt('¿Nombre o email del ganador? (opcional)') || '';
+  } else {
+    if (!confirm('¿Silenciar avisos para el premio de ' + valorPremio.toLocaleString('es-ES') + ' € durante 7 días?')) return;
+  }
+
+  try {
+    var r = await fetch(SORTEO_CFG.API_BASE + '/sorteo-accion', {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + SORTEO_CFG.ADMIN_SECRET,
+      },
+      body: JSON.stringify({ accion, valorPremio, ganador }),
+    });
+    var data = await r.json();
+    if (data.ok) {
+      sorteoEstado = data.estado;
+      alert(accion === 'repartir'
+        ? '✓ Premio de ' + valorPremio.toLocaleString('es-ES') + ' € registrado como otorgado.'
+        : '✓ Aviso silenciado 7 días para este premio.');
+      // Re-renderizar con los datos actuales
+      fetchAndRender(false);
+    } else {
+      alert('Error: ' + (data.error || 'desconocido'));
+    }
+  } catch(e) {
+    alert('Error de conexión.');
+  }
+}
+
 </script>
 </body>
-</html>
+  </html>
