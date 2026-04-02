@@ -520,7 +520,7 @@
     <label class="campo-label" for="campo-email">Tu email (recibirás confirmación)</label>
     <input type="email" class="campo" id="campo-email" placeholder="hola@tudominio.com"/>
     <div class="status" id="st-compra"></div>
-    <button class="btn-primary" onclick="pagarStripe()"><i class="fas fa-lock"></i> Pagar con Stripe</button>
+    <button class="btn-primary" onclick="pagarPayPal()"><i class="fab fa-paypal"></i> Pagar con PayPal</button>
     <button class="btn-secondary" onclick="simularPago()">⚡ Simular pago (prueba el flujo completo)</button>
   </div>
 </div>
@@ -642,10 +642,11 @@ var CFG = {
   TOTAL:      13040,
   API_BASE:   '/api',
   GH_REPOS:   ['TU_USUARIO/mosaico-imgs-1'],   // cambia TU_USUARIO por tu usuario de GitHub
-  STRIPE_URL: ''
+  PAYPAL_MODE: 'sandbox'   // cambiar a 'live' en producción
 };
 var DEMO_SECS = 30;
 var isDemoMode = (CFG.GH_REPOS[0] === 'TU_USUARIO/mosaico-imgs-1');
+var uploadToken = null;   // token de un solo uso emitido tras verificar el pago
 
 // 2) REFERENCIAS DOM  ← deben ir antes de cualquier addEventListener
 var mosaico    = document.getElementById('mosaico');
@@ -663,7 +664,7 @@ var btnCancel  = document.getElementById('btn-cancelar');
 var COLS=0, celdas=[], vendidas=new Set(), zones=[];
 var activo=false, dragging=false, selStart=null, selEnd=null, selActual=new Set();
 var resizeTimer, esTactil=('ontouchstart' in window);
-var pendingZone=null, imgurUrl=null, archivoSel=null;
+var pendingZone=null, imgurUrl=null, imgurUrlFull=null, archivoSel=null;
 var demoEl=null, demoData=null, demoTimer=null, demoSecs=DEMO_SECS;
 var gridW=0, gridH=0;
 
@@ -949,28 +950,91 @@ function validarEmail(){
   if(!v||!v.includes('@')||!v.includes('.')){setStatus('st-compra','error','Introduce un email válido.');return null;}
   return v;
 }
-function pagarStripe(){
-  var email=validarEmail(); if(!email) return; pendingZone.email=email;
-  if(!CFG.STRIPE_URL){setStatus('st-compra','info','Stripe no configurado. Usa "Simular pago" para probar.');return;}
-  sessionStorage.setItem('pendingZone',JSON.stringify(pendingZone));
-  var ref='r'+pendingZone.r1+'_c'+pendingZone.c1+'_r'+pendingZone.r2+'_c'+pendingZone.c2;
-  window.location.href=CFG.STRIPE_URL+'?prefilled_email='+encodeURIComponent(email)+'&client_reference_id='+ref;
+async function pagarPayPal(){
+  var email=validarEmail(); if(!email) return;
+  pendingZone.email=email;
+
+  if(isDemoMode){
+    // En modo demo simulamos el pago directamente
+    cerrarModal('modal-compra'); abrirUpload();
+    return;
+  }
+
+  var btn=document.querySelector('#modal-compra .btn-primary');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Redirigiendo a PayPal...';
+  setStatus('st-compra','','');
+
+  try {
+    var res = await fetch(CFG.API_BASE+'/create-order', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ zone: pendingZone })
+    });
+    var data = await res.json();
+    if(!data.ok) throw new Error(data.error||'error');
+
+    // Guardar estado antes de salir a PayPal
+    sessionStorage.setItem('pendingZone', JSON.stringify(pendingZone));
+    sessionStorage.setItem('paypalOrderID', data.orderID);
+
+    // Redirigir al usuario a PayPal para que pague
+    window.location.href = data.approveUrl;
+
+  } catch(err) {
+    btn.disabled=false; btn.innerHTML='<i class="fab fa-paypal"></i> Pagar con PayPal';
+    setStatus('st-compra','error','Error al conectar con PayPal. Inténtalo de nuevo.');
+  }
 }
+
 function simularPago(){
-  var email=validarEmail(); if(!email) return; pendingZone.email=email;
+  var email=validarEmail(); if(!email) return;
+  pendingZone.email=email;
   cerrarModal('modal-compra'); abrirUpload();
 }
-function detectarRetornoStripe(){
+async function detectarRetornoPayPal(){
   var p=new URLSearchParams(window.location.search);
-  if(p.get('payment')==='success'){
-    var s=sessionStorage.getItem('pendingZone');
-    if(s){pendingZone=JSON.parse(s);sessionStorage.removeItem('pendingZone');history.replaceState({},'',window.location.pathname);setTimeout(abrirUpload,800);}
+  if(p.get('payment')!=='success') return;
+
+  // Limpiar URL
+  history.replaceState({},'',window.location.pathname);
+
+  var s=sessionStorage.getItem('pendingZone');
+  var orderID=sessionStorage.getItem('paypalOrderID');
+  if(!s||!orderID) return;
+
+  pendingZone=JSON.parse(s);
+  sessionStorage.removeItem('pendingZone');
+  sessionStorage.removeItem('paypalOrderID');
+
+  // Mostrar indicador de verificación
+  showHint('Verificando pago con PayPal...');
+
+  try {
+    var res = await fetch(CFG.API_BASE+'/verify-paypal', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ orderID: orderID, zone: pendingZone })
+    });
+    var data = await res.json();
+
+    if(!data.ok) {
+      showHint('Error: '+( data.error||'Pago no verificado'));
+      return;
+    }
+
+    // Guardar token de un solo uso — necesario para poder publicar
+    uploadToken = data.uploadToken;
+    showHint('¡Pago verificado! Ahora sube tu imagen.');
+    setTimeout(abrirUpload, 800);
+
+  } catch(err) {
+    showHint('Error al verificar el pago. Contacta con soporte.');
   }
 }
 
 // UPLOAD
 function abrirUpload(){
-  imgurUrl=null; archivoSel=null;
+  imgurUrl=null; imgurUrlFull=null; archivoSel=null;
   document.getElementById('file-input').value='';
   document.getElementById('preview-wrap').style.display='none';
   document.getElementById('prog-bar').style.display='none';
@@ -1059,8 +1123,9 @@ async function subirGitHub(){
     var data = await res.json();
 
     if(data.ok){
-      // URL de jsDelivr para servir la imagen via CDN
-      imgurUrl = 'https://cdn.jsdelivr.net/gh/' + activeRepo + '@main/' + filename;
+      // El backend devuelve dos URLs: thumb (celda) y full (modal)
+      imgurUrl     = data.thumbUrl;   // ≈ 0.4 KB → se pinta en el mosaico
+      imgurUrlFull = data.fullUrl;    // ≈ 200 KB → se abre en el modal
       document.getElementById('preview-badge').className='preview-badge ok';
       document.getElementById('preview-badge').textContent='Subida \u2713';
       btn.innerHTML='<i class="fas fa-upload"></i> Subir imagen';
@@ -1081,23 +1146,23 @@ async function publicar(){
   var zone={
     id:'z_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
     r1:pendingZone.r1, c1:pendingZone.c1, r2:pendingZone.r2, c2:pendingZone.c2,
-    imgUrl:imgurUrl, link:link, email:pendingZone.email,
+    imgUrl:imgurUrl, imgUrlFull:imgurUrlFull||imgurUrl, link:link, email:pendingZone.email,
     n:pendingZone.n, total:pendingZone.total
   };
   try{
     if(!isDemoMode){
-      // Extraer el repo del imgUrl (siempre es el repo activo de esta imagen)
+      // Extraer el repo del imgUrl
       var repoMatch = imgurUrl.match(/cdn\.jsdelivr\.net\/gh\/([^@]+)@main\//);
       var targetRepo = repoMatch ? repoMatch[1] : CFG.GH_REPOS[0];
 
-      // El Worker lee el zones.json actual, añade la zona y lo vuelve a guardar
       var res = await fetch(CFG.API_BASE + '/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repo: targetRepo, zone: zone })
+        body: JSON.stringify({ repo: targetRepo, zone: zone, uploadToken: uploadToken })
       });
       var data = await res.json();
       if(!data.ok) throw new Error(data.error||'error');
+      uploadToken = null;   // consumido, ya no sirve
     }
     quitarDemoSiSolapa(zone); zones.push(zone); renderZone(zone,false);
     btn.innerHTML='<i class="fas fa-check-circle"></i> Publicar en el mosaico'; irExito();
@@ -1111,7 +1176,8 @@ function copiarLink(){navigator.clipboard&&navigator.clipboard.writeText(documen
 
 function mostrarInfoCelda(zone){
   if(!zone.imgUrl) return;
-  document.getElementById('mc-img').src=zone.imgUrl;
+  // Usar la versión full (≈200 KB) en el modal; si no existe, usar la thumb
+  document.getElementById('mc-img').src=zone.imgUrlFull||zone.imgUrl;
   var lr=document.getElementById('mc-link-row'),la=document.getElementById('mc-link');
   if(zone.link){la.href=zone.link;la.textContent=zone.link;lr.style.display='flex';}else lr.style.display='none';
   document.getElementById('mc-zone-info').textContent='Filas '+(zone.r1+1)+'–'+(zone.r2+1)+' · Columnas '+(zone.c1+1)+'–'+(zone.c2+1);
@@ -1121,7 +1187,7 @@ function mostrarInfoCelda(zone){
 }
 function mostrarInfoCeldaDemo(zone){
   if(!zone.imgUrl) return;
-  document.getElementById('mc-img').src=zone.imgUrl;
+  document.getElementById('mc-img').src=zone.imgUrlFull||zone.imgUrl;
   document.getElementById('mc-link-row').style.display='none';
   document.getElementById('mc-zone-info').textContent='Filas '+(zone.r1+1)+'–'+(zone.r2+1)+' · Columnas '+(zone.c1+1)+'–'+(zone.c2+1);
   document.getElementById('mc-buy-btn').style.display='flex';
@@ -1170,7 +1236,7 @@ if(isDemoMode){
 (async function(){
   await loadZones();
   iniciar();
-  detectarRetornoStripe();
+  detectarRetornoPayPal();
 })();
 
 // ── MENÚ NAVEGACIÓN ──
@@ -1198,13 +1264,13 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMen
 
 <!--
 ══════════════════════════════════════════════════════
-  SETUP: GITHUB + JSDELIVR + VERCEL
+  SETUP: GITHUB + JSDELIVR + VERCEL + SHARP
   ─────────────────────────────────────────────────
   PASO 1 — REPO DE GITHUB
   ────────────────────────
   1. Crea un repo público en GitHub: TU_USUARIO/mosaico-imgs-1
   2. Añade un archivo zones.json con contenido: []
-  3. Cuando llegues a ~1000 imágenes crea mosaico-imgs-2
+  3. Cuando llegues a ~500 zonas crea mosaico-imgs-2
      y añádelo a CFG.GH_REPOS en el HTML.
 
   PASO 2 — PERSONAL ACCESS TOKEN DE GITHUB
@@ -1228,81 +1294,32 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMen
 
     /
     ├── index.html         (este archivo, renombrado)
-    ├── api/
-    │   ├── upload.js      (ver contenido abajo)
-    │   └── publish.js     (ver contenido abajo)
-    └── vercel.json        (ver contenido abajo)
+    ├── package.json       (declara la dependencia de Sharp)
+    ├── vercel.json        (memoria y timeout de las funciones)
+    └── api/
+        ├── upload.js      (procesa imagen → 2 WebP + sube a GitHub)
+        └── publish.js     (guarda zona en zones.json de GitHub)
 
-  ── api/upload.js ──────────────────────────────────
-  export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).end();
+  PASO 5 — CÓMO FUNCIONA EL PROCESADO DE IMAGEN
+  ────────────────────────────────────────────────
+  Cuando el usuario sube una imagen, api/upload.js hace:
+    1. Decodifica el base64 recibido del navegador
+    2. Genera versión THUMB  → 500×557 px, WebP quality=2  ≈ 0.4 KB
+       (se pinta directamente en la celda del mosaico)
+    3. Genera versión FULL   → 500×557 px, WebP quality=72 ≈ 200 KB
+       (se muestra en el modal cuando el usuario hace clic)
+    4. Sube ambas a GitHub en paralelo
+    5. Devuelve { ok, thumbUrl, fullUrl } al navegador
 
-    const { repo, filename, content } = req.body;
-    const r = await fetch(
-      `https://api.github.com/repos/${repo}/contents/${filename}`,
-      { method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${process.env.GH_TOKEN}`,
-          'Content-Type': 'application/json',
-          'User-Agent': 'mosaico-vercel'
-        },
-        body: JSON.stringify({ message: `add ${filename}`, content })
-      }
-    );
-    res.status(200).json({ ok: r.ok });
-  }
+  Los archivos se guardan como:
+    img_TIMESTAMP_RAND_thumb.webp   ← celda
+    img_TIMESTAMP_RAND_full.webp    ← modal
 
-  ── api/publish.js ─────────────────────────────────
-  export default async function handler(req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    if (req.method === 'OPTIONS') return res.status(200).end();
-    if (req.method !== 'POST') return res.status(405).end();
-
-    const { repo, zone } = req.body;
-    const apiBase = `https://api.github.com/repos/${repo}/contents/zones.json`;
-    const headers = {
-      Authorization: `Bearer ${process.env.GH_TOKEN}`,
-      'Content-Type': 'application/json',
-      'User-Agent': 'mosaico-vercel'
-    };
-
-    let zones = [], sha;
-    const get = await fetch(apiBase, { headers });
-    if (get.ok) {
-      const j = await get.json();
-      sha = j.sha;
-      zones = JSON.parse(Buffer.from(j.content, 'base64').toString());
-    }
-
-    zones.push(zone);
-    const put = await fetch(apiBase, {
-      method: 'PUT', headers,
-      body: JSON.stringify({
-        message: `zone ${zone.id}`,
-        content: Buffer.from(JSON.stringify(zones)).toString('base64'),
-        ...(sha ? { sha } : {})
-      })
-    });
-    res.status(200).json({ ok: put.ok });
-  }
-
-  ── vercel.json ────────────────────────────────────
-  {
-    "functions": {
-      "api/upload.js":  { "memory": 256 },
-      "api/publish.js": { "memory": 256 }
-    }
-  }
-
-  PASO 5 — STRIPE
+  PASO 6 — STRIPE
   ─────────────────
   Payment Link → URL de éxito con ?payment=success → CFG.STRIPE_URL
 
 ══════════════════════════════════════════════════════
 -->
 </body>
-</html>
+  </html>
