@@ -431,30 +431,9 @@
         <span class="dot"></span>
         <span id="online-count">—</span> en línea
       </div>
-    </div>
-  </div>
-
-  <!-- STATS STRIP -->
-  <div class="stats-strip fade-in">
-    <div class="stat-pill">
-      <i class="fab fa-discord"></i>
-      <span>Servidor</span>
-      <span class="val disc">ZonaVIP Trends</span>
-    </div>
-    <div class="stat-pill">
-      <i class="fas fa-users"></i>
-      <span>Miembros</span>
-      <span class="val" id="member-count">—</span>
-    </div>
-    <div class="stat-pill">
-      <i class="fas fa-comment-dots"></i>
-      <span>Mensajes hoy</span>
-      <span class="val gold" id="msg-count">—</span>
-    </div>
-    <div class="stat-pill">
-      <i class="fas fa-crown"></i>
-      <span>VIPs activos</span>
-      <span class="val gold" id="vip-count">—</span>
+      <div style="font-family:var(--fm);font-size:.58rem;color:var(--muted2);display:flex;align-items:center;gap:5px">
+        <i class="fab fa-discord" style="color:var(--discord-lt)"></i> ZonaVIP Trends
+      </div>
     </div>
   </div>
 
@@ -795,10 +774,6 @@ function showToast(msg, tipo) {
 
 // ── RELLENAR STATS ──
 function initStats() {
-  var s = CFG.STATS;
-  document.getElementById('member-count').textContent = s.miembros ? s.miembros.toLocaleString('es-ES') : '—';
-  document.getElementById('msg-count').textContent    = s.mensajes_hoy ? s.mensajes_hoy.toLocaleString('es-ES') : '—';
-  document.getElementById('vip-count').textContent    = s.vips_activos ? s.vips_activos.toLocaleString('es-ES') : '—';
   document.getElementById('online-count').textContent = CFG.ONLINE_USERS.length || '—';
   renderOnlineList();
 }
