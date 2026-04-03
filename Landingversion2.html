@@ -632,7 +632,14 @@
     }
     @media(max-width:480px) {
       .nav-cta { text-align: center; padding: 9px 16px; }
-      .prizes-grid { grid-template-columns: 1fr; }
+      .prizes-grid { grid-template-columns: 1fr; gap: 12px; }
+      .prize-card { padding: 24px 16px 20px; border-radius: 12px; }
+      .prize-card::before { border-radius: 12px; }
+      .prize-badge-tag { top: 10px; right: 10px; font-size: .48rem; padding: 3px 7px; }
+      .prize-ico { font-size: 1.9rem; margin-bottom: 12px; }
+      .prize-name { font-size: .56rem; margin-bottom: 8px; }
+      .prize-amount { font-size: 2.15rem; }
+      .prize-qty { font-size: .6rem; padding-top: 10px; margin-top: 6px; }
       .value-grid { grid-template-columns: 1fr; }
       .hero-btns { flex-direction: column; align-items: center; }
       .hero-btns .btn-gold, .hero-btns .btn-ghost { width: 100%; justify-content: center; }
@@ -724,41 +731,42 @@
 <span>scroll</span>
 <div class="scroll-line"></div>
 </div>
-</section><section class="priority-strip reveal" id="resumen">
-<div class="priority-shell">
-<div class="priority-head">
-<div class="sec-eyebrow">Lo esencial primero</div>
-<h2 class="sec-title">Entender <span class="gold">ZonaVIP</span> en 30 segundos</h2>
-<p>La clave comercial de esta landing es que el usuario entienda rápido qué compra, qué recibe y cuál es el siguiente paso. Por eso este bloque resume la propuesta de valor antes de entrar en todos los detalles.</p>
-</div>
-<div class="priority-grid">
-<article class="priority-card">
-<div class="priority-kicker">Qué es</div>
-<h3>Red de redes</h3>
-<p>ZonaVIP Trends conecta marcas, creadores y usuarios dentro de un mosaico global con visibilidad permanente y exposición cruzada entre comunidades.</p>
-<div class="priority-meta">Mensaje principal</div>
-</article>
-<article class="priority-card">
-<div class="priority-kicker">Qué compras</div>
-<h3>1 celda · 50 €</h3>
-<p>La oferta queda clara desde el principio: pago único, una posición propia en el mosaico y presencia permanente sin cuotas ni caducidad.</p>
-<div class="priority-meta">Precio claro</div>
-</article>
-<article class="priority-card">
-<div class="priority-kicker">Qué obtienes</div>
-<h3>Visibilidad + premios</h3>
-<p>Tu celda no es solo un espacio visual: suma comunidad VIP, campañas con marcas, acceso al ecosistema y opción de participar en premios transparentes.</p>
-<div class="priority-meta">Valor percibido</div>
-</article>
-<article class="priority-card">
-<div class="priority-kicker">Siguiente paso</div>
-<h3>Ver, elegir y publicar</h3>
-<p>Primero exploras el mosaico, luego eliges tu zona, haces el pago y subes tu contenido. El recorrido queda más claro y orientado a conversión.</p>
-<div class="priority-meta">Ruta de acción</div>
-</article>
+</section><div class="iframe-section" id="mosaico">
+<div class="sec-eyebrow reveal" style="justify-content:center">El mosaico digital</div>
+<h2 class="sec-title reveal" style="text-align:center">
+<span class="outline">13.000</span> <span class="gold">CELDAS</span><br/>un solo mapa histórico
+      </h2>
+<div class="iframe-outer reveal">
+<div class="iframe-inner">
+<iframe scrolling="no" src="mosaico.html" tabindex="-1"></iframe>
+<div class="iframe-overlay" onclick="window.open('mosaico.html','_blank')">
+<div class="iframe-pill">
+<i class="fas fa-expand-arrows-alt"></i>
+              Abrir mosaico completo
+            </div>
 </div>
 </div>
-</section><section class="what-section" id="ecosistema">
+</div>
+<p class="iframe-foot reveal">// clic para pantalla completa · arrastra para seleccionar · 50 € / celda</p>
+</div><div class="counter-wrap">
+<div class="counter-card reveal">
+<div class="counter-dot"></div>
+<div class="counter-label">Celdas ocupadas</div>
+<div class="counter-bar-wrap">
+<div class="counter-track"><div class="counter-fill" id="counterFill"></div></div>
+</div>
+<div class="counter-nums"><b id="occupiedCount">0</b> / 13,040</div>
+</div>
+</div><div class="counter-wrap" style="padding-bottom:80px">
+<div class="counter-card reveal">
+<div class="counter-dot"></div>
+<div class="counter-label">Premios repartidos</div>
+<div class="counter-bar-wrap">
+<div class="counter-track"><div class="counter-fill" id="counterFill2"></div></div>
+</div>
+<div class="counter-nums"><b id="prizesCount">0</b> / 793</div>
+</div>
+</div><section class="what-section" id="ecosistema">
 <div class="what-inner">
 <div class="what-headline reveal">
 <div class="sec-eyebrow">El concepto</div>
@@ -843,41 +851,6 @@
 <h3>Disfruta todo</h3>
 <p>Acceso inmediato a la comunidad VIP, asesor digital, campañas de marcas activas, red de redes y participación automática en todos los premios activos.</p>
 </div>
-</div>
-</div><div class="iframe-section" id="mosaico">
-<div class="sec-eyebrow reveal" style="justify-content:center">El mosaico digital</div>
-<h2 class="sec-title reveal" style="text-align:center">
-<span class="outline">13.000</span> <span class="gold">CELDAS</span><br/>un solo mapa histórico
-      </h2>
-<div class="iframe-outer reveal">
-<div class="iframe-inner">
-<iframe scrolling="no" src="mosaico.html" tabindex="-1"></iframe>
-<div class="iframe-overlay" onclick="window.open('mosaico.html','_blank')">
-<div class="iframe-pill">
-<i class="fas fa-expand-arrows-alt"></i>
-              Abrir mosaico completo
-            </div>
-</div>
-</div>
-</div>
-<p class="iframe-foot reveal">// clic para pantalla completa · arrastra para seleccionar · 50 € / celda</p>
-</div><div class="counter-wrap">
-<div class="counter-card reveal">
-<div class="counter-dot"></div>
-<div class="counter-label">Celdas ocupadas</div>
-<div class="counter-bar-wrap">
-<div class="counter-track"><div class="counter-fill" id="counterFill"></div></div>
-</div>
-<div class="counter-nums"><b id="occupiedCount">0</b> / 13,040</div>
-</div>
-</div><div class="counter-wrap" style="padding-bottom:80px">
-<div class="counter-card reveal">
-<div class="counter-dot"></div>
-<div class="counter-label">Premios repartidos</div>
-<div class="counter-bar-wrap">
-<div class="counter-track"><div class="counter-fill" id="counterFill2"></div></div>
-</div>
-<div class="counter-nums"><b id="prizesCount">0</b> / 793</div>
 </div>
 </div><section class="audience-section" id="audiencias">
 <div class="sec-eyebrow reveal" style="justify-content:center">Para quién es</div>
