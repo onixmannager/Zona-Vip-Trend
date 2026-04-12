@@ -1,14 +1,20 @@
 // api/verify-paypal.js
 // 1. Captura el pago en PayPal (CAPTURE) — lo cobra de verdad
 // 2. Verifica que el importe es correcto
-// 3. Genera un token de un solo uso y lo guarda en memoria (válido 15 min)
+// 3. Genera un uploadToken firmado con HMAC-SHA256 (válido 30 min)
 // 4. Devuelve el token al frontend — sin token no se puede publicar
+//
+// El token está firmado con HMAC y no necesita Map en memoria,
+// por lo que funciona correctamente aunque Vercel use múltiples instancias.
 //
 // Variables de entorno necesarias en Vercel:
 //   PAYPAL_CLIENT_ID     → tu Client ID de PayPal Developer
 //   PAYPAL_CLIENT_SECRET → tu Client Secret de PayPal Developer
 //   PAYPAL_MODE          → "sandbox" o "live"
 //   PRECIO_CELDA         → precio por celda en EUR (debe coincidir con CFG.PRECIO del HTML)
+//   UPLOAD_SECRET        → mismo string secreto usado en verify-stripe.js y publish.js
+
+import crypto from 'crypto';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '64kb' } },
@@ -23,20 +29,18 @@ function getBase() {
   return PAYPAL_BASE[process.env.PAYPAL_MODE || 'sandbox'];
 }
 
-// ── Store en memoria de tokens válidos ───────────────────────────
-// Formato: { token → { zoneRef, expiresAt } }
-// En Vercel cada función puede tener varias instancias, pero para
-// un mosaico con pocos pagos simultáneos esto es suficiente.
-// Si necesitas escalar usa KV de Vercel o Redis.
-const validTokens = new Map();
-const TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutos
-
-// Limpieza periódica de tokens expirados
-function purgeExpired() {
-  const now = Date.now();
-  for (const [k, v] of validTokens) {
-    if (v.expiresAt < now) validTokens.delete(k);
-  }
+// ── Generar uploadToken firmado con HMAC-SHA256 ───────────────────
+// Mismo formato que verify-stripe.js — publish.js los valida igual
+function generarUploadToken(zone) {
+  const payload = JSON.stringify({
+    r1: zone.r1, c1: zone.c1, r2: zone.r2, c2: zone.c2,
+    ts: Date.now()
+  });
+  const sig = crypto
+    .createHmac('sha256', process.env.UPLOAD_SECRET || 'dev-secret')
+    .update(payload)
+    .digest('hex');
+  return Buffer.from(JSON.stringify({ payload, sig })).toString('base64url');
 }
 
 // ── Obtener token de acceso de PayPal ────────────────────────────
@@ -70,7 +74,6 @@ export default async function handler(req, res) {
 
   try {
     const { orderID, zone } = req.body;
-    // zone = { r1, c1, r2, c2, n, total }
 
     if (!orderID || !zone) {
       return res.status(400).json({ ok: false, error: 'Faltan orderID o zone' });
@@ -96,7 +99,7 @@ export default async function handler(req, res) {
     }
 
     // 3) Verificar importe — debe coincidir con lo que el frontend calculó
-    const paidAmount = parseFloat(order.purchase_units?.[0]?.amount?.value || '0');
+    const paidAmount     = parseFloat(order.purchase_units?.[0]?.amount?.value || '0');
     const expectedAmount = zone.n * parseFloat(process.env.PRECIO_CELDA || '50');
 
     if (Math.abs(paidAmount - expectedAmount) > 0.01) {
@@ -114,8 +117,8 @@ export default async function handler(req, res) {
     });
 
     if (!captureRes.ok) {
-      const err = await captureRes.text();
-      console.error('[verify-paypal] Error al capturar:', err);
+      const errText = await captureRes.text();
+      console.error('[verify-paypal] Error al capturar:', errText);
       return res.status(502).json({ ok: false, error: 'Error al capturar el pago' });
     }
 
@@ -124,16 +127,8 @@ export default async function handler(req, res) {
       return res.status(402).json({ ok: false, error: `Captura no completada. Estado: ${capture.status}` });
     }
 
-    // 5) Generar token de un solo uso (válido 15 min)
-    purgeExpired();
-    const uploadToken = `ut_${Date.now()}_${Math.random().toString(36).slice(2,10)}`;
-    const zoneRef     = `r${zone.r1}_c${zone.c1}_r${zone.r2}_c${zone.c2}`;
-    validTokens.set(uploadToken, {
-      zoneRef,
-      zone,
-      orderID,
-      expiresAt: Date.now() + TOKEN_TTL_MS,
-    });
+    // 5) Generar uploadToken firmado con HMAC (compatible con publish.js)
+    const uploadToken = generarUploadToken(zone);
 
     return res.status(200).json({ ok: true, uploadToken });
 
@@ -142,8 +137,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, error: err.message });
   }
 }
-
-// ── Exportar validTokens para que publish.js pueda validar ───────
-// Nota: esto funciona dentro del mismo proceso de Vercel.
-// Si Vercel escala a múltiples instancias, migrar a Vercel KV.
-export { validTokens };
