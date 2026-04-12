@@ -345,6 +345,12 @@
       border-radius: 14px; padding: 28px;
       width: min(440px, 92vw); max-height: 90vh; overflow-y: auto; position: relative;
     }
+    #modal-celda .modal-panel {
+      width: min(700px, 92vw); max-height: 92vh;
+    }
+    @media (min-width: 768px) {
+      #modal-celda .modal-panel { width: min(760px, 88vw); }
+    }
     .modal-title { font-family: var(--fh); font-size: 1.4rem; letter-spacing: .08em; color: var(--gold-lt); margin-bottom: 4px; }
     .modal-sub   { font-size: .75rem; color: var(--muted2); margin-bottom: 20px; line-height: 1.5; }
     .modal-close {
@@ -408,7 +414,7 @@
     .status.ok    { background: rgba(62,207,110,0.1); color: #7ae8a0; border: 1px solid rgba(62,207,110,0.2); }
     .status.info  { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
 
-    .mc-img { width: 100%; border-radius: 8px; margin-bottom: 14px; display: block; object-fit: cover; max-height: 200px; }
+    .mc-img { width: 100%; border-radius: 8px; margin-bottom: 14px; display: block; object-fit: contain; max-height: 70vh; background: rgba(0,0,0,0.3); }
     .mc-link-row { display: flex; align-items: center; gap: 10px; background: rgba(201,168,76,0.06); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; }
     .mc-link-row a { color: var(--gold); font-family: var(--fm); font-size: .75rem; text-decoration: none; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .mc-link-row a:hover { color: var(--gold-lt); }
@@ -1137,7 +1143,7 @@ async function pagarPayPal(){
   pendingZone.email=email;
 
   if(isDemoMode){
-    cerrarModal('modal-compra'); abrirUpload();
+    setStatus('st-compra','error','El pago con PayPal aún no está configurado. Usa la opción "Simular pago" para probar el flujo.');
     return;
   }
 
@@ -1172,7 +1178,7 @@ async function pagarStripe(){
   pendingZone.email=email;
 
   if(isDemoMode){
-    cerrarModal('modal-compra'); abrirUpload();
+    setStatus('st-compra','error','El pago con tarjeta aún no está configurado. Usa la opción "Simular pago" para probar el flujo.');
     return;
   }
 
