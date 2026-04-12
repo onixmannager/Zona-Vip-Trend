@@ -1,14 +1,60 @@
 // api/publish.js
 // Guarda la zona en zones.json (GitHub).
-// REQUIERE un uploadToken válido emitido por verify-paypal.js
-// Si el token no existe o expiró → rechaza la petición.
+// REQUIERE un uploadToken válido emitido por verify-paypal.js o verify-stripe.js.
+// El token está firmado con HMAC-SHA256 — no necesita Map en memoria,
+// funciona correctamente en Vercel aunque cada función corra en instancias distintas.
+//
+// Variables de entorno necesarias en Vercel:
+//   GH_TOKEN       → token de GitHub con permisos de escritura en el repo
+//   UPLOAD_SECRET  → mismo string secreto usado en verify-paypal.js y verify-stripe.js
 
-import { validTokens } from './verify-paypal.js';
+import crypto from 'crypto';
 
 export const config = {
   api: { bodyParser: { sizeLimit: '1mb' } },
 };
 
+// ── Validar uploadToken firmado con HMAC ──────────────────────────────────────
+// El token es un base64url de JSON { payload, sig }
+// payload es un JSON con { r1, c1, r2, c2, ts }
+// Expira a los 30 minutos desde su emisión
+const TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutos
+
+function verificarUploadToken(token, zone) {
+  try {
+    const decoded  = JSON.parse(Buffer.from(token, 'base64url').toString('utf-8'));
+    const { payload, sig } = decoded;
+
+    // 1) Verificar firma HMAC
+    const expectedSig = crypto
+      .createHmac('sha256', process.env.UPLOAD_SECRET || 'dev-secret')
+      .update(payload)
+      .digest('hex');
+
+    if (sig !== expectedSig) return { ok: false, error: 'Token inválido.' };
+
+    // 2) Verificar expiración
+    const data = JSON.parse(payload);
+    if (Date.now() - data.ts > TOKEN_TTL_MS) {
+      return { ok: false, error: 'Token expirado. Vuelve a pagar.' };
+    }
+
+    // 3) Verificar que la zona del token coincide con la zona enviada
+    if (
+      data.r1 !== zone.r1 || data.c1 !== zone.c1 ||
+      data.r2 !== zone.r2 || data.c2 !== zone.c2
+    ) {
+      return { ok: false, error: 'La zona no coincide con el pago.' };
+    }
+
+    return { ok: true };
+
+  } catch (e) {
+    return { ok: false, error: 'Token malformado.' };
+  }
+}
+
+// ── Handler principal ─────────────────────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -27,26 +73,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ ok: false, error: 'Faltan campos: repo, zone, uploadToken' });
     }
 
-    // 1) Validar token de un solo uso
-    const tokenData = validTokens.get(uploadToken);
-    if (!tokenData) {
-      return res.status(403).json({ ok: false, error: 'Token inválido o expirado. Vuelve a pagar.' });
-    }
-    if (tokenData.expiresAt < Date.now()) {
-      validTokens.delete(uploadToken);
-      return res.status(403).json({ ok: false, error: 'Token expirado. Vuelve a pagar.' });
+    // 1) Validar token (funciona para tokens de PayPal y de Stripe)
+    const validacion = verificarUploadToken(uploadToken, zone);
+    if (!validacion.ok) {
+      return res.status(403).json({ ok: false, error: validacion.error });
     }
 
-    // 2) Verificar que la zona del token coincide con la zona enviada
-    const expectedRef = `r${zone.r1}_c${zone.c1}_r${zone.r2}_c${zone.c2}`;
-    if (tokenData.zoneRef !== expectedRef) {
-      return res.status(403).json({ ok: false, error: 'La zona no coincide con el pago.' });
-    }
-
-    // 3) Invalidar el token (un solo uso)
-    validTokens.delete(uploadToken);
-
-    // 4) Leer zones.json actual de GitHub
+    // 2) Leer zones.json actual de GitHub
     const apiBase = `https://api.github.com/repos/${repo}/contents/zones.json`;
     const headers = {
       Authorization:  `Bearer ${process.env.GH_TOKEN}`,
@@ -62,10 +95,10 @@ export default async function handler(req, res) {
       zones = JSON.parse(Buffer.from(j.content, 'base64').toString('utf-8'));
     }
 
-    // 5) Añadir la nueva zona
+    // 3) Añadir la nueva zona
     zones.push(zone);
 
-    // 6) Guardar zones.json actualizado
+    // 4) Guardar zones.json actualizado
     const putRes = await fetch(apiBase, {
       method: 'PUT',
       headers,
