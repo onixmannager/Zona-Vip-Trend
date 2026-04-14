@@ -4,11 +4,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>ZonaVIP Trends – Red de Redes. Visibilidad Permanente.</title>
+<title>ZonaVIP Trends – Tu Espacio VIP. Visibilidad Permanente.</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
-<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" rel="stylesheet"/>
 <link rel="icon" type="image/webp" href="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp"/>
 <link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp"/>
 <style>
@@ -525,7 +525,39 @@
     .pc-mini   .prize-amount { color: #3ACA5A; }
     .prize-qty { font-family: var(--fm); font-size: .66rem; color: var(--muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px; margin-top: 8px; display: block; }
 
-    /* ── REFERIDOS BANNER ── */
+    /* ── CREATOR OWNERSHIP BOX ── */
+    .creator-ownership-box {
+      margin: 18px 0 22px;
+      border-radius: 12px; padding: 22px 24px;
+      background: linear-gradient(135deg, rgba(167,139,255,0.07), rgba(201,168,76,0.06));
+      border: 1px solid rgba(167,139,255,0.25);
+      box-shadow: inset 0 1px 0 rgba(167,139,255,0.1);
+    }
+    .cob-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .cob-ico {
+      color: var(--gold); font-size: 1.1rem;
+      filter: drop-shadow(0 0 8px rgba(201,168,76,0.5));
+    }
+    .cob-header strong {
+      font-family: var(--fh); font-size: 1.05rem; letter-spacing: .04em;
+      color: var(--gold-lt);
+    }
+    .creator-ownership-box p {
+      font-size: .86rem; color: var(--muted2); line-height: 1.75;
+    }
+    .creator-ownership-box p strong { color: var(--white); }
+    .cob-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--fm); font-size: .62rem; letter-spacing: .1em;
+      padding: 3px 9px; border-radius: 99px;
+      border: 1px solid rgba(167,139,255,0.3);
+      color: #C4B5FD; background: rgba(167,139,255,0.07);
+      white-space: nowrap;
+    }
+
+    /* ── REFERIDOS / AFFILIATE simplified ── */
     .referral-banner {
       max-width: 860px; margin: 0 auto 80px;
       border-radius: 14px; padding: 36px 40px;
@@ -841,8 +873,24 @@
       color: var(--cyan); border: 1px solid var(--bord-c); padding: 4px 10px; border-radius: 4px;
     }
 
-    @media(max-width:900px) {
-      .affiliate-inner { grid-template-columns: 1fr; gap: 36px; padding: 36px 28px; }
+    .affiliate-inner--simple {
+      display: flex; align-items: center; gap: 36px;
+      padding: 44px 48px; flex-wrap: wrap;
+    }
+    .affiliate-icon-wrap {
+      font-size: 3rem; color: var(--gold);
+      filter: drop-shadow(0 0 20px rgba(201,168,76,0.4));
+      flex-shrink: 0;
+    }
+    .affiliate-body-simple { flex: 1; min-width: 260px; }
+    .affiliate-title--sm {
+      font-size: clamp(1.5rem, 3vw, 2rem) !important;
+      margin-bottom: 14px !important; display: inline;
+    }
+    .affiliate-title--sm span { color: var(--white); }
+    @media(max-width:600px) {
+      .affiliate-inner--simple { padding: 28px 20px; gap: 20px; }
+    }
       .footer-main { grid-template-columns: 1fr 1fr; gap: 36px; padding: 48px 24px 36px; }
     }
     @media(max-width:600px) {
@@ -902,7 +950,7 @@
 </div>
 <div class="nav-logo-text">
   <span class="nav-logo-main">ZonaVIP</span>
-  <span class="nav-logo-sub">Trends · Red de Redes</span>
+  <span class="nav-logo-sub">Trends · Red de Contactos VIP</span>
 </div>
 <span class="nav-tag">VIP</span>
 </div>
@@ -910,16 +958,16 @@
 <a class="nav-cta" href="mosaico.html"><i class="fas fa-map-marked-alt"></i> Ver Zonas</a>
 </div>
 </nav><section class="hero">
-<div class="hero-tag">Red de Redes · Publicidad VIP · Sorteos Transparentes</div>
+<div class="hero-tag">Red de Contactos · Zonas Publicitarias · Sorteos</div>
 <h1 class="hero-title">
 <span class="outline">ZONA</span><br/>
 <span class="gold">VIP</span> TRENDS
       </h1>
-<p class="hero-slogan">No es una red social. <strong>Es una red de redes.</strong></p>
+<p class="hero-slogan">No es una red social. <strong>Es tu espacio VIP.</strong></p>
 <p class="hero-desc">
-        Compra tu celda, publica una vez para siempre y muestra tu contenido en el mosaico global.
-        Cada celda es una <strong style="color:var(--white)">posición permanente</strong> en el ecosistema publicitario más exclusivo.
-        Algunas celdas están premiadas — <strong style="color:var(--gold)">financiadas por marcas y acuerdos publicitarios desde el primer día.</strong>
+        Reserva tu zona, publica una vez para siempre y muestra tu contenido en el mosaico global.
+        Cada zona es una <strong style="color:var(--white)">posición permanente</strong> en el ecosistema publicitario más exclusivo.
+        Algunas zonas están premiadas — <strong style="color:var(--gold)">financiadas por marcas y acuerdos publicitarios desde el primer día.</strong>
 </p>
 <div class="hero-btns">
 <a class="btn-gold" href="mosaico.html">
@@ -929,8 +977,8 @@
         </a>
 </div>
 <div class="hero-stats">
-<div class="stat"><span class="stat-num">13K</span><span class="stat-label">Celdas</span></div>
-<div class="stat"><span class="stat-num">50€</span><span class="stat-label">Por celda</span></div>
+<div class="stat"><span class="stat-num">13K</span><span class="stat-label">Zonas</span></div>
+<div class="stat"><span class="stat-num">50€</span><span class="stat-label">Por zona</span></div>
 <div class="stat"><span class="stat-num">793</span><span class="stat-label">Premios</span></div>
 <div class="stat"><span class="stat-num">200K€</span><span class="stat-label">En premios</span></div>
 <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Permanente</span></div>
@@ -946,7 +994,7 @@
 <div class="iframe-section" id="mosaico">
 <div class="sec-eyebrow reveal" style="justify-content:center">El mosaico digital</div>
 <h2 class="sec-title reveal" style="text-align:center">
-<span class="outline">13.000</span> <span class="gold">CELDAS</span><br/>un solo mapa histórico
+<span class="outline">13.000</span> <span class="gold">ZONAS</span><br/>un solo mapa histórico
       </h2>
 <div class="iframe-outer reveal">
 <div class="iframe-inner">
@@ -959,12 +1007,12 @@
 </div>
 </div>
 </div>
-<p class="iframe-foot reveal">// clic para pantalla completa · arrastra para seleccionar · 50 € / celda</p>
+<p class="iframe-foot reveal">// clic para pantalla completa · arrastra para seleccionar · 50 € / zona</p>
 </div>
     <div class="counter-wrap">
 <div class="counter-card reveal">
 <div class="counter-dot"></div>
-<div class="counter-label">Celdas ocupadas</div>
+<div class="counter-label">Zonas ocupadas</div>
 <div class="counter-bar-wrap">
 <div class="counter-track"><div class="counter-fill" id="counterFill"></div></div>
 </div>
@@ -996,7 +1044,7 @@
             ZonaVIP Trends es una <strong>herramienta de monetización y publicidad VIP</strong> donde solo puedes publicar una vez, pagando, y esa publicación es tuya para siempre. Pensada para <strong>marcas, negocios, influencers y usuarios</strong> que quieren visibilidad permanente, conexión real y participación en sorteos transparentes.
           </p>
 <div class="what-highlight">
-<strong>No es una red social.</strong> Es una red de redes. Cada ZonaVIP actúa como un nodo de otra red, creando un ecosistema de visibilidad cruzada donde cada marca puede elegir qué comunidad o ZonaVIP ha segmentado de forma natural su audiencia.
+<strong>No es una red social.</strong> Es una red de contactos privada donde marcas, negocios y creadores se promocionan de forma permanente. Cada ZonaVIP es un espacio propio e independiente, conectado a un ecosistema mayor donde la visibilidad y la comunidad crecen juntas.
           </div>
 </div>
 </div>
@@ -1005,7 +1053,7 @@
 <div class="value-headline reveal">
 <div class="sec-eyebrow">Más que publicidad</div>
 <h2 class="sec-title">
-<span class="gold">¿Qué obtienes</span> con<br/>tu <span class="outline">celda</span>?
+<span class="gold">¿Qué obtienes</span> con<br/>tu <span class="outline">zona</span>?
           </h2>
 <p>
             ZonaVIP Trends no es solo un mosaico. Es una <strong>plataforma viral gamificada</strong> que convierte tu espacio en visibilidad permanente, comunidad exclusiva, acceso a campañas de marcas reales y la posibilidad de ganar premios — <strong>con retorno medible desde el primer día.</strong>
@@ -1016,15 +1064,15 @@
 <div class="value-card-num">01</div>
 <div class="value-ico"><i class="fas fa-infinity"></i></div>
 <h3>Espacio permanente</h3>
-<p>Tu celda queda activa para siempre en el mosaico viral más grande. Tu logo, tu marca o tu imagen visible ante miles de usuarios cada día — <strong style="color:var(--white)">sin cuotas, sin caducidad, sin límites.</strong></p>
-<div class="value-badge"><i class="fas fa-check"></i> Una sola compra · Para siempre</div>
+<p>Tu zona queda activa para siempre en el mosaico. Tu logo, tu marca o tu imagen visible ante miles de usuarios cada día — <strong style="color:var(--white)">sin cuotas, sin caducidad, sin límites.</strong></p>
+<div class="value-badge"><i class="fas fa-check"></i> Una sola reserva · Para siempre</div>
 </div>
 <div class="value-card vc-2 reveal rd2">
 <div class="value-card-num">02</div>
 <div class="value-ico"><i class="fas fa-network-wired"></i></div>
-<h3>Red de Redes</h3>
-<p>Tu celda te conecta al ecosistema más grande. Cada ZonaVIP actúa como nodo, <strong style="color:var(--white)">generando visibilidad cruzada exponencial</strong> entre comunidades segmentadas naturalmente.</p>
-<div class="value-badge" style="--badge-color:var(--cyan)"><i class="fas fa-share-alt"></i> Exposición cruzada · Multi-red</div>
+<h3>Red de Contactos</h3>
+<p>Tu zona te conecta a una red de contactos privada. Cada ZonaVIP es un espacio propio conectado al ecosistema, <strong style="color:var(--white)">generando visibilidad entre plataformas</strong> de comunidades segmentadas de forma natural.</p>
+<div class="value-badge" style="--badge-color:var(--cyan)"><i class="fas fa-share-alt"></i> Contactos privados · Multi-plataforma</div>
 </div>
 <div class="value-card vc-3 reveal rd3">
 <div class="value-card-num">03</div>
@@ -1049,14 +1097,14 @@
 <div class="how-step reveal rd1">
 <div class="how-num">01 / SELECCIÓN</div>
 <i class="fas fa-map-pin how-ico"></i>
-<h3>Elige tu celda</h3>
-<p>Arrastra sobre el mosaico para seleccionar exactamente los cuadritos donde quieres aparecer. Tu espacio es único e irrepetible — una publicación, para siempre.</p>
+<h3>Elige tu zona</h3>
+<p>Explora el mosaico y selecciona exactamente la zona donde quieres aparecer. Tu espacio es único e irrepetible — una publicación, para siempre.</p>
 </div>
 <div class="how-step reveal rd2">
 <div class="how-num">02 / PAGO</div>
 <i class="fas fa-euro-sign how-ico"></i>
-<h3>Paga 50 € / celda</h3>
-<p>Pago seguro con Stripe. Sin cuotas, sin suscripciones. Una sola compra que garantiza tu espacio y tu participación en el ecosistema para siempre.</p>
+<h3>Reserva tu zona · 50 €</h3>
+<p>Pago seguro con Stripe. Sin cuotas, sin suscripciones. Una sola reserva que garantiza tu espacio y tu participación en el ecosistema para siempre.</p>
 </div>
 <div class="how-step reveal rd3">
 <div class="how-num">03 / IMAGEN</div>
@@ -1068,7 +1116,7 @@
 <div class="how-num">04 / BENEFICIOS</div>
 <i class="fas fa-trophy how-ico"></i>
 <h3>Disfruta todo</h3>
-<p>Acceso inmediato a la comunidad VIP, asesor digital, campañas de marcas activas, red de redes y participación automática en todos los premios activos.</p>
+<p>Acceso inmediato a la red de contactos VIP, asesor digital, campañas de marcas activas y participación automática en todos los premios activos.</p>
 </div>
 </div>
 </div><section class="audience-section" id="audiencias">
@@ -1088,9 +1136,9 @@
 <p class="panel-desc">Desde grandes corporaciones hasta negocios locales, ZonaVIP Trends ofrece el formato de publicidad más exclusivo y permanente del mercado digital.</p>
 <ul class="panel-features">
 <li><strong>Marcas grandes:</strong> Crea tu propio gridd privado (tu plataforma ZonaVIP) o compra zonas VIP estratégicas en el mosaico principal para máxima exposición.</li>
-<li><strong>Negocios pequeños y webs:</strong> Compra celdas donde más te convenga según tu sector. Publicidad segmentada, económica y permanente.</li>
-<li><strong>ROI medible:</strong> Panel de control con estadísticas de interacción, celdas restantes, premios disponibles y analíticas avanzadas.</li>
-<li><strong>Fidelización de clientes:</strong> Premia a tus seguidores más fieles con celdas destacadas en tu ZonaVIP.</li>
+<li><strong>Negocios pequeños y webs:</strong> Reserva zonas donde más te convenga según tu sector. Publicidad segmentada, económica y permanente.</li>
+<li><strong>ROI medible:</strong> Panel de control con estadísticas de interacción, zonas disponibles, premios activos y analíticas avanzadas.</li>
+<li><strong>Fidelización de clientes:</strong> Premia a tus seguidores más fieles con zonas destacadas en tu espacio VIP.</li>
 </ul>
 </div>
 <div class="panel-visual">
@@ -1106,8 +1154,8 @@
 <div class="use-case">
 <div class="use-case-ico" style="background:rgba(0,229,255,0.08)">🎯</div>
 <div class="use-case-text">
-<strong>Celdas segmentadas</strong>
-<span>Compra celdas en gridds ya segmentados por sector, audiencia o geografía.</span>
+<strong>Zonas segmentadas</strong>
+<span>Reserva zonas en plataformas ya segmentadas por sector, audiencia o geografía.</span>
 </div>
 <div class="use-case-tag" style="color:var(--cyan);border-color:rgba(0,229,255,0.25)">Segmentado</div>
 </div>
@@ -1115,7 +1163,7 @@
 <div class="use-case-ico" style="background:rgba(58,202,90,0.08)">📊</div>
 <div class="use-case-text">
 <strong>Panel analítico</strong>
-<span>Estadísticas de interacción, alcance cruzado y datos de la red de redes.</span>
+<span>Estadísticas de interacción, alcance entre plataformas y datos del ecosistema.</span>
 </div>
 <div class="use-case-tag" style="color:#3ACA5A;border-color:rgba(58,202,90,0.3)">Analytics</div>
 </div>
@@ -1125,38 +1173,45 @@
 <div class="audience-panel" id="tab-influencers">
 <div class="panel-text">
 <h3>Influencers &amp; Creadores</h3>
-<p class="panel-desc">ZonaVIP Trends es tu herramienta de monetización, fidelización de seguidores y crecimiento exponencial de visibilidad e interacción.</p>
+<p class="panel-desc">Como usuario VIP de ZonaVIP Trends, tienes el derecho a ser dueño de tu propio software o plataforma online — personalizada, tuya y conectada al ecosistema global para monetizar con tus seguidores.</p>
+<div class="creator-ownership-box">
+  <div class="cob-header">
+    <i class="fas fa-crown cob-ico"></i>
+    <strong>Tu plataforma. Tu software. Para siempre.</strong>
+  </div>
+  <p>Cada usuario VIP tiene el <strong>derecho pleno a ser propietario de su propia plataforma online</strong>, completamente adaptada a sus necesidades. Desde ella podrás ofrecer a tus seguidores <span class="cob-pill">📢 exposición permanente</span> <span class="cob-pill">❤️ fidelización</span> <span class="cob-pill">🔒 publicaciones exclusivas para siempre</span>, mientras monetizas tu comunidad de forma directa y sin intermediarios.</p>
+</div>
 <ul class="panel-features">
-<li><strong>Tu propio gridd:</strong> Crea tu ZonaVIP personalizada, adaptada a tu comunidad y nicho de contenido.</li>
-<li><strong>Monetización directa:</strong> Cada celda vendida en tu gridd genera ingresos directos para ti.</li>
-<li><strong>Visibilidad cruzada:</strong> Tu ZonaVIP actúa como nodo en la red global, atrayendo audiencias de otras comunidades.</li>
-<li><strong>Celdas en otros gridds:</strong> Compra celdas en gridds de tu sector para aumentar tu alcance fuera de tu comunidad habitual.</li>
-<li><strong>Feed global:</strong> Tu contenido aparece en el feed global de ZonaVIP, accesible para toda la red.</li>
+<li><strong>Software propio:</strong> Tu plataforma ZonaVIP es tuya — marca, diseño y comunidad totalmente personalizados según tu nicho y audiencia.</li>
+<li><strong>Monetización directa:</strong> Cada zona contratada en tu plataforma genera ingresos directos para ti, sin comisiones de terceros sobre tus ventas.</li>
+<li><strong>Exposición permanente para tus seguidores:</strong> Quienes reserven una zona en tu plataforma obtienen visibilidad para siempre — una propuesta de valor única que fideliza tu comunidad.</li>
+<li><strong>Publicaciones exclusivas:</strong> Tu plataforma permite publicaciones permanentes y exclusivas que ninguna red social convencional puede ofrecer.</li>
+<li><strong>Conectada al ecosistema:</strong> Tu plataforma está integrada en el ecosistema ZonaVIP, ampliando el alcance de tu comunidad de forma orgánica.</li>
 </ul>
 </div>
 <div class="panel-visual">
-<div class="panel-visual-title">// Flujo de monetización · Creadores</div>
+<div class="panel-visual-title">// Tu plataforma · Flujo de valor</div>
 <div class="use-case">
-<div class="use-case-ico" style="background:rgba(167,139,255,0.1)">💰</div>
+<div class="use-case-ico" style="background:rgba(167,139,255,0.1)">🖥️</div>
 <div class="use-case-text">
-<strong>Venta de celdas en tu gridd</strong>
-<span>Tus seguidores compran celdas en tu ZonaVIP y tú monetizas directamente.</span>
+<strong>Tu propio software online</strong>
+<span>Plataforma personalizada, bajo tu marca, con tu comunidad y tus reglas.</span>
 </div>
-<div class="use-case-tag" style="color:#A78BFF;border-color:rgba(167,139,255,0.3)">Monetización</div>
+<div class="use-case-tag" style="color:#A78BFF;border-color:rgba(167,139,255,0.3)">Propiedad VIP</div>
 </div>
 <div class="use-case">
-<div class="use-case-ico" style="background:rgba(201,168,76,0.1)">🔗</div>
+<div class="use-case-ico" style="background:rgba(201,168,76,0.1)">💰</div>
 <div class="use-case-text">
-<strong>Red de redes</strong>
-<span>Tu ZonaVIP conecta con el ecosistema global, multiplicando tu visibilidad exponencialmente.</span>
+<strong>Zonas publicitarias en tu plataforma</strong>
+<span>Tus seguidores y marcas reservan zonas y tú monetizas directamente.</span>
 </div>
-<div class="use-case-tag" style="color:var(--gold);border-color:rgba(201,168,76,0.3)">Viral</div>
+<div class="use-case-tag" style="color:var(--gold);border-color:rgba(201,168,76,0.3)">Monetización</div>
 </div>
 <div class="use-case">
 <div class="use-case-ico" style="background:rgba(58,202,90,0.08)">🏆</div>
 <div class="use-case-text">
-<strong>Sorteos para tu comunidad</strong>
-<span>Activa premios financiados por marcas para fidelizar y recompensar a tus seguidores.</span>
+<strong>Fidelización &amp; sorteos exclusivos</strong>
+<span>Activa premios y publicaciones exclusivas para recompensar a tus seguidores más fieles.</span>
 </div>
 <div class="use-case-tag" style="color:#3ACA5A;border-color:rgba(58,202,90,0.3)">Fidelización</div>
 </div>
@@ -1168,11 +1223,11 @@
 <h3>Usuarios</h3>
 <p class="panel-desc">Participa en el ecosistema más exclusivo de la web. Apoya a tus creadores favoritos, consigue visibilidad viral y opta a premios reales.</p>
 <ul class="panel-features">
-<li><strong>Apoya a tu creador favorito:</strong> Compra una celda en su gridd y forma parte de su comunidad de forma permanente.</li>
-<li><strong>Exposición viral:</strong> Tu celda aparece en el mosaico global, visible ante miles de usuarios y visitantes.</li>
+<li><strong>Apoya a tu creador favorito:</strong> Reserva una zona en su plataforma y forma parte de su comunidad de forma permanente.</li>
+<li><strong>Promoción permanente:</strong> Tu zona aparece en el mosaico, visible ante miles de usuarios y visitantes.</li>
 <li><strong>Conecta con nuevas redes:</strong> Accede a comunidades de tu sector y amplía tu círculo de contactos.</li>
-<li><strong>Gana premios reales:</strong> Celdas premiadas con 200.000€ en premios, financiados desde el primer día por acuerdos publicitarios.</li>
-<li><strong>Tu propio gridd:</strong> Si lo deseas, crea tu propia ZonaVIP adaptada a tu círculo o necesidades personales.</li>
+<li><strong>Gana premios reales:</strong> Zonas premiadas con 200.000€ en premios, financiados desde el primer día por acuerdos publicitarios.</li>
+<li><strong>Tu propia plataforma:</strong> Si lo deseas, crea tu propia ZonaVIP adaptada a tu círculo o necesidades personales.</li>
 </ul>
 </div>
 <div class="panel-visual">
@@ -1181,14 +1236,14 @@
 <div class="use-case-ico" style="background:rgba(0,229,255,0.08)">❤️</div>
 <div class="use-case-text">
 <strong>Apoya a tu creador</strong>
-<span>Compra una celda en su ZonaVIP y muestra tu apoyo de forma permanente y visible.</span>
+<span>Reserva una zona en su plataforma y muestra tu apoyo de forma permanente y visible.</span>
 </div>
 <div class="use-case-tag" style="color:var(--cyan);border-color:rgba(0,229,255,0.25)">Comunidad</div>
 </div>
 <div class="use-case">
 <div class="use-case-ico" style="background:rgba(201,168,76,0.1)">🚀</div>
 <div class="use-case-text">
-<strong>Visibilidad permanente</strong>
+<strong>Promoción permanente</strong>
 <span>Tu imagen en el mosaico, con tu enlace, visible para siempre ante miles de personas.</span>
 </div>
 <div class="use-case-tag" style="color:var(--gold);border-color:rgba(201,168,76,0.3)">Permanente</div>
@@ -1197,7 +1252,7 @@
 <div class="use-case-ico" style="background:rgba(58,202,90,0.08)">🎁</div>
 <div class="use-case-text">
 <strong>Participa en premios</strong>
-<span>Cada celda participa automáticamente en el sistema de sorteos transparente y verificable.</span>
+<span>Cada zona participa automáticamente en el sistema de sorteos transparente y verificable.</span>
 </div>
 <div class="use-case-tag" style="color:#3ACA5A;border-color:rgba(58,202,90,0.3)">Premios</div>
 </div>
@@ -1208,9 +1263,9 @@
 <div class="flow-headline reveal">
 <div class="sec-eyebrow">Arquitectura del sistema</div>
 <h2 class="sec-title">
-            ¿Cómo funciona la<br/><span class="gold">exposición viral cruzada</span>?
+            ¿Cómo funciona la<br/><span class="gold">visibilidad entre plataformas</span>?
           </h2>
-<p>ZonaVIP Trends tiene un mosaico principal y colabora desde el inicio con influencers y marcas. Cada ZonaVIP actúa como nodo de otra red, creando así una red de redes de visualizaciones donde cada marca puede elegir qué comunidad ha segmentado su audiencia de forma natural.</p>
+<p>ZonaVIP Trends cuenta con un mosaico principal y colabora desde el inicio con influencers y marcas. Cada ZonaVIP es una plataforma independiente conectada al ecosistema, donde marcas y creadores alcanzan audiencias segmentadas de forma orgánica y natural.</p>
 </div>
 <div class="flow-diagram reveal">
 <div class="flow-node">
@@ -1234,13 +1289,13 @@
 <i class="fas fa-globe"></i>
 </div>
 <h4>Feed Global</h4>
-<p>Usuarios ven todo el contenido, interactúan, descubren comunidades y participan en premios si tienen celda.</p>
+<p>Usuarios ven todo el contenido, interactúan, descubren plataformas y participan en premios si tienen zona reservada.</p>
 </div>
 </div>
 <div class="flow-bottom reveal">
 <div class="flow-bottom-card">
-<div class="fbc-label">🔗 Red de Nodos</div>
-<p>Cada ZonaVIP actúa como nodo independiente. Su contenido alimenta el feed global y su audiencia se cruza con otras comunidades.</p>
+<div class="fbc-label">🔗 Red de Contactos</div>
+<p>Cada ZonaVIP es una plataforma independiente. Su contenido se agrega al feed global y su audiencia conecta de forma orgánica con otras comunidades.</p>
 </div>
 <div class="flow-bottom-card">
 <div class="fbc-label">🎯 Segmentación Natural</div>
@@ -1252,7 +1307,7 @@
 </div>
 <div class="flow-bottom-card">
 <div class="fbc-label">🏆 Premios Automáticos</div>
-<p>Si tienes celda, participas automáticamente en todos los sorteos. Sin coste extra. Sin trámites adicionales.</p>
+<p>Si tienes zona reservada, participas automáticamente en todos los sorteos. Sin coste extra. Sin trámites adicionales.</p>
 </div>
 </div>
 </div>
@@ -1264,21 +1319,21 @@
 <div class="mono-num">01 / B2B</div>
 <span class="mono-ico">🏢</span>
 <h4>Marcas &amp; Gridds</h4>
-<p>Marcas comprando gridds completos o celdas estratégicas. El canal de ingresos premium del ecosistema.</p>
+<p>Marcas contratando plataformas completas o zonas estratégicas. El canal premium del ecosistema.</p>
 <div class="mono-tag" style="color:var(--gold);border-color:rgba(201,168,76,0.3)">Ingresos B2B</div>
 </div>
 <div class="mono-card">
 <div class="mono-num">02 / B2C</div>
 <span class="mono-ico">👤</span>
-<h4>Venta de Celdas</h4>
-<p>Usuarios normales, influencers y negocios pequeños comprando celdas individuales en el mosaico.</p>
+<h4>Zonas Publicitarias</h4>
+<p>Usuarios, influencers y negocios reservando zonas individuales en el mosaico. Visibilidad directa y permanente.</p>
 <div class="mono-tag" style="color:var(--cyan);border-color:rgba(0,229,255,0.25)">Ingresos directos</div>
 </div>
 <div class="mono-card">
 <div class="mono-num">03 / CREATORS</div>
 <span class="mono-ico">⭐</span>
 <h4>Gridds de Creadores</h4>
-<p>Creadores e influencers monetizan su comunidad vendiendo celdas en su propia ZonaVIP personalizada.</p>
+<p>Creadores e influencers monetizan su comunidad ofreciendo zonas publicitarias en su propia plataforma ZonaVIP personalizada.</p>
 <div class="mono-tag" style="color:#A78BFF;border-color:rgba(167,139,255,0.3)">Creator economy</div>
 </div>
 <div class="mono-card">
@@ -1301,7 +1356,7 @@
 <div class="sec-eyebrow reveal">Recompensas</div>
 <h2 class="sec-title reveal">🏆 <span class="gold">Premios</span> en juego.</h2>
 <p class="reveal" style="color:var(--muted2);font-size:.9rem;margin-bottom:40px;margin-top:-24px">
-        Los premios están financiados mediante acuerdos publicitarios y colaboraciones con marcas desde el inicio del proyecto.
+        Los premios están financiados mediante acuerdos publicitarios y colaboraciones con marcas desde el inicio del proyecto. Cada zona reservada participa de forma automática.
       </p>
 <div class="prizes-grid">
 <div class="prize-card pc-gold reveal rd1">
@@ -1356,45 +1411,19 @@
 </div>
 </section><div class="affiliate-section">
 <div class="affiliate-banner reveal">
-  <div class="affiliate-inner">
-    <div class="affiliate-left">
-      <div class="affiliate-eyebrow">Programa exclusivo · Socios VIP</div>
-      <h2 class="affiliate-title"><span>Programa de</span><br/>Afiliados</h2>
-      <p class="affiliate-desc">
-        Únete al programa de afiliados de ZonaVIP Trends y empieza a generar ingresos recurrentes como socio de la plataforma. <strong>Comparte, conecta y gana</strong> cada vez que alguien de tu red adquiera una celda o acceda al ecosistema VIP.
-      </p>
-      <ul class="affiliate-features">
-        <li><strong>Comisiones por referido:</strong> Gana una comisión directa por cada socio que incorpores a la plataforma a través de tu enlace personalizado.</li>
-        <li><strong>Panel de control exclusivo:</strong> Accede a estadísticas en tiempo real, conversiones y el estado de tus comisiones desde tu dashboard de afiliado.</li>
-        <li><strong>Red multinivel:</strong> Benefíciate también cuando tus referidos traigan nuevos socios. Tu red trabaja para ti de forma continua y automática.</li>
-        <li><strong>Materiales de apoyo:</strong> Te proporcionamos creatividades, banners, landing pages y argumentarios adaptados a tu audiencia.</li>
-        <li><strong>Soporte dedicado:</strong> Acceso prioritario al equipo VIP para maximizar el rendimiento de tu programa de afiliación.</li>
-      </ul>
-      <a class="affiliate-cta" href="soporte.html">
-        <i class="fas fa-handshake"></i> Solicitar acceso de afiliado
-      </a>
+  <div class="affiliate-inner affiliate-inner--simple">
+    <div class="affiliate-icon-wrap">
+      <i class="fas fa-handshake"></i>
     </div>
-    <div class="affiliate-visual">
-      <div class="aff-card">
-        <span class="aff-card-ico">💸</span>
-        <span class="aff-card-num">15%</span>
-        <span class="aff-card-label">Comisión directa</span>
-      </div>
-      <div class="aff-card">
-        <span class="aff-card-ico">🔗</span>
-        <span class="aff-card-num">∞</span>
-        <span class="aff-card-label">Niveles de red</span>
-      </div>
-      <div class="aff-card">
-        <span class="aff-card-ico">📊</span>
-        <span class="aff-card-num">24h</span>
-        <span class="aff-card-label">Panel en tiempo real</span>
-      </div>
-      <div class="aff-card">
-        <span class="aff-card-ico">🏆</span>
-        <span class="aff-card-num">VIP</span>
-        <span class="aff-card-label">Soporte prioritario</span>
-      </div>
+    <div class="affiliate-body-simple">
+      <div class="affiliate-eyebrow">Para socios de la plataforma</div>
+      <h2 class="affiliate-title affiliate-title--sm"><span>Programa de</span> Afiliados</h2>
+      <p class="affiliate-desc">
+        ZonaVIP Trends dispone de un <strong>programa de afiliados oficial</strong> para los socios de la plataforma. Si eres creador, marca o profesional digital y quieres promocionar ZonaVIP Trends entre tu audiencia, puedes hacerlo a través de tu enlace de afiliado y recibir una compensación por cada nuevo usuario que se registre y reserve su zona.
+      </p>
+      <a class="affiliate-cta" href="soporte.html">
+        <i class="fas fa-envelope"></i> Solicitar información
+      </a>
     </div>
   </div>
 </div>
@@ -1407,7 +1436,7 @@
           ¿Qué es exactamente ZonaVIP Trends?
           <i class="fas fa-plus"></i>
 </button>
-<div class="faq-a">ZonaVIP Trends es una red de redes publicitaria VIP donde puedes publicar una vez, pagando, y tu contenido queda en el mosaico para siempre. Es una herramienta de monetización, visibilidad y sorteos para marcas, influencers y usuarios que quieren presencia permanente y exclusiva en el ecosistema digital más innovador.</div>
+<div class="faq-a">ZonaVIP Trends es una red de contactos privada y plataforma publicitaria VIP donde publicas una vez y tu contenido queda en el mosaico para siempre. Es una herramienta de visibilidad, promoción y sorteos para marcas, influencers y usuarios que quieren presencia permanente en el ecosistema digital. Además, los creadores pueden tener su propia plataforma conectada al ecosistema global.</div>
 </div>
 <div class="faq-item reveal rd1">
 <button class="faq-q" onclick="toggleFaq(this)">
@@ -1421,35 +1450,35 @@
           ¿Qué gano yo como creador o influencer?
           <i class="fas fa-plus"></i>
 </button>
-<div class="faq-a">Puedes crear tu propio gridd (tu ZonaVIP personalizada) y monetizar directamente la venta de celdas a tus seguidores. Tu ZonaVIP actúa como nodo en la red global, multiplicando tu visibilidad de forma cruzada. Además, accedes al panel de control con estadísticas, analíticas de interacción y herramientas de fidelización de tu comunidad.</div>
+<div class="faq-a">Puedes crear tu propia plataforma ZonaVIP personalizada y monetizarla ofreciendo zonas publicitarias a tus seguidores y marcas colaboradoras. Tu plataforma está conectada al ecosistema global, ampliando tu visibilidad de forma orgánica. Accedes al panel de control con estadísticas, analíticas de interacción y herramientas de fidelización de comunidad.</div>
 </div>
 <div class="faq-item reveal rd3">
 <button class="faq-q" onclick="toggleFaq(this)">
           ¿Cómo funcionan los premios y quién los financia?
           <i class="fas fa-plus"></i>
 </button>
-<div class="faq-a">Los 793 premios que suman 200.000€ están financiados mediante acuerdos publicitarios y colaboraciones con marcas desde el inicio del proyecto. Cada celda participa automáticamente en el sistema de premios sin coste adicional. Los premios se asignan de forma periódica, transparente y auditable por todos los participantes. Las celdas premiadas están distribuidas a lo largo del mosaico.</div>
+<div class="faq-a">Los 793 premios que suman 200.000€ están financiados mediante acuerdos publicitarios y colaboraciones con marcas desde el inicio del proyecto. Cada zona reservada participa automáticamente en el sistema de premios sin coste adicional. Los premios se asignan de forma periódica, transparente y auditable por todos los participantes.</div>
 </div>
 <div class="faq-item reveal rd4">
 <button class="faq-q" onclick="toggleFaq(this)">
-          ¿Qué es la exposición viral cruzada?
+          ¿Cómo funciona la visibilidad entre plataformas?
           <i class="fas fa-plus"></i>
 </button>
-<div class="faq-a">ZonaVIP Trends colabora desde el inicio con varios influencers y marcas. Cada ZonaVIP actúa como un nodo de otra red, creando una red de redes de visualizaciones. El contenido de todos los gridds se agrega en un feed global visible para toda la comunidad. Esto significa que si compras una celda en el gridd de un creador de tecnología, tu contenido también es visto por audiencias de moda, viajes u otros sectores representados en la red.</div>
+<div class="faq-a">ZonaVIP Trends colabora desde el inicio con influencers y marcas. Cada plataforma ZonaVIP está conectada al ecosistema global, de manera que el contenido de todas las plataformas se agrega en un feed accesible para toda la comunidad. Esto significa que si reservas una zona en la plataforma de un creador de tecnología, tu contenido también alcanza audiencias de otros sectores representados en el ecosistema.</div>
 </div>
 <div class="faq-item reveal">
 <button class="faq-q" onclick="toggleFaq(this)">
           ¿Es seguro participar?
           <i class="fas fa-plus"></i>
 </button>
-<div class="faq-a">Sí. Cada celda es garantizada y permanente. Los premios se gestionan de manera transparente y auditable, con campañas de marcas que ya están activas y colaborando en la plataforma. Los pagos se procesan a través de Stripe, pasarela certificada y segura. El modelo es completamente transparente: una sola publicación, un solo pago, para siempre.</div>
+<div class="faq-a">Sí. Cada zona es garantizada y permanente. Los premios se gestionan de manera transparente y auditable, con campañas de marcas ya activas en la plataforma. Los pagos se procesan a través de Stripe, pasarela certificada y segura. El modelo es completamente transparente: una sola publicación, un solo pago, para siempre.</div>
 </div>
 </div><section class="final-section reveal">
 <h2 class="final-title">
 <span class="outline">VISIBILIDAD</span><br/>
 <span class="gold">SIN LÍMITES.</span>
 </h2>
-<p class="final-sub">Compra tu celda, entra en la red de redes y transforma tu visibilidad en oportunidades reales de conexión y premios.</p>
+<p class="final-sub">Reserva tu zona, únete a la red de contactos VIP y transforma tu visibilidad en oportunidades reales de conexión y premios.</p>
 <a class="btn-gold" href="mosaico.html">
   <i class="fas fa-map-marked-alt"></i> Ver Zonas</a>
 </section><footer>
@@ -1463,7 +1492,7 @@
         <span class="footer-brand-name">ZonaVIP Trends</span>
       </div>
       <p class="footer-brand-desc">
-        Red de Redes. Visibilidad permanente. La plataforma publicitaria VIP más exclusiva del ecosistema digital. Una celda. Para siempre.
+        Red de contactos privada y plataforma publicitaria VIP. Una zona. Para siempre. Conecta, promociona y crece en el ecosistema digital más exclusivo.
       </p>
       <div class="footer-social">
         <a href="#" class="footer-social-link instagram" title="Instagram" aria-label="Instagram">
@@ -1504,7 +1533,7 @@
         <li><a href="soporte.html">Programa de Afiliados</a></li>
         <li><a href="#audiencias">Para Marcas</a></li>
         <li><a href="#audiencias">Para Influencers</a></li>
-        <li><a href="#arquitectura">Red de Nodos</a></li>
+        <li><a href="#arquitectura">Visibilidad entre Plataformas</a></li>
         <li><a href="#monetizacion">Modelo de Negocio</a></li>
         <li><a href="soporte.html">Crear mi Gridd</a></li>
       </ul>
@@ -1526,7 +1555,7 @@
 
   <div class="footer-bottom">
     <div class="footer-bottom-left">
-      © 2026 ZonaVIP Trends · Todos los derechos reservados · Red de Redes
+      © 2026 ZonaVIP Trends · Todos los derechos reservados · Red de Contactos VIP
     </div>
     <div class="footer-bottom-right">
       <span class="footer-badge"><i class="fas fa-lock"></i> Pagos seguros con Stripe</span>
