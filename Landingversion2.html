@@ -74,9 +74,9 @@
       background: linear-gradient(135deg, var(--gold-lt), var(--gold));
       padding: 9px 22px; border-radius: 6px; text-decoration: none;
       transition: transform .2s var(--ease), box-shadow .2s;
-      box-shadow: 0 0 20px rgba(201,168,76,0.2);
+      box-shadow: 0 2px 12px rgba(201,168,76,0.12);
     }
-    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(201,168,76,0.4); color: #000; }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 4px 24px rgba(201,168,76,0.22); color: #000; }
 
 
 
@@ -128,12 +128,12 @@
     .hero-tag {
       display: inline-flex; align-items: center; gap: 8px;
       font-family: var(--fm); font-size: .68rem;
-      letter-spacing: .25em; text-transform: uppercase; color: var(--cyan);
-      border: 1px solid var(--bord-c); background: rgba(0,229,255,0.04);
+      letter-spacing: .25em; text-transform: uppercase; color: var(--gold-lt);
+      border: 1px solid rgba(201,168,76,0.18); background: rgba(201,168,76,0.04);
       padding: 7px 18px; border-radius: 99px; margin-bottom: 36px;
       opacity: 0; animation: fadeUp .6s .1s forwards;
     }
-    .hero-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); animation: blink 1.8s infinite; }
+    .hero-tag::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); animation: blink 2.4s infinite; }
     @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
     .hero-title {
@@ -146,7 +146,7 @@
     .hero-title .gold {
       background: linear-gradient(135deg, var(--gold-lt) 10%, var(--gold) 60%);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      filter: drop-shadow(0 0 40px rgba(201,168,76,0.35));
+      filter: drop-shadow(0 0 18px rgba(201,168,76,0.18));
     }
     .hero-slogan {
       font-family: var(--fb); font-size: clamp(1rem,2.2vw,1.3rem);
@@ -173,11 +173,11 @@
       background: linear-gradient(135deg, var(--gold-lt), var(--gold));
       border: none; border-radius: 8px; cursor: pointer; text-decoration: none;
       position: relative; overflow: hidden;
-      box-shadow: 0 0 30px rgba(201,168,76,0.22);
+      box-shadow: 0 2px 14px rgba(201,168,76,0.14);
       transition: transform .2s var(--ease), box-shadow .2s;
     }
     .btn-gold::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.2),transparent); opacity:0; transition:opacity .2s; }
-    .btn-gold:hover { transform:translateY(-3px); box-shadow:0 0 55px rgba(201,168,76,0.45); color:#000; }
+    .btn-gold:hover { transform:translateY(-2px); box-shadow:0 4px 24px rgba(201,168,76,0.22); color:#000; }
     .btn-gold:hover::after { opacity:1; }
     .btn-ghost {
       display: inline-flex; align-items: center; gap: 10px;
@@ -198,7 +198,7 @@
     }
     .stat { padding: 22px 36px; text-align: center; border-right: 1px solid var(--bord); }
     .stat:last-child { border-right: none; }
-    .stat-num { font-family: var(--fh); font-size: 2.2rem; letter-spacing: .04em; color: var(--gold); display: block; filter: drop-shadow(0 0 12px rgba(201,168,76,0.3)); }
+    .stat-num { font-family: var(--fh); font-size: 2.2rem; letter-spacing: .04em; color: var(--gold); display: block; }
     .stat-label { font-family: var(--fm); font-size: .62rem; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; margin-top: 4px; display: block; }
 
     .scroll-hint {
@@ -223,7 +223,7 @@
     .counter-label { font-family: var(--fm); font-size: .68rem; letter-spacing: .18em; color: var(--muted2); text-transform: uppercase; white-space: nowrap; }
     .counter-bar-wrap { flex: 1; min-width: 120px; }
     .counter-track { height: 5px; background: rgba(255,255,255,0.05); border-radius: 99px; overflow: hidden; }
-    .counter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt)); border-radius: 99px; transition: width 2s cubic-bezier(.2,0,.2,1); box-shadow: 0 0 10px rgba(201,168,76,0.4); }
+    .counter-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt)); border-radius: 99px; transition: width 2s cubic-bezier(.2,0,.2,1); box-shadow: none; }
     .counter-nums { font-family: var(--fm); font-size: .78rem; color: var(--muted2); white-space: nowrap; }
     .counter-nums b { color: var(--gold); }
 
@@ -269,11 +269,10 @@
       letter-spacing: .06em; text-transform: uppercase; color: var(--gold);
       background: rgba(6,8,15,0.85); backdrop-filter: blur(16px);
       border: 1px solid var(--gold); border-radius: 8px;
-      box-shadow: 0 0 40px rgba(201,168,76,0.18);
-      animation: pillPulse 2.5s ease-in-out infinite; pointer-events: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); pointer-events: none;
     }
     .iframe-pill i { color: var(--cyan); }
-    @keyframes pillPulse { 0%,100%{box-shadow:0 0 40px rgba(201,168,76,0.18);} 50%{box-shadow:0 0 70px rgba(201,168,76,0.38);} }
+    @keyframes pillPulse { 0%,100%{opacity:1} }
     .iframe-foot {
       text-align: center; margin-top: 14px;
       font-family: var(--fm); font-size: .64rem; letter-spacing: .18em;
@@ -513,7 +512,7 @@
       color: #000; padding: 3px 9px; border-radius: 4px; font-weight: 500;
     }
     .prize-ico { font-size: 2.4rem; margin-bottom: 16px; }
-    .pc-gold   .prize-ico { color: var(--gold); filter: drop-shadow(0 0 12px rgba(201,168,76,0.5)); }
+    .pc-gold   .prize-ico { color: var(--gold); }
     .pc-silver .prize-ico { color: #AAB8CC; }
     .pc-vip    .prize-ico { color: #7A9FFF; }
     .pc-mini   .prize-ico { color: #3ACA5A; }
@@ -611,7 +610,7 @@
       background: radial-gradient(ellipse 55% 55% at 50% 50%, rgba(201,168,76,0.07) 0%, transparent 70%);
     }
     .final-title { font-family: var(--fh); font-size: clamp(3rem, 9vw, 8rem); line-height: .9; letter-spacing: .03em; margin-bottom: 22px; }
-    .final-title .gold { background: linear-gradient(135deg, var(--gold-lt), var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 40px rgba(201,168,76,0.3)); }
+    .final-title .gold { background: linear-gradient(135deg, var(--gold-lt), var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
     .final-title .outline { -webkit-text-stroke: 2px rgba(201,168,76,0.3); -webkit-text-fill-color:transparent; }
     .final-sub { font-size: clamp(.95rem,2vw,1.15rem); color: var(--muted2); margin-bottom: 44px; font-weight: 300; font-style: italic; }
 
@@ -757,10 +756,10 @@
       letter-spacing: .06em; text-transform: uppercase; color: #000;
       background: linear-gradient(135deg, var(--gold-lt), var(--gold));
       border-radius: 8px; text-decoration: none;
-      box-shadow: 0 0 30px rgba(201,168,76,0.22);
+      box-shadow: 0 2px 14px rgba(201,168,76,0.14);
       transition: transform .2s var(--ease), box-shadow .2s;
     }
-    .affiliate-cta:hover { transform: translateY(-3px); box-shadow: 0 0 55px rgba(201,168,76,0.45); color: #000; }
+    .affiliate-cta:hover { transform: translateY(-2px); box-shadow: 0 4px 24px rgba(201,168,76,0.22); color: #000; }
     .affiliate-visual {
       display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
     }
@@ -805,7 +804,7 @@
       width: 48px; height: 48px; border-radius: 50%;
       overflow: hidden; flex-shrink: 0;
       border: 1.5px solid rgba(201,168,76,0.4);
-      box-shadow: 0 0 20px rgba(201,168,76,0.2);
+      box-shadow: 0 2px 12px rgba(201,168,76,0.12);
       background: #000;
     }
     .footer-brand-logo-img img {
@@ -901,6 +900,136 @@
       .footer-social { justify-content: flex-start; }
       .footer-brand-desc { max-width: 100%; }
     }
+
+    /* ── PRIZES TABLE (clean redesign) ── */
+    .prizes-clean { max-width: 860px; margin: 0 auto; }
+    .prizes-summary {
+      display: flex; align-items: center; justify-content: center;
+      flex-wrap: wrap; gap: 0;
+      background: var(--card); border: 1px solid var(--bord);
+      border-radius: 12px 12px 0 0; padding: 28px 32px;
+      backdrop-filter: blur(16px);
+    }
+    .ps-stat { text-align: center; padding: 0 32px; flex: 1; min-width: 120px; }
+    .ps-num {
+      font-family: var(--fh); font-size: 2rem; letter-spacing: .04em;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      display: block; margin-bottom: 4px;
+    }
+    .ps-label { font-family: var(--fm); font-size: .58rem; letter-spacing: .18em; color: var(--muted); text-transform: uppercase; }
+    .ps-divider { width: 1px; height: 40px; background: var(--bord); flex-shrink: 0; }
+    .prizes-table {
+      border: 1px solid var(--bord); border-top: none;
+      border-radius: 0 0 12px 12px; overflow: hidden;
+      background: rgba(9,12,24,0.6); backdrop-filter: blur(12px);
+    }
+    .pt-header {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 10px 24px;
+      background: rgba(201,168,76,0.06); border-bottom: 1px solid var(--bord);
+      font-family: var(--fm); font-size: .58rem; letter-spacing: .18em;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .pt-row {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background .2s; align-items: center;
+    }
+    .pt-row:hover { background: rgba(201,168,76,0.04); }
+    .pt-row--top { background: rgba(201,168,76,0.04); }
+    .pt-footer {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 16px 24px;
+      background: rgba(201,168,76,0.06); border-top: 1px solid var(--bord);
+      align-items: center;
+    }
+    .pt-level { font-size: .86rem; color: var(--white); display: flex; align-items: center; gap: 10px; }
+    .pt-level i { color: var(--gold); font-size: .8rem; width: 16px; text-align: center; }
+    .pt-amount { font-family: var(--fh); font-size: 1.15rem; letter-spacing: .03em; }
+    .pt-qty { font-family: var(--fm); font-size: .72rem; color: var(--muted2); }
+    .pt-total { font-family: var(--fm); font-size: .78rem; color: var(--muted2); }
+    .gold-text { background: linear-gradient(135deg, var(--gold-lt), var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    @media(max-width:640px) {
+      .prizes-summary { padding: 20px 16px; }
+      .ps-stat { padding: 0 12px; }
+      .ps-divider { display: none; }
+      .pt-header, .pt-row, .pt-footer { grid-template-columns: 1.6fr 1fr 0.6fr 0.8fr; padding: 12px 14px; }
+      .pt-level { font-size: .75rem; gap: 6px; }
+      .pt-amount { font-size: .95rem; }
+    }
+
+    /* ── SOCIAL PROOF / TRUST ── */
+    .trust-section {
+      padding: 72px 24px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      background: rgba(9,12,24,0.4);
+    }
+    .trust-inner { max-width: 960px; margin: 0 auto; }
+    .trust-label {
+      font-family: var(--fm); font-size: .62rem; letter-spacing: .28em;
+      color: var(--muted); text-transform: uppercase; text-align: center; margin-bottom: 36px;
+    }
+    .trust-logos {
+      display: flex; justify-content: center; align-items: center;
+      gap: 28px; flex-wrap: wrap; margin-bottom: 52px;
+    }
+    .trust-logo-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      opacity: .5; transition: opacity .25s;
+    }
+    .trust-logo-item:hover { opacity: 1; }
+    .tl-circle {
+      width: 54px; height: 54px; border-radius: 12px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fh); font-size: 1.5rem; color: var(--muted2);
+    }
+    .trust-logo-item span {
+      font-family: var(--fm); font-size: .54rem; letter-spacing: .12em;
+      color: var(--muted); text-transform: uppercase; white-space: nowrap;
+    }
+    .trust-testimonial {
+      max-width: 680px; margin: 0 auto 48px;
+      background: var(--card); border: 1px solid var(--bord);
+      border-radius: 16px; padding: 36px 40px;
+      backdrop-filter: blur(16px); position: relative;
+    }
+    .trust-testimonial::before {
+      content: ''; position: absolute; top: 0; left: 40px; right: 40px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+    }
+    .tt-icon { color: var(--gold); font-size: .9rem; margin-bottom: 14px; display: block; opacity: .6; }
+    .tt-quote p { font-size: 1rem; color: var(--white); line-height: 1.85; font-style: italic; font-weight: 300; margin-bottom: 24px; }
+    .tt-author { display: flex; align-items: center; gap: 14px; }
+    .tt-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04));
+      border: 1px solid rgba(201,168,76,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fh); font-size: 1.1rem; color: var(--gold); flex-shrink: 0;
+    }
+    .tt-author strong { display: block; font-size: .9rem; color: var(--white); margin-bottom: 2px; }
+    .tt-author span { font-family: var(--fm); font-size: .6rem; letter-spacing: .1em; color: var(--muted); }
+    .trust-badges {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;
+    }
+    .tb-item {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--fm); font-size: .6rem; letter-spacing: .1em;
+      color: var(--muted2); text-transform: uppercase;
+      padding: 8px 16px; border-radius: 6px;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .tb-item i { color: var(--gold); font-size: .7rem; }
+    @media(max-width:600px) {
+      .trust-testimonial { padding: 24px 20px; }
+      .trust-logos { gap: 16px; }
+      .tb-item { font-size: .56rem; padding: 7px 10px; }
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 3px; }
   </style>
@@ -1048,7 +1177,61 @@
           </div>
 </div>
 </div>
-</section><section class="value-section" id="beneficios">
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="trust-section reveal">
+  <div class="trust-inner">
+    <div class="trust-label">Colaboran con nosotros</div>
+    <div class="trust-logos">
+      <div class="trust-logo-item">
+        <div class="tl-circle">M</div>
+        <span>Marca Digital</span>
+      </div>
+      <div class="trust-logo-item">
+        <div class="tl-circle">C</div>
+        <span>Creator Studio</span>
+      </div>
+      <div class="trust-logo-item">
+        <div class="tl-circle">A</div>
+        <span>AgencyPro</span>
+      </div>
+      <div class="trust-logo-item">
+        <div class="tl-circle">B</div>
+        <span>BrandConnect</span>
+      </div>
+      <div class="trust-logo-item">
+        <div class="tl-circle">E</div>
+        <span>Ecommerce VIP</span>
+      </div>
+      <div class="trust-logo-item">
+        <div class="tl-circle">S</div>
+        <span>Social Hub</span>
+      </div>
+    </div>
+    <div class="trust-testimonial">
+      <div class="tt-quote">
+        <i class="fas fa-quote-left tt-icon"></i>
+        <p>"Reservar mi zona en ZonaVIP Trends fue la decisión más inteligente para mi marca. Visibilidad permanente, comunidad real y sin pagar mes a mes. Una inversión que se paga sola."</p>
+      </div>
+      <div class="tt-author">
+        <div class="tt-avatar">A</div>
+        <div>
+          <strong>Ana Rodríguez</strong>
+          <span>Fundadora · BrandConnect</span>
+        </div>
+      </div>
+    </div>
+    <div class="trust-badges">
+      <div class="tb-item"><i class="fas fa-lock"></i> Pagos seguros con Stripe</div>
+      <div class="tb-item"><i class="fas fa-shield-alt"></i> Zonas garantizadas y permanentes</div>
+      <div class="tb-item"><i class="fas fa-eye"></i> Premios auditables públicamente</div>
+      <div class="tb-item"><i class="fas fa-headset"></i> Soporte dedicado VIP</div>
+    </div>
+  </div>
+</section>
+
+<section class="value-section" id="beneficios">
 <div class="value-inner">
 <div class="value-headline reveal">
 <div class="sec-eyebrow">Más que publicidad</div>
@@ -1353,61 +1536,97 @@
 
     
 </section><section class="sec-wrap" id="premios">
-<div class="sec-eyebrow reveal">Recompensas</div>
-<h2 class="sec-title reveal">🏆 <span class="gold">Premios</span> en juego.</h2>
-<p class="reveal" style="color:var(--muted2);font-size:.9rem;margin-bottom:40px;margin-top:-24px">
-        Los premios están financiados mediante acuerdos publicitarios y colaboraciones con marcas desde el inicio del proyecto. Cada zona reservada participa de forma automática.
-      </p>
-<div class="prizes-grid">
-<div class="prize-card pc-gold reveal rd1">
-<span class="prize-badge-tag">GRAN PREMIO</span>
-<div class="prize-ico"><i class="fas fa-crown"></i></div>
-<div class="prize-name">Zona Dorada</div>
-<div class="prize-amount">€50,000</div>
-<span class="prize-qty">1 Premio</span>
-</div>
-<div class="prize-card pc-silver reveal rd2">
-<div class="prize-ico"><i class="fas fa-medal"></i></div>
-<div class="prize-name">Zona Plateada</div>
-<div class="prize-amount">€20,000</div>
-<span class="prize-qty">1 Premio</span>
-</div>
-<div class="prize-card pc-vip reveal rd3">
-<div class="prize-ico"><i class="fas fa-gem"></i></div>
-<div class="prize-name">Zona VIP</div>
-<div class="prize-amount">€10,000</div>
-<span class="prize-qty">1 Premio</span>
-</div>
-<div class="prize-card pc-mini reveal rd4">
-<div class="prize-ico"><i class="fas fa-star"></i></div>
-<div class="prize-name">Zonas Premium</div>
-<div class="prize-amount">€3,000</div>
-<span class="prize-qty">10 Premios</span>
-</div>
-<div class="prize-card pc-mini reveal rd4">
-<div class="prize-ico"><i class="fas fa-star"></i></div>
-<div class="prize-name">Zonas Premium</div>
-<div class="prize-amount">€1,000</div>
-<span class="prize-qty">10 Premios</span>
-</div>
-<div class="prize-card pc-gold reveal rd4">
-<div class="prize-ico"><i class="fas fa-bolt"></i></div>
-<div class="prize-name">Zonas Top</div>
-<div class="prize-amount">€500</div>
-<span class="prize-qty">50 Premios</span>
-</div>
-<div class="prize-card pc-silver reveal rd2">
-<div class="prize-ico"><i class="fas fa-coins"></i></div>
-<div class="prize-name">Mini Zonas</div>
-<div class="prize-amount">€250</div>
-<span class="prize-qty">100 Premios</span>
-</div>
-<div class="prize-card pc-silver reveal rd2">
-<div class="prize-ico"><i class="fas fa-coins"></i></div>
-<div class="prize-name">Mini Zonas</div>
-<div class="prize-amount">€100</div>
-<span class="prize-qty">600 Premios</span>
-</div>
+<div class="sec-eyebrow reveal">Transparencia total</div>
+<h2 class="sec-title reveal"><span class="gold">Estructura</span> de premios</h2>
+<p class="reveal" style="color:var(--muted2);font-size:.95rem;margin-bottom:48px;margin-top:-24px;max-width:680px">
+  Los premios están financiados mediante acuerdos publicitarios con marcas colaboradoras desde el inicio del proyecto. Cada zona reservada participa de forma automática, sin coste adicional. La distribución es pública, periódica y auditable.
+</p>
+
+<div class="prizes-clean reveal">
+  <div class="prizes-summary">
+    <div class="ps-stat">
+      <span class="ps-num">793</span>
+      <span class="ps-label">Premios totales</span>
+    </div>
+    <div class="ps-divider"></div>
+    <div class="ps-stat">
+      <span class="ps-num">200.000€</span>
+      <span class="ps-label">En premios acumulados</span>
+    </div>
+    <div class="ps-divider"></div>
+    <div class="ps-stat">
+      <span class="ps-num">100%</span>
+      <span class="ps-label">Financiado por marcas</span>
+    </div>
+    <div class="ps-divider"></div>
+    <div class="ps-stat">
+      <span class="ps-num"><i class="fas fa-lock" style="font-size:1.4rem"></i></span>
+      <span class="ps-label">Auditable públicamente</span>
+    </div>
+  </div>
+
+  <div class="prizes-table">
+    <div class="pt-header">
+      <span>Nivel</span>
+      <span>Premio</span>
+      <span>Cantidad</span>
+      <span>Total</span>
+    </div>
+    <div class="pt-row pt-row--top reveal rd1">
+      <span class="pt-level"><i class="fas fa-crown"></i> Zona Dorada</span>
+      <span class="pt-amount gold-text">€50.000</span>
+      <span class="pt-qty">× 1</span>
+      <span class="pt-total">€50.000</span>
+    </div>
+    <div class="pt-row reveal rd2">
+      <span class="pt-level"><i class="fas fa-medal"></i> Zona Plateada</span>
+      <span class="pt-amount" style="color:#AAB8CC">€20.000</span>
+      <span class="pt-qty">× 1</span>
+      <span class="pt-total" style="color:#AAB8CC">€20.000</span>
+    </div>
+    <div class="pt-row reveal rd3">
+      <span class="pt-level"><i class="fas fa-gem"></i> Zona VIP</span>
+      <span class="pt-amount" style="color:#7A9FFF">€10.000</span>
+      <span class="pt-qty">× 1</span>
+      <span class="pt-total" style="color:#7A9FFF">€10.000</span>
+    </div>
+    <div class="pt-row reveal rd4">
+      <span class="pt-level"><i class="fas fa-star"></i> Zonas Premium</span>
+      <span class="pt-amount" style="color:#3ACA5A">€3.000</span>
+      <span class="pt-qty">× 10</span>
+      <span class="pt-total" style="color:#3ACA5A">€30.000</span>
+    </div>
+    <div class="pt-row reveal">
+      <span class="pt-level"><i class="fas fa-star"></i> Zonas Premium</span>
+      <span class="pt-amount" style="color:#3ACA5A">€1.000</span>
+      <span class="pt-qty">× 10</span>
+      <span class="pt-total" style="color:#3ACA5A">€10.000</span>
+    </div>
+    <div class="pt-row reveal rd1">
+      <span class="pt-level"><i class="fas fa-bolt"></i> Zonas Top</span>
+      <span class="pt-amount gold-text">€500</span>
+      <span class="pt-qty">× 50</span>
+      <span class="pt-total gold-text">€25.000</span>
+    </div>
+    <div class="pt-row reveal rd2">
+      <span class="pt-level"><i class="fas fa-coins"></i> Zonas Estándar</span>
+      <span class="pt-amount" style="color:var(--muted2)">€250</span>
+      <span class="pt-qty">× 100</span>
+      <span class="pt-total" style="color:var(--muted2)">€25.000</span>
+    </div>
+    <div class="pt-row reveal rd3">
+      <span class="pt-level"><i class="fas fa-coins"></i> Zonas Acceso</span>
+      <span class="pt-amount" style="color:var(--muted2)">€100</span>
+      <span class="pt-qty">× 600</span>
+      <span class="pt-total" style="color:var(--muted2)">€60.000</span>
+    </div>
+    <div class="pt-footer reveal">
+      <span class="pt-level" style="color:var(--muted)">Pago único · Sin cuotas · Participación automática</span>
+      <span></span>
+      <span class="pt-qty" style="color:var(--muted)">793 total</span>
+      <span class="pt-total gold-text" style="font-family:var(--fh);font-size:1.3rem">200.000€</span>
+    </div>
+  </div>
 </div>
 </section><div class="affiliate-section">
 <div class="affiliate-banner reveal">
@@ -1576,13 +1795,13 @@
     function randomBetween(a, b) { return a + Math.random() * (b - a); }
     function initParticles() {
       particles = [];
-      var count = Math.floor((W * H) / 18000);
+      var count = Math.floor((W * H) / 38000);
       for (var i = 0; i < count; i++) {
         particles.push({
           x: randomBetween(0, W), y: randomBetween(0, H),
-          r: randomBetween(0.6, 2.2),
-          vx: randomBetween(-0.12, 0.12), vy: randomBetween(-0.12, 0.12),
-          alpha: randomBetween(0.1, 0.55), gold: Math.random() > 0.72
+          r: randomBetween(0.5, 1.4),
+          vx: randomBetween(-0.05, 0.05), vy: randomBetween(-0.05, 0.05),
+          alpha: randomBetween(0.04, 0.18), gold: Math.random() > 0.55
         });
       }
     }
@@ -1591,21 +1810,21 @@
       var cellSize = 60;
       ctx.lineWidth = 0.4;
       for (var x = 0; x < W; x += cellSize) {
-        ctx.beginPath(); ctx.strokeStyle = 'rgba(201,168,76,0.04)';
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(201,168,76,0.025)';
         ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
       }
       for (var y = 0; y < H; y += cellSize) {
-        ctx.beginPath(); ctx.strokeStyle = 'rgba(201,168,76,0.04)';
+        ctx.beginPath(); ctx.strokeStyle = 'rgba(201,168,76,0.025)';
         ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
       }
       for (var xi = 0; xi < W; xi += cellSize) {
         for (var yi = 0; yi < H; yi += cellSize) {
           if (Math.random() > 0.994) {
             ctx.beginPath(); ctx.arc(xi, yi, 1.5, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0,229,255,0.6)'; ctx.fill();
+            ctx.fillStyle = 'rgba(201,168,76,0.18)'; ctx.fill();
           } else if (Math.random() > 0.997) {
             ctx.beginPath(); ctx.arc(xi, yi, 1.2, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(201,168,76,0.5)'; ctx.fill();
+            ctx.fillStyle = 'rgba(201,168,76,0.12)'; ctx.fill();
           }
         }
       }
@@ -1614,10 +1833,10 @@
           var dx = particles[i].x - particles[j].x;
           var dy = particles[i].y - particles[j].y;
           var dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist < 130) {
-            var alpha = (1 - dist / 130) * 0.07;
+          if (dist < 90) {
+            var alpha = (1 - dist / 90) * 0.035;
             ctx.beginPath();
-            ctx.strokeStyle = particles[i].gold ? 'rgba(201,168,76,' + alpha + ')' : 'rgba(0,229,255,' + alpha * 0.7 + ')';
+            ctx.strokeStyle = 'rgba(201,168,76,' + alpha + ')';
             ctx.lineWidth = 0.5;
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
@@ -1628,7 +1847,7 @@
       for (var i = 0; i < particles.length; i++) {
         var p = particles[i];
         ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.gold ? 'rgba(201,168,76,' + p.alpha + ')' : 'rgba(0,229,255,' + p.alpha * 0.6 + ')';
+        ctx.fillStyle = 'rgba(201,168,76,' + p.alpha + ')';
         ctx.fill();
         p.x += p.vx; p.y += p.vy;
         if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
