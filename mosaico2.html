@@ -6,7 +6,41 @@
   <title>ZonaVIP Trends — Mosaico</title>  
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>  
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
-  <script src="https://js.stripe.com/v3/"></script>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+             sendPasswordResetEmail, onAuthStateChanged, signOut }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+    // ── CONFIGURA AQUÍ TU PROYECTO FIREBASE ──────────────────────────────────
+    // Firebase Console → tu proyecto → Configuración → SDK de Firebase
+    const firebaseConfig = {
+      apiKey:            "TU_API_KEY",
+      authDomain:        "TU_PROYECTO.firebaseapp.com",
+      projectId:         "TU_PROYECTO",
+      storageBucket:     "TU_PROYECTO.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId:             "TU_APP_ID"
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Exponer en window para que el código no-module pueda usarlo
+    window._fbAuth    = auth;
+    window._fbSignIn  = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+    window._fbSignUp  = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
+    window._fbReset   = (email)       => sendPasswordResetEmail(auth, email);
+    window._fbSignOut = ()            => signOut(auth);
+    window._fbOnAuth  = (cb)          => onAuthStateChanged(auth, cb);
+
+    // Arrancar listener de sesión en cuanto Firebase cargue
+    onAuthStateChanged(auth, function(user) {
+      if (window._onAuthReady) window._onAuthReady(user);
+    });
+  </script>
   <style>  
 :root {  
       --bg:      #06080F;  
@@ -428,7 +462,75 @@
     #hint-movil { display: none; position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 400; font-family: var(--fm); font-size: .62rem; letter-spacing: .12em; color: var(--muted2); text-transform: uppercase; background: rgba(6,8,15,0.9); backdrop-filter: blur(12px); border: 1px solid var(--border); padding: 8px 16px; border-radius: 99px; white-space: nowrap; animation: hintFade 3s ease forwards; }
     @keyframes hintFade { 0%,70%{opacity:1} 100%{opacity:0} }
 
-    /* ── SELECTOR DE MÉTODO DE PAGO ── */
+    /* Separador VIP en el nav dropdown */
+    .nav-divider { height: 1px; background: rgba(201,168,76,0.12); margin: 4px 0; }
+    .nav-item.nav-vip-item .nav-icon { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.25); color: var(--gold); }
+
+    /* ── MODAL VIP ── */
+    #modal-vip .modal-panel { max-width: 400px; }
+    .vip-tabs {
+      display: flex; border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .vip-tab {
+      flex: 1; padding: 10px; text-align: center;
+      font-family: var(--fm); font-size: .72rem; letter-spacing: .06em;
+      color: var(--muted2); cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all .2s; text-transform: uppercase;
+    }
+    .vip-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .vip-tab:hover:not(.active) { color: var(--white); }
+
+    /* Panel de sesión activa dentro del modal */
+    #vip-panel-sesion { display: none; }
+    #vip-panel-login  { display: block; }
+    #vip-panel-reset  { display: none; }
+
+    .vip-user-card {
+      background: rgba(201,168,76,0.06); border: 1px solid var(--border);
+      border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 18px;
+    }
+    .vip-user-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; color: #000; font-weight: 700;
+      margin: 0 auto 10px;
+    }
+    .vip-user-email {
+      font-family: var(--fm); font-size: .78rem; color: var(--white);
+      margin-bottom: 4px; word-break: break-all;
+    }
+    .vip-user-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 20px; padding: 3px 10px;
+      font-family: var(--fm); font-size: .62rem; color: var(--gold);
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+    .vip-nav-links {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;
+    }
+    .vip-nav-link {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 14px 10px;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; text-decoration: none;
+      font-family: var(--fb); font-size: .75rem; color: var(--muted2);
+      transition: all .2s;
+    }
+    .vip-nav-link:hover { background: rgba(201,168,76,0.08); border-color: rgba(201,168,76,0.3); color: var(--white); }
+    .vip-nav-link i { font-size: 1.1rem; color: var(--gold); }
+
+    /* Separador VIP en el nav dropdown */
+    .nav-divider {
+      height: 1px; background: rgba(201,168,76,0.12); margin: 4px 0;
+    }
+    .nav-item.nav-vip-item .nav-icon {
+      background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.25); color: var(--gold);
+    }
+
+    /* ── MODAL VIP ── */
     .pay-method-label {
       font-size: .72rem; color: var(--muted2); display: block;
       margin-bottom: 10px; margin-top: 4px;
@@ -468,24 +570,17 @@
     .pay-method-btn.stripe-btn.selected { border-color: #635BFF; background: rgba(99,91,255,0.08); }
     .pay-method-btn.stripe-btn.selected::before { color: #635BFF; }
 
-    /* Stripe card form */
-    #stripe-card-wrap {
-      display: none; margin-bottom: 14px;
+    #btn-pagar-paypal {
+      width: 100%; padding: 13px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      border: none; border-radius: 8px;
+      font-family: var(--fb); font-size: .88rem; font-weight: 700; color: #000;
+      cursor: pointer; box-shadow: 0 4px 20px rgba(201,168,76,0.2);
+      transition: transform .2s, box-shadow .2s;
     }
-    #stripe-card-wrap.visible { display: block; }
-    #stripe-card-element {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 12px 14px;
-      transition: border-color .2s;
-    }
-    #stripe-card-element.StripeElement--focus { border-color: #635BFF; }
-    #stripe-card-element.StripeElement--invalid { border-color: #ff6b6b; }
-    #st-stripe {
-      font-size: .72rem; color: #ff9090;
-      margin-bottom: 10px; display: none;
-      font-family: var(--fm);
-    }
+    #btn-pagar-paypal:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,0.4); }
+    #btn-pagar-paypal:disabled { opacity: .45; cursor: not-allowed; transform: none; }
     #btn-pagar-stripe {
       width: 100%; padding: 13px;
       display: none; align-items: center; justify-content: center; gap: 8px;
@@ -498,7 +593,6 @@
     #btn-pagar-stripe.visible { display: flex; }
     #btn-pagar-stripe:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(99,91,255,0.45); }
     #btn-pagar-stripe:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-    #btn-pagar-paypal {
       width: 100%; padding: 13px;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       background: linear-gradient(135deg, var(--gold-lt), var(--gold));
@@ -529,7 +623,7 @@
 
   <!-- MENÚ NAVEGACIÓN -->
   <div id="nav-menu-wrap">
-    <button id="btn-comprar"  onclick="activar()"><i class="fas fa-mouse-pointer"></i> Elegir zona</button>
+    <button id="btn-comprar" onclick="activar()"><i class="fas fa-mouse-pointer"></i> Elegir zona</button>
     <button id="btn-menu" onclick="toggleMenu()">
       <i class="fas fa-bars"></i>
       <span>Menú</span>
@@ -537,13 +631,19 @@
     </button>
     <div id="nav-dropdown">
       <div class="nav-header">Navegación</div>
-       <a class="nav-item" href="mosaico.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Mosaico</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="mosaico.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Mosaico</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="feed.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Modo feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="comunidad.html"><span class="nav-icon"><i class="fab fa-discord"></i></span><span class="nav-item-label">Comunidad</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="index.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-    </a>
+      <div class="nav-divider"></div>
+      <!-- VIP: cambia según estado de sesión -->
+      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
+        <span class="nav-icon"><i class="fas fa-crown"></i></span>
+        <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
+        <i class="fas fa-chevron-right nav-item-arrow"></i>
+      </a>
     </div>
   </div>
 </div>
@@ -610,19 +710,13 @@
       </button>
     </div>
 
-    <!-- Formulario tarjeta Stripe (oculto hasta seleccionar) -->
-    <div id="stripe-card-wrap">
-      <div id="stripe-card-element"></div>
-      <div id="st-stripe"></div>
-    </div>
-
     <!-- Botón PayPal -->
     <button id="btn-pagar-paypal" onclick="pagarPayPal()">
       <i class="fab fa-paypal"></i> Pagar con PayPal
     </button>
-    <!-- Botón Stripe -->
+    <!-- Botón Stripe — redirige al Checkout de Stripe -->
     <button id="btn-pagar-stripe" onclick="pagarStripe()">
-      <i class="fas fa-lock" style="font-size:.75rem"></i> Pagar con tarjeta
+      <i class="fas fa-credit-card" style="font-size:.85rem"></i> Pagar con tarjeta
     </button>
 
     <button class="btn-secondary" onclick="simularPago()">⚡ Simular pago (prueba el flujo completo)</button>
@@ -723,6 +817,78 @@
 
 <div id="hint-movil"></div>
 
+<!-- MODAL VIP LOGIN / SESIÓN -->
+<div class="modal-bg" id="modal-vip">
+  <div class="modal-panel">
+    <button class="modal-close" onclick="cerrarModal('modal-vip')"><i class="fas fa-times"></i></button>
+
+    <!-- ── PANEL: SIN SESIÓN ── -->
+    <div id="vip-panel-login">
+      <div class="modal-title"><i class="fas fa-crown" style="color:var(--gold);margin-right:8px;font-size:1rem"></i>Acceso VIP</div>
+      <div class="modal-sub">Inicia sesión con el email que usaste al pagar tu zona.</div>
+
+      <div class="vip-tabs">
+        <div class="vip-tab active" id="tab-login" onclick="cambiarTabVip('login')">Iniciar sesión</div>
+        <div class="vip-tab" id="tab-reset" onclick="cambiarTabVip('reset')">Recuperar acceso</div>
+      </div>
+
+      <!-- Formulario login -->
+      <div id="vip-form-login">
+        <label class="campo-label" for="vip-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email"/>
+        <label class="campo-label" for="vip-pass">Contraseña</label>
+        <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')loginVip()"/>
+        <div class="status" id="st-vip-login"></div>
+        <button class="btn-primary" id="btn-login-vip" onclick="loginVip()">
+          <i class="fas fa-sign-in-alt"></i> Entrar
+        </button>
+        <p style="font-size:.68rem;color:var(--muted2);text-align:center;margin-top:12px;font-family:var(--fm)">
+          ¿Primera vez? Tu cuenta se creó automáticamente al pagar.<br>
+          Usa "Recuperar acceso" para establecer tu contraseña.
+        </p>
+      </div>
+
+      <!-- Formulario reset -->
+      <div id="vip-form-reset" style="display:none">
+        <div class="modal-sub" style="margin-bottom:16px">Introduce el email con el que pagaste y te enviaremos un enlace para crear tu contraseña.</div>
+        <label class="campo-label" for="vip-reset-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')resetVip()"/>
+        <div class="status" id="st-vip-reset"></div>
+        <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()">
+          <i class="fas fa-paper-plane"></i> Enviar enlace
+        </button>
+        <button class="btn-secondary" onclick="cambiarTabVip('login')">← Volver al login</button>
+      </div>
+    </div>
+
+    <!-- ── PANEL: CON SESIÓN ACTIVA ── -->
+    <div id="vip-panel-sesion">
+      <div class="modal-title">Mi cuenta VIP</div>
+      <div class="vip-user-card">
+        <div class="vip-user-icon" id="vip-sesion-icon">V</div>
+        <div class="vip-user-email" id="vip-sesion-email">—</div>
+        <div class="vip-user-badge"><i class="fas fa-crown"></i> Miembro VIP</div>
+      </div>
+      <div class="vip-nav-links">
+        <a class="vip-nav-link" href="paneldecontrol.html">
+          <i class="fas fa-sliders-h"></i>
+          Panel de control
+        </a>
+        <a class="vip-nav-link" href="comunidad.html">
+          <i class="fab fa-discord"></i>
+          Comunidad
+        </a>
+      </div>
+      <div class="status" id="st-vip-sesion"></div>
+      <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px">
+        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════
 //  Todo el JS en un único bloque — orden estricto:
@@ -747,15 +913,13 @@ var CFG = {
   API_BASE:   '/api',
   GH_REPOS:   ['TU_USUARIO/mosaico-imgs-1'],   // cambia TU_USUARIO por tu usuario de GitHub
   PAYPAL_MODE: 'sandbox',   // cambiar a 'live' en producción
-  STRIPE_PK:  'pk_test_XXXXXXXXXXXXXXXXXXXXXXXX'  // cambia por tu clave pública de Stripe
+  STRIPE_URL: 'https://buy.stripe.com/XXXXXXXXXXXXXXXX'  // Payment Link de Stripe (Stripe Dashboard → Payment Links)
+                                                          // URL de éxito debe ser: tudominio.com/?payment=success&method=stripe
 };
 var DEMO_SECS = 30;
 var isDemoMode = (CFG.GH_REPOS[0] === 'TU_USUARIO/mosaico-imgs-1');
 var uploadToken = null;   // token de un solo uso emitido tras verificar el pago
 
-// Stripe
-var stripeInstance = null;
-var stripeCardElement = null;
 var metodoPago = 'paypal';   // 'paypal' | 'stripe'
 
 // 2) REFERENCIAS DOM  ← deben ir antes de cualquier addEventListener
@@ -1057,56 +1221,12 @@ function abrirCompra(zoneOverride) {
   // Reset método pago a PayPal por defecto
   seleccionarMetodo('paypal');
   abrirModal('modal-compra');
-  // Inicializar Stripe la primera vez
-  inicializarStripe();
-}
-
-function inicializarStripe() {
-  if(stripeInstance) return;  // ya inicializado
-  try {
-    stripeInstance = Stripe(CFG.STRIPE_PK);
-    var elements = stripeInstance.elements({
-      appearance: {
-        theme: 'night',
-        variables: {
-          colorPrimary: '#635BFF',
-          colorBackground: 'rgba(255,255,255,0.04)',
-          colorText: '#EEF2FF',
-          colorDanger: '#ff6b6b',
-          fontFamily: 'DM Sans, sans-serif',
-          borderRadius: '8px',
-          spacingUnit: '4px',
-        }
-      }
-    });
-    stripeCardElement = elements.create('card', {
-      style: {
-        base: {
-          color: '#EEF2FF',
-          fontFamily: 'DM Mono, monospace',
-          fontSize: '14px',
-          '::placeholder': { color: '#4A5878' },
-          iconColor: '#8A99BB',
-        },
-        invalid: { color: '#ff9090', iconColor: '#ff9090' }
-      }
-    });
-    stripeCardElement.mount('#stripe-card-element');
-    stripeCardElement.on('change', function(e){
-      var el=document.getElementById('st-stripe');
-      if(e.error){ el.textContent=e.error.message; el.style.display='block'; }
-      else { el.style.display='none'; }
-    });
-  } catch(e) {
-    console.warn('Stripe no inicializado:', e);
-  }
 }
 
 function seleccionarMetodo(metodo) {
   metodoPago = metodo;
   document.getElementById('method-paypal').classList.toggle('selected', metodo==='paypal');
   document.getElementById('method-stripe').classList.toggle('selected', metodo==='stripe');
-  document.getElementById('stripe-card-wrap').classList.toggle('visible', metodo==='stripe');
   var btnPP = document.getElementById('btn-pagar-paypal');
   var btnST = document.getElementById('btn-pagar-stripe');
   if(metodo==='paypal'){
@@ -1152,11 +1272,8 @@ async function pagarPayPal(){
   }
 }
 
-async function pagarStripe(){
+function pagarStripe(){
   var email=validarEmail(); if(!email) return;
-  if(!stripeInstance||!stripeCardElement){
-    setStatus('st-compra','error','Stripe no está disponible. Recarga la página.'); return;
-  }
   pendingZone.email=email;
 
   if(isDemoMode){
@@ -1164,65 +1281,25 @@ async function pagarStripe(){
     return;
   }
 
+  // Guardar zona en sessionStorage antes de salir — igual que PayPal
+  sessionStorage.setItem('pendingZone', JSON.stringify(pendingZone));
+  sessionStorage.setItem('stripeEmail', email);
+
   var btn=document.getElementById('btn-pagar-stripe');
-  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Procesando...';
-  setStatus('st-compra','','');
-  document.getElementById('st-stripe').style.display='none';
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Redirigiendo a Stripe...';
 
-  try {
-    // 1) Pedir PaymentIntent al backend
-    var res = await fetch(CFG.API_BASE+'/verify-stripe', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ zone: pendingZone, email: email })
-    });
-    var data = await res.json();
-    if(!data.ok) throw new Error(data.error||'Error al crear el pago');
-
-    // 2) Confirmar el pago con la tarjeta
-    var result = await stripeInstance.confirmCardPayment(data.clientSecret, {
-      payment_method: {
-        card: stripeCardElement,
-        billing_details: { email: email }
-      }
-    });
-
-    if(result.error) {
-      // Error de tarjeta (fondos, expirada, etc.)
-      document.getElementById('st-stripe').textContent = result.error.message;
-      document.getElementById('st-stripe').style.display = 'block';
-      btn.disabled=false; btn.innerHTML='<i class="fas fa-lock" style="font-size:.75rem"></i> Pagar con tarjeta';
-      return;
-    }
-
-    // 3) Pago confirmado por Stripe → verificar en backend y obtener uploadToken
-    if(result.paymentIntent.status === 'succeeded') {
-      var verRes = await fetch(CFG.API_BASE+'/verify-stripe', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ zone: pendingZone, email: email, paymentIntentId: result.paymentIntent.id, action: 'verify' })
-      });
-      var verData = await verRes.json();
-      if(!verData.ok) throw new Error(verData.error||'Pago no verificado');
-
-      uploadToken = verData.uploadToken;
-      cerrarModal('modal-compra');
-      showHint('¡Pago con tarjeta confirmado! Sube tu imagen.');
-      setTimeout(abrirUpload, 600);
-    }
-
-  } catch(err) {
-    btn.disabled=false; btn.innerHTML='<i class="fas fa-lock" style="font-size:.75rem"></i> Pagar con tarjeta';
-    setStatus('st-compra','error', err.message||'Error al procesar el pago. Inténtalo de nuevo.');
-  }
+  // Redirigir al Payment Link de Stripe
+  // Stripe añadirá ?payment=success al volver si configuraste la URL de éxito correctamente
+  window.location.href = CFG.STRIPE_URL;
 }
 
 function simularPago(){
   var email=validarEmail(); if(!email) return;
   pendingZone.email=email;
+  crearCuentaVipTrasCompra(email);  // crear cuenta VIP (modo demo: Firebase puede no estar activo)
   cerrarModal('modal-compra'); abrirUpload();
 }
-async function detectarRetornoPayPal(){
+async function detectarRetornoPago(){
   var p=new URLSearchParams(window.location.search);
   if(p.get('payment')!=='success') return;
 
@@ -1230,16 +1307,42 @@ async function detectarRetornoPayPal(){
   history.replaceState({},'',window.location.pathname);
 
   var s=sessionStorage.getItem('pendingZone');
-  var orderID=sessionStorage.getItem('paypalOrderID');
-  if(!s||!orderID) return;
-
+  if(!s) return;
   pendingZone=JSON.parse(s);
   sessionStorage.removeItem('pendingZone');
+
+  // ── STRIPE (Payment Link — no tiene orderID, usa sessionStorage flag) ──
+  var stripeEmail=sessionStorage.getItem('stripeEmail');
+  if(stripeEmail){
+    sessionStorage.removeItem('stripeEmail');
+    showHint('Verificando pago con tarjeta...');
+    try {
+      // verify-stripe necesita el session_id que Stripe añade a la URL de éxito
+      // Configura la URL de éxito en Stripe como: tudominio.com/?payment=success&session_id={CHECKOUT_SESSION_ID}
+      var sessionId = p.get('session_id') || '';
+      var res = await fetch(CFG.API_BASE+'/verify-stripe', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ zone: pendingZone, email: stripeEmail, sessionId: sessionId, action: 'verify' })
+      });
+      var data = await res.json();
+      if(!data.ok) throw new Error(data.error||'Pago no verificado');
+      uploadToken = data.uploadToken;
+      crearCuentaVipTrasCompra(stripeEmail);
+      showHint('¡Pago con tarjeta confirmado! Sube tu imagen.');
+      setTimeout(abrirUpload, 800);
+    } catch(err) {
+      showHint('Error al verificar el pago. Contacta con soporte.');
+    }
+    return;
+  }
+
+  // ── PAYPAL ──
+  var orderID=sessionStorage.getItem('paypalOrderID');
+  if(!orderID) return;
   sessionStorage.removeItem('paypalOrderID');
 
-  // Mostrar indicador de verificación
   showHint('Verificando pago con PayPal...');
-
   try {
     var res = await fetch(CFG.API_BASE+'/verify-paypal', {
       method: 'POST',
@@ -1247,17 +1350,11 @@ async function detectarRetornoPayPal(){
       body: JSON.stringify({ orderID: orderID, zone: pendingZone })
     });
     var data = await res.json();
-
-    if(!data.ok) {
-      showHint('Error: '+( data.error||'Pago no verificado'));
-      return;
-    }
-
-    // Guardar token de un solo uso — necesario para poder publicar
+    if(!data.ok) { showHint('Error: '+(data.error||'Pago no verificado')); return; }
     uploadToken = data.uploadToken;
+    if (pendingZone.email) crearCuentaVipTrasCompra(pendingZone.email);
     showHint('¡Pago verificado! Ahora sube tu imagen.');
     setTimeout(abrirUpload, 800);
-
   } catch(err) {
     showHint('Error al verificar el pago. Contacta con soporte.');
   }
@@ -1463,11 +1560,150 @@ if(isDemoMode){
   };
 }
 
+// ── FIREBASE VIP AUTH ─────────────────────────────────────────────────────────
+// Estas funciones se comunican con window._fb* definidos en el módulo ES arriba.
+// Si Firebase no está configurado (config por defecto) se usa un modo demo.
+
+var vipUser = null;  // usuario Firebase activo (o null)
+
+// Listener de estado de sesión (se llama cuando Firebase carga)
+window._onAuthReady = function(user) {
+  vipUser = user;
+  actualizarUIVip(user);
+};
+
+// Si Firebase aún no cargó y _onAuthReady se llama antes, la función ya estará lista.
+
+function actualizarUIVip(user) {
+  var panelSes = document.getElementById('vip-panel-sesion');
+  var panelLog = document.getElementById('vip-panel-login');
+  var navVipLbl= document.getElementById('nav-vip-label');
+  var navVipIcon = document.querySelector('#nav-vip-link .nav-icon i');
+
+  if (user) {
+    var initials = (user.email || 'V').charAt(0).toUpperCase();
+    document.getElementById('vip-sesion-icon').textContent = initials;
+    document.getElementById('vip-sesion-email').textContent = user.email || '';
+    panelSes.style.display = 'block';
+    panelLog.style.display = 'none';
+    if (navVipLbl)  navVipLbl.textContent = 'Mi cuenta VIP';
+    if (navVipIcon) navVipIcon.className  = 'fas fa-user-circle';
+  } else {
+    panelSes.style.display = 'none';
+    panelLog.style.display = 'block';
+    if (navVipLbl)  navVipLbl.textContent = 'Acceso VIP';
+    if (navVipIcon) navVipIcon.className  = 'fas fa-crown';
+  }
+}
+
+function abrirModalVip() {
+  setStatus('st-vip-login','','');
+  setStatus('st-vip-reset','','');
+  abrirModal('modal-vip');
+}
+
+function cambiarTabVip(tab) {
+  document.getElementById('tab-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-reset').classList.toggle('active', tab==='reset');
+  document.getElementById('vip-form-login').style.display = tab==='login' ? '' : 'none';
+  document.getElementById('vip-form-reset').style.display = tab==='reset' ? '' : 'none';
+  setStatus('st-vip-login','','');
+  setStatus('st-vip-reset','','');
+}
+
+async function loginVip() {
+  var email = document.getElementById('vip-email').value.trim();
+  var pass  = document.getElementById('vip-pass').value;
+  if (!email || !pass) { setStatus('st-vip-login','error','Rellena email y contraseña.'); return; }
+
+  var btn = document.getElementById('btn-login-vip');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+  setStatus('st-vip-login','','');
+
+  try {
+    if (!window._fbSignIn) throw new Error('Firebase no configurado. Edita firebaseConfig en el HTML.');
+    await window._fbSignIn(email, pass);
+    // _onAuthReady se llamará automáticamente con el usuario
+    cerrarModal('modal-vip');
+    showHint('¡Bienvenido de nuevo, VIP!');
+  } catch(err) {
+    var msg = traducirErrorFirebase(err.code);
+    setStatus('st-vip-login','error', msg);
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+  }
+}
+
+async function resetVip() {
+  var email = document.getElementById('vip-reset-email').value.trim();
+  if (!email) { setStatus('st-vip-reset','error','Introduce tu email.'); return; }
+
+  var btn = document.getElementById('btn-reset-vip');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+  setStatus('st-vip-reset','','');
+
+  try {
+    if (!window._fbReset) throw new Error('Firebase no configurado.');
+    await window._fbReset(email);
+    setStatus('st-vip-reset','ok','✓ Enlace enviado. Revisa tu bandeja de entrada (y spam).');
+  } catch(err) {
+    setStatus('st-vip-reset','error', traducirErrorFirebase(err.code));
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar enlace';
+  }
+}
+
+async function logoutVip() {
+  var btn = document.querySelector('#vip-panel-sesion .btn-secondary');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saliendo...'; }
+  try {
+    if (window._fbSignOut) await window._fbSignOut();
+    cerrarModal('modal-vip');
+    showHint('Sesión cerrada.');
+  } catch(e) { /* ignorar */ } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Cerrar sesión'; }
+  }
+}
+
+// Crear cuenta VIP automáticamente tras pago exitoso
+// Se llama desde abrirUpload() después de verificar el pago.
+// Usa una contraseña temporal aleatoria; el usuario debe usar "Recuperar acceso" para personalizarla.
+async function crearCuentaVipTrasCompra(email) {
+  if (!email || !window._fbSignUp) return;
+  try {
+    var passTemp = 'vip_' + Math.random().toString(36).slice(2, 12) + '!A1';
+    await window._fbSignUp(email, passTemp);
+    // Enviar email de reset para que el usuario establezca su propia contraseña
+    if (window._fbReset) await window._fbReset(email);
+    console.log('[VIP] Cuenta creada y email de bienvenida/reset enviado a', email);
+  } catch(err) {
+    // Si ya existe la cuenta (auth/email-already-in-use) es correcto — el usuario ya es VIP
+    if (err.code !== 'auth/email-already-in-use') {
+      console.warn('[VIP] No se pudo crear cuenta:', err.code);
+    }
+  }
+}
+
+function traducirErrorFirebase(code) {
+  var msgs = {
+    'auth/invalid-email':          'Email no válido.',
+    'auth/user-not-found':         'No existe cuenta VIP con ese email. ¿Has comprado una zona?',
+    'auth/wrong-password':         'Contraseña incorrecta. Usa "Recuperar acceso" si no recuerdas tu clave.',
+    'auth/invalid-credential':     'Email o contraseña incorrectos.',
+    'auth/too-many-requests':      'Demasiados intentos. Espera unos minutos o recupera tu acceso.',
+    'auth/network-request-failed': 'Error de red. Comprueba tu conexión.',
+    'auth/email-already-in-use':   'Ya existe una cuenta con ese email.',
+    'auth/weak-password':          'La contraseña debe tener al menos 6 caracteres.',
+    'auth/configuration-not-found':'Firebase no está configurado en este entorno.',
+  };
+  return msgs[code] || 'Error de autenticación (' + (code||'desconocido') + ').';
+}
+
 // ARRANQUE
 (async function(){
   await loadZones();
   iniciar();
-  detectarRetornoPayPal();
+  detectarRetornoPago();
 })();
 
 // ── MENÚ NAVEGACIÓN ──
