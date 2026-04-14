@@ -9,6 +9,8 @@
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
 <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"/>
+<link rel="icon" type="image/webp" href="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp"/>
+<link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp"/>
 <style>
     :root {
       --bg:       #06080F;
@@ -649,7 +651,208 @@
       .audience-section { padding: 60px 20px; }
     }
 
-    ::-webkit-scrollbar { width: 5px; }
+    /* ── NAV LOGO IMAGE ── */
+    .nav-logo-img {
+      width: 40px; height: 40px; border-radius: 50%;
+      overflow: hidden; flex-shrink: 0;
+      border: 1.5px solid rgba(201,168,76,0.45);
+      box-shadow: 0 0 18px rgba(201,168,76,0.25);
+      display: flex; align-items: center; justify-content: center;
+      background: #000;
+    }
+    .nav-logo-img img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .nav-logo-sub {
+      font-family: var(--fm); font-size: .48rem; letter-spacing: .22em;
+      color: var(--muted); text-transform: uppercase; line-height: 1;
+    }
+    .nav-logo-text { display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── AFFILIATE PROGRAM ── */
+    .affiliate-section {
+      max-width: 1160px; margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .affiliate-banner {
+      border-radius: 18px; overflow: hidden;
+      background: linear-gradient(135deg, rgba(9,14,32,0.95) 0%, rgba(12,18,40,0.9) 100%);
+      border: 1px solid rgba(201,168,76,0.22);
+      box-shadow: 0 0 80px rgba(201,168,76,0.06), inset 0 1px 0 rgba(201,168,76,0.1);
+      position: relative;
+    }
+    .affiliate-banner::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--cyan), var(--gold), transparent);
+      opacity: .6;
+    }
+    .affiliate-inner {
+      padding: 52px 48px; display: grid;
+      grid-template-columns: 1fr 1fr; gap: 56px; align-items: center;
+    }
+    .affiliate-eyebrow {
+      font-family: var(--fm); font-size: .62rem; letter-spacing: .28em;
+      color: var(--cyan); text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    }
+    .affiliate-eyebrow::before { content: '—'; color: var(--gold-dk); }
+    .affiliate-title {
+      font-family: var(--fh); font-size: clamp(2rem, 4vw, 3.2rem);
+      letter-spacing: .04em; line-height: 1; margin-bottom: 18px;
+      color: var(--gold-lt);
+    }
+    .affiliate-title span { color: var(--white); }
+    .affiliate-desc {
+      font-size: .9rem; color: var(--muted2); line-height: 1.8; margin-bottom: 28px;
+    }
+    .affiliate-desc strong { color: var(--white); }
+    .affiliate-features {
+      list-style: none; display: flex; flex-direction: column; gap: 10px;
+    }
+    .affiliate-features li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: .85rem; color: var(--muted2); line-height: 1.6;
+    }
+    .affiliate-features li::before {
+      content: '✦'; color: var(--gold); font-size: .65rem;
+      margin-top: 4px; flex-shrink: 0;
+    }
+    .affiliate-features li strong { color: var(--white); }
+    .affiliate-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-top: 28px; padding: 14px 32px;
+      font-family: var(--fb); font-size: .88rem; font-weight: 600;
+      letter-spacing: .06em; text-transform: uppercase; color: #000;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      border-radius: 8px; text-decoration: none;
+      box-shadow: 0 0 30px rgba(201,168,76,0.22);
+      transition: transform .2s var(--ease), box-shadow .2s;
+    }
+    .affiliate-cta:hover { transform: translateY(-3px); box-shadow: 0 0 55px rgba(201,168,76,0.45); color: #000; }
+    .affiliate-visual {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .aff-card {
+      border-radius: 12px; padding: 22px 18px;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+      transition: transform .25s var(--ease), border-color .25s;
+    }
+    .aff-card:hover { transform: translateY(-4px); border-color: rgba(201,168,76,0.22); }
+    .aff-card-ico { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+    .aff-card-num {
+      font-family: var(--fh); font-size: 1.8rem; letter-spacing: .04em;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      display: block; margin-bottom: 4px;
+    }
+    .aff-card-label {
+      font-family: var(--fm); font-size: .58rem; letter-spacing: .16em;
+      color: var(--muted); text-transform: uppercase;
+    }
+
+    /* ── FOOTER REDESIGN ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,0.05) !important;
+      padding: 0 !important;
+      display: block !important;
+      position: relative; z-index: 5;
+      background: rgba(6,8,15,0.9); backdrop-filter: blur(20px);
+    }
+    .footer-main {
+      max-width: 1160px; margin: 0 auto;
+      padding: 64px 40px 48px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+    .footer-brand {}
+    .footer-brand-logo {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    }
+    .footer-brand-logo-img {
+      width: 48px; height: 48px; border-radius: 50%;
+      overflow: hidden; flex-shrink: 0;
+      border: 1.5px solid rgba(201,168,76,0.4);
+      box-shadow: 0 0 20px rgba(201,168,76,0.2);
+      background: #000;
+    }
+    .footer-brand-logo-img img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .footer-brand-name {
+      font-family: var(--fh); font-size: 1.5rem; letter-spacing: .06em;
+      background: linear-gradient(135deg, var(--gold-lt), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .footer-brand-desc {
+      font-size: .82rem; color: var(--muted2); line-height: 1.75;
+      max-width: 280px; margin-bottom: 24px;
+    }
+    .footer-social {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .footer-social-link {
+      width: 38px; height: 38px; border-radius: 9px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted2); font-size: .95rem; text-decoration: none;
+      transition: all .22s var(--ease);
+    }
+    .footer-social-link:hover { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.3); color: var(--gold); transform: translateY(-3px); }
+    .footer-social-link.instagram:hover { background: rgba(225,48,108,0.1); border-color: rgba(225,48,108,0.3); color: #E1306C; }
+    .footer-social-link.twitter:hover  { background: rgba(29,161,242,0.1); border-color: rgba(29,161,242,0.3); color: #1DA1F2; }
+    .footer-social-link.tiktok:hover   { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.3); color: var(--cyan); }
+    .footer-social-link.youtube:hover  { background: rgba(255,0,0,0.1); border-color: rgba(255,0,0,0.3); color: #FF0000; }
+    .footer-social-link.facebook:hover { background: rgba(24,119,242,0.1); border-color: rgba(24,119,242,0.3); color: #1877F2; }
+
+    .footer-col-title {
+      font-family: var(--fm); font-size: .62rem; letter-spacing: .22em;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 20px;
+      padding-bottom: 10px; border-bottom: 1px solid rgba(201,168,76,0.12);
+    }
+    .footer-col-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-col-links a {
+      font-size: .82rem; color: var(--muted2); text-decoration: none;
+      transition: color .2s; display: flex; align-items: center; gap: 8px;
+    }
+    .footer-col-links a:hover { color: var(--gold); }
+    .footer-col-links a::before { content: '›'; color: var(--gold-dk); font-size: .9rem; }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.04);
+      padding: 20px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      max-width: 100%;
+    }
+    .footer-bottom-left {
+      font-family: var(--fm); font-size: .68rem; color: var(--muted); letter-spacing: .1em;
+    }
+    .footer-bottom-right {
+      display: flex; gap: 20px; flex-wrap: wrap;
+    }
+    .footer-bottom-right a {
+      font-size: .72rem; color: var(--muted); text-decoration: none; transition: color .2s;
+    }
+    .footer-bottom-right a:hover { color: var(--gold); }
+    .footer-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--fm); font-size: .54rem; letter-spacing: .14em;
+      color: var(--cyan); border: 1px solid var(--bord-c); padding: 4px 10px; border-radius: 4px;
+    }
+
+    @media(max-width:900px) {
+      .affiliate-inner { grid-template-columns: 1fr; gap: 36px; padding: 36px 28px; }
+      .footer-main { grid-template-columns: 1fr 1fr; gap: 36px; padding: 48px 24px 36px; }
+    }
+    @media(max-width:600px) {
+      .affiliate-inner { padding: 28px 20px; }
+      .affiliate-visual { grid-template-columns: 1fr 1fr; }
+      .footer-main { grid-template-columns: 1fr; gap: 28px; padding: 40px 20px 28px; }
+      .footer-bottom { flex-direction: column; align-items: center; text-align: center; padding: 16px 20px; }
+      .footer-social { justify-content: flex-start; }
+      .footer-brand-desc { max-width: 100%; }
+    }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 3px; }
   </style>
@@ -694,8 +897,14 @@
 
 <nav>
 <div class="nav-logo">
-<span class="nav-logo-main">ZonaVIP</span>
-<span class="nav-tag">Trends</span>
+<div class="nav-logo-img">
+  <img src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="ZonaVIP Trends Logo"/>
+</div>
+<div class="nav-logo-text">
+  <span class="nav-logo-main">ZonaVIP</span>
+  <span class="nav-logo-sub">Trends · Red de Redes</span>
+</div>
+<span class="nav-tag">VIP</span>
 </div>
 <div class="nav-right">
 <a class="nav-cta" href="mosaico.html"><i class="fas fa-map-marked-alt"></i> Ver Zonas</a>
@@ -1145,13 +1354,49 @@
 <span class="prize-qty">600 Premios</span>
 </div>
 </div>
-</section><div style="max-width:1160px;margin:0 auto;padding:0 24px 60px">
-<div class="referral-banner reveal">
-<div class="referral-icon"><i class="fas fa-people-arrows"></i></div>
-<div class="referral-body">
-<h3>Sistema de referidos — premia tu red</h3>
-<p>Si participas junto a otros, <strong>los premios pueden repartirse entre tu red de contactos</strong>. Comparte tu enlace personal, haz crecer tu comunidad y multiplica tus opciones de ganar. Cuantos más seáis, mayor es el impacto viral para todos.</p>
-</div>
+</section><div class="affiliate-section">
+<div class="affiliate-banner reveal">
+  <div class="affiliate-inner">
+    <div class="affiliate-left">
+      <div class="affiliate-eyebrow">Programa exclusivo · Socios VIP</div>
+      <h2 class="affiliate-title"><span>Programa de</span><br/>Afiliados</h2>
+      <p class="affiliate-desc">
+        Únete al programa de afiliados de ZonaVIP Trends y empieza a generar ingresos recurrentes como socio de la plataforma. <strong>Comparte, conecta y gana</strong> cada vez que alguien de tu red adquiera una celda o acceda al ecosistema VIP.
+      </p>
+      <ul class="affiliate-features">
+        <li><strong>Comisiones por referido:</strong> Gana una comisión directa por cada socio que incorpores a la plataforma a través de tu enlace personalizado.</li>
+        <li><strong>Panel de control exclusivo:</strong> Accede a estadísticas en tiempo real, conversiones y el estado de tus comisiones desde tu dashboard de afiliado.</li>
+        <li><strong>Red multinivel:</strong> Benefíciate también cuando tus referidos traigan nuevos socios. Tu red trabaja para ti de forma continua y automática.</li>
+        <li><strong>Materiales de apoyo:</strong> Te proporcionamos creatividades, banners, landing pages y argumentarios adaptados a tu audiencia.</li>
+        <li><strong>Soporte dedicado:</strong> Acceso prioritario al equipo VIP para maximizar el rendimiento de tu programa de afiliación.</li>
+      </ul>
+      <a class="affiliate-cta" href="soporte.html">
+        <i class="fas fa-handshake"></i> Solicitar acceso de afiliado
+      </a>
+    </div>
+    <div class="affiliate-visual">
+      <div class="aff-card">
+        <span class="aff-card-ico">💸</span>
+        <span class="aff-card-num">15%</span>
+        <span class="aff-card-label">Comisión directa</span>
+      </div>
+      <div class="aff-card">
+        <span class="aff-card-ico">🔗</span>
+        <span class="aff-card-num">∞</span>
+        <span class="aff-card-label">Niveles de red</span>
+      </div>
+      <div class="aff-card">
+        <span class="aff-card-ico">📊</span>
+        <span class="aff-card-num">24h</span>
+        <span class="aff-card-label">Panel en tiempo real</span>
+      </div>
+      <div class="aff-card">
+        <span class="aff-card-ico">🏆</span>
+        <span class="aff-card-num">VIP</span>
+        <span class="aff-card-label">Soporte prioritario</span>
+      </div>
+    </div>
+  </div>
 </div>
 </div><div style="max-width:1160px;margin:0 auto;padding:0 24px">
 <div class="sec-eyebrow reveal" style="justify-content:center;margin-bottom:14px">Preguntas frecuentes</div>
@@ -1208,13 +1453,89 @@
 <a class="btn-gold" href="mosaico.html">
   <i class="fas fa-map-marked-alt"></i> Ver Zonas</a>
 </section><footer>
-<div class="footer-logo">© 2026 ZonaVIP Trends · Todos los derechos reservados</div>
-<div class="footer-links">
-<a href="avisolegal.html">Aviso Legal</a>
-<a href="privacidad.html">Privacidad</a>
-<a href="basessorteo.html">Bases Sorteo</a>
-<a href="soporte.html">Soporte</a>
-</div>
+  <div class="footer-main">
+    <!-- Brand Column -->
+    <div class="footer-brand">
+      <div class="footer-brand-logo">
+        <div class="footer-brand-logo-img">
+          <img src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="ZonaVIP Trends"/>
+        </div>
+        <span class="footer-brand-name">ZonaVIP Trends</span>
+      </div>
+      <p class="footer-brand-desc">
+        Red de Redes. Visibilidad permanente. La plataforma publicitaria VIP más exclusiva del ecosistema digital. Una celda. Para siempre.
+      </p>
+      <div class="footer-social">
+        <a href="#" class="footer-social-link instagram" title="Instagram" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="#" class="footer-social-link twitter" title="X / Twitter" aria-label="X / Twitter">
+          <i class="fab fa-x-twitter"></i>
+        </a>
+        <a href="#" class="footer-social-link tiktok" title="TikTok" aria-label="TikTok">
+          <i class="fab fa-tiktok"></i>
+        </a>
+        <a href="#" class="footer-social-link youtube" title="YouTube" aria-label="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+        <a href="#" class="footer-social-link facebook" title="Facebook" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Platform Column -->
+    <div class="footer-col">
+      <div class="footer-col-title">Plataforma</div>
+      <ul class="footer-col-links">
+        <li><a href="mosaico.html">Ver el Mosaico</a></li>
+        <li><a href="#ecosistema">Qué es ZonaVIP</a></li>
+        <li><a href="#como-funciona">Cómo funciona</a></li>
+        <li><a href="#audiencias">Para quién es</a></li>
+        <li><a href="#premios">Premios en juego</a></li>
+        <li><a href="#beneficios">Beneficios</a></li>
+      </ul>
+    </div>
+
+    <!-- Socios Column -->
+    <div class="footer-col">
+      <div class="footer-col-title">Socios VIP</div>
+      <ul class="footer-col-links">
+        <li><a href="soporte.html">Programa de Afiliados</a></li>
+        <li><a href="#audiencias">Para Marcas</a></li>
+        <li><a href="#audiencias">Para Influencers</a></li>
+        <li><a href="#arquitectura">Red de Nodos</a></li>
+        <li><a href="#monetizacion">Modelo de Negocio</a></li>
+        <li><a href="soporte.html">Crear mi Gridd</a></li>
+      </ul>
+    </div>
+
+    <!-- Legal & Soporte Column -->
+    <div class="footer-col">
+      <div class="footer-col-title">Legal & Soporte</div>
+      <ul class="footer-col-links">
+        <li><a href="avisolegal.html">Aviso Legal</a></li>
+        <li><a href="privacidad.html">Política de Privacidad</a></li>
+        <li><a href="basessorteo.html">Bases del Sorteo</a></li>
+        <li><a href="soporte.html">Soporte</a></li>
+        <li><a href="soporte.html">Contacto</a></li>
+        <li><a href="soporte.html">FAQ</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-bottom-left">
+      © 2026 ZonaVIP Trends · Todos los derechos reservados · Red de Redes
+    </div>
+    <div class="footer-bottom-right">
+      <span class="footer-badge"><i class="fas fa-lock"></i> Pagos seguros con Stripe</span>
+      <a href="avisolegal.html">Aviso Legal</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="basessorteo.html">Bases Sorteo</a>
+      <a href="soporte.html">Soporte</a>
+    </div>
+  </div>
 </footer></div>
 <script>
   // ── FONDO ───────────────────────────────────────────────────────
