@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes"/>
+<title>ZonaVip Trends · Apoya y gana · Fans</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" rel="stylesheet"/>
+<link rel="icon" type="image/webp" href="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp"/>
+<link rel="apple-touch-icon" href="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp"/>
+<style>
+/* ── ESTILOS EXACTOS (MISMO CSS QUE LAS VERSIONES ANTERIORES) ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#BF9B5A;
+  --gold-light:#D4B578;
+  --gold-dim:rgba(191,155,90,0.45);
+  --gold-pale:rgba(191,155,90,0.12);
+  --cream:#EDE8E0;
+  --cream-muted:rgba(237,232,224,0.55);
+  --cream-dim:rgba(237,232,224,0.25);
+  --blue:#256BC7;
+  --blue-light:#4A8FE8;
+  --blue-dim:rgba(37,107,199,0.35);
+  --blue-pale:rgba(37,107,199,0.12);
+  --bg:#08090F;
+  --bg2:#0B1621;
+  --card:rgba(11,22,33,0.75);
+  --bord:rgba(191,155,90,0.14);
+  --bord-b:rgba(37,107,199,0.18);
+  --muted:rgba(237,232,224,0.3);
+  --muted2:rgba(237,232,224,0.55);
+  --ease:cubic-bezier(0.4,0,0.2,1);
+  --easein:cubic-bezier(.16,1,.3,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 80% 80% at 50% 50%,transparent 25%,rgba(8,9,15,0.88) 100%)}
+.grid-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background-image:linear-gradient(rgba(237,232,224,0.022) 1px,transparent 1px),linear-gradient(90deg,rgba(237,232,224,0.022) 1px,transparent 1px);background-size:60px 60px}
+.panel-glow{position:fixed;top:0;left:0;right:0;bottom:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% 30%,rgba(37,107,199,0.13) 0%,transparent 70%)}
+.content{position:relative;z-index:5;padding-top:72px}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:26px 52px;background:linear-gradient(to bottom,rgba(8,9,15,0.94) 0%,transparent 100%);animation:fadeDown 700ms 200ms both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.nav-logo{display:flex;align-items:center;gap:12px}
+.nav-logo-img{width:38px;height:38px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--gold-dim);box-shadow:0 0 14px rgba(191,155,90,0.2);background:#000}
+.nav-logo-img img{width:100%;height:100%;object-fit:cover;display:block}
+.nav-logo-text{display:flex;flex-direction:column;gap:1px}
+.nav-logo-main{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;letter-spacing:0.22em;text-transform:uppercase;color:var(--cream)}
+.nav-logo-vip{color:var(--gold)}
+.nav-logo-trends{opacity:0.52;font-weight:300;letter-spacing:0.18em}
+.nav-logo-sub{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted)}
+.nav-tag{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold-dim);padding:3px 8px;border-radius:2px}
+.nav-right{display:flex;align-items:center;gap:12px;margin-left:auto}
+.nav-cta{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);background:transparent;border:1px solid var(--gold-dim);padding:10px 22px;border-radius:1px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background 200ms,border-color 200ms}
+.nav-cta:hover{background:var(--gold-pale);border-color:var(--gold)}
+.nav-cta i{font-size:0.8rem}
+.hero{min-height:calc(100vh - 72px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px 100px;text-align:center;position:relative}
+.hero::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:linear-gradient(to right,transparent,rgba(37,107,199,0.6),transparent)}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.38em;text-transform:uppercase;color:var(--blue-light);border:1px solid var(--bord-b);background:rgba(37,107,199,0.06);padding:8px 20px;border-radius:2px;margin-bottom:40px;opacity:0;animation:fadeUp 700ms 100ms both}
+.hero-eyebrow::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--blue-light);animation:blink 2.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero-index{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.38em;text-transform:uppercase;color:var(--gold);opacity:0.65;margin-bottom:16px;opacity:0;animation:fadeUp 700ms 150ms both}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(4rem,10vw,9rem);font-weight:300;line-height:0.92;letter-spacing:-0.01em;margin-bottom:12px;opacity:0;animation:fadeUp 700ms 250ms both}
+.hero-title .outline{-webkit-text-stroke:2px rgba(191,155,90,0.4);-webkit-text-fill-color:transparent;color:transparent}
+.hero-title .gold{background:linear-gradient(135deg,var(--gold-light) 10%,var(--gold) 60%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-rule{width:48px;height:1px;margin:0 auto 28px;background:linear-gradient(to right,transparent,var(--gold),transparent);opacity:0.6;opacity:0;animation:fadeUp 700ms 320ms both}
+.hero-slogan{font-family:'Barlow',sans-serif;font-size:clamp(1rem,2.2vw,1.25rem);font-weight:300;font-style:italic;color:var(--cream-muted);letter-spacing:0.03em;margin-bottom:28px;opacity:0;animation:fadeUp 700ms 380ms both}
+.hero-slogan strong{color:var(--gold);font-style:normal;font-weight:500}
+.hero-desc{max-width:580px;margin:0 auto 44px;font-size:clamp(.9rem,1.8vw,1rem);font-weight:300;color:var(--cream-muted);line-height:1.85;opacity:0;animation:fadeUp 700ms 440ms both}
+.hero-desc strong{color:var(--cream);font-weight:500}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp 700ms 520ms both}
+.btn-primary{display:inline-flex;align-items:center;gap:10px;padding:14px 36px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);background:transparent;border:1px solid var(--gold-dim);border-radius:1px;cursor:pointer;text-decoration:none;transition:background 200ms,border-color 200ms,transform 200ms;position:relative;overflow:hidden}
+.btn-primary:hover{background:var(--gold-pale);border-color:var(--gold);transform:translateY(-2px)}
+.btn-ghost{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.28em;text-transform:uppercase;color:var(--cream-muted);background:transparent;border:1px solid rgba(237,232,224,0.12);border-radius:1px;cursor:pointer;text-decoration:none;transition:color 200ms,border-color 200ms,transform 200ms}
+.btn-ghost:hover{color:var(--cream);border-color:rgba(237,232,224,0.3);transform:translateY(-2px)}
+.hero-stats{display:flex;gap:0;flex-wrap:wrap;justify-content:center;margin-top:72px;border:1px solid var(--bord);border-radius:2px;overflow:hidden;opacity:0;animation:fadeUp 700ms 640ms both;background:rgba(11,22,33,0.55);backdrop-filter:blur(10px)}
+.stat{padding:20px 34px;text-align:center;border-right:1px solid var(--bord)}
+.stat:last-child{border-right:none}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:400;letter-spacing:0.04em;color:var(--gold);display:block}
+.stat-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.28em;color:var(--muted);text-transform:uppercase;margin-top:4px;display:block}
+.scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fadeUp 700ms 900ms both}
+.scroll-hint span{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:0.32em;color:var(--muted);text-transform:uppercase}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:1;transform:scaleY(1)}50%{opacity:.3;transform:scaleY(.5)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.sec-wrap{max-width:1160px;margin:0 auto;padding:80px 24px}
+.sec-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.38em;text-transform:uppercase;color:var(--blue-light);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sec-eyebrow::before{content:'—';color:var(--gold);opacity:0.5}
+.sec-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,5.5vw,4.2rem);font-weight:300;letter-spacing:-0.01em;line-height:1;margin-bottom:48px}
+.sec-title .gold{color:var(--gold)}
+.sec-title .outline{-webkit-text-stroke:1.5px rgba(191,155,90,0.38);-webkit-text-fill-color:transparent;color:transparent}
+.counter-wrap{padding:0 24px 40px}
+.counter-card{max-width:820px;margin:0 auto;background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--bord);border-radius:2px;padding:22px 32px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:inset 0 1px 0 rgba(191,155,90,0.07)}
+.counter-dot{width:7px;height:7px;border-radius:50%;background:var(--blue-light);box-shadow:0 0 10px var(--blue-light);flex-shrink:0;animation:blink 1.8s infinite}
+.counter-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:0.28em;color:var(--cream-muted);text-transform:uppercase;white-space:nowrap}
+.counter-bar-wrap{flex:1;min-width:120px}
+.counter-track{height:4px;background:rgba(237,232,224,0.05);border-radius:99px;overflow:hidden}
+.counter-fill{height:100%;width:0%;background:linear-gradient(90deg,rgba(37,107,199,0.6),var(--blue-light));border-radius:99px;transition:width 2s cubic-bezier(.2,0,.2,1)}
+.counter-nums{font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--cream-muted);white-space:nowrap}
+.counter-nums b{color:var(--gold)}
+.iframe-section{padding:0 24px 80px;max-width:1300px;margin:0 auto}
+.iframe-section .sec-eyebrow{justify-content:center}
+.iframe-section .sec-title{text-align:center;margin-bottom:24px}
+.iframe-outer{border-radius:4px;padding:1px;background:linear-gradient(135deg,var(--gold-dim),var(--blue-dim),rgba(191,155,90,0.1))}
+.iframe-inner{position:relative;border-radius:3px;overflow:hidden;height:clamp(380px,58vw,700px);background:#08090F}
+.iframe-inner iframe{width:100%;height:100%;border:none;display:block;pointer-events:none}
+.iframe-overlay{position:absolute;inset:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:rgba(8,9,15,0.28);transition:background .3s}
+.iframe-overlay:hover{background:rgba(8,9,15,0.08)}
+.iframe-pill{display:flex;align-items:center;gap:12px;padding:14px 32px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);background:rgba(8,9,15,0.88);backdrop-filter:blur(16px);border:1px solid var(--gold-dim);border-radius:1px;pointer-events:none}
+.iframe-pill i{color:var(--blue-light)}
+.iframe-foot{text-align:center;margin-top:14px;font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:0.28em;color:var(--muted);text-transform:uppercase}
+.what-section{padding:80px 24px;background:linear-gradient(180deg,transparent,rgba(11,22,33,0.5) 20%,rgba(11,22,33,0.5) 80%,transparent);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord)}
+.what-inner{max-width:1160px;margin:0 auto}
+.what-headline{text-align:center;margin-bottom:64px}
+.what-headline .sec-eyebrow{justify-content:center}
+.what-headline .sec-title{margin-bottom:20px}
+.what-headline p{font-size:clamp(.95rem,2vw,1.1rem);color:var(--cream-muted);max-width:760px;margin:0 auto;line-height:1.9;font-weight:300}
+.what-headline p strong{color:var(--cream);font-weight:500}
+.what-highlight{margin:32px auto 0;max-width:760px;padding:22px 30px;border-radius:2px;background:rgba(37,107,199,0.06);border:1px solid rgba(37,107,199,0.2);font-size:.88rem;color:var(--cream-muted);line-height:1.8;text-align:center}
+.what-highlight strong{color:var(--gold)}
+.profile-cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:8px;background:var(--bord)}
+.profile-card{padding:36px 30px 30px;background:var(--card);backdrop-filter:blur(18px);display:flex;flex-direction:column;position:relative;overflow:hidden;transition:background .3s var(--easein)}
+.profile-card:hover{background:rgba(15,28,44,0.95)}
+.profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc-accent)}
+.pc-header{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.pc-icon-wrap{font-size:1.8rem;line-height:1;flex-shrink:0;width:46px;height:46px;display:flex;align-items:center;justify-content:center;border-radius:2px}
+.pc-marcas .pc-icon-wrap{background:rgba(191,155,90,0.1);color:var(--gold)}
+.pc-influencer .pc-icon-wrap{background:rgba(37,107,199,0.12);color:var(--blue-light)}
+.pc-usuario .pc-icon-wrap{background:rgba(58,202,90,0.08);color:#3ACA5A}
+.pc-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:400;letter-spacing:0.01em;line-height:1}
+.pc-tagline{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.pc-marcas .pc-title{color:var(--gold-light)}
+.pc-influencer .pc-title{color:var(--blue-light)}
+.pc-usuario .pc-title{color:#3ACA5A}
+.pc-divider{height:1px;background:rgba(237,232,224,0.07);margin:0 0 20px}
+.pc-features{list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:24px;flex:1}
+.pc-features li{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--cream-muted);line-height:1.6}
+.pcf-ico{font-size:0.6rem;flex-shrink:0;margin-top:6px;color:var(--gold);opacity:0.7;width:14px;text-align:center}
+.pc-features li strong{color:var(--cream);display:block;font-size:.84rem;font-weight:500;margin-bottom:2px}
+.pc-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.pc-pill{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;padding:4px 10px;border-radius:1px;border:1px solid;background:transparent}
+.pc-marcas .pc-pill{color:var(--gold);border-color:var(--gold-dim)}
+.pc-influencer .pc-pill{color:var(--blue-light);border-color:rgba(37,107,199,0.35)}
+.pc-usuario .pc-pill{color:#3ACA5A;border-color:rgba(58,202,90,0.3)}
+.pc-btn{display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;padding:12px 20px;border-radius:1px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.28em;text-transform:uppercase;border:1px solid;cursor:pointer;text-decoration:none;margin-top:auto;transition:background 200ms,transform 200ms}
+.pc-marcas .pc-btn{color:var(--gold);border-color:var(--gold-dim);background:var(--gold-pale)}
+.pc-marcas .pc-btn:hover{background:rgba(191,155,90,0.2)}
+.pc-influencer .pc-btn{color:var(--blue-light);border-color:rgba(37,107,199,0.4);background:rgba(37,107,199,0.08)}
+.pc-influencer .pc-btn:hover{background:rgba(37,107,199,0.16);transform:translateY(-2px)}
+.pc-usuario .pc-btn{color:#3ACA5A;border-color:rgba(58,202,90,0.3);background:rgba(58,202,90,0.06)}
+.pc-usuario .pc-btn:hover{background:rgba(58,202,90,0.12)}
+.pc-influencer{--pc-accent:linear-gradient(to right,transparent,rgba(37,107,199,0.7),transparent)}
+.pc-marcas{--pc-accent:linear-gradient(to right,transparent,rgba(191,155,90,0.7),transparent)}
+.pc-usuario{--pc-accent:linear-gradient(to right,transparent,rgba(58,202,90,0.6),transparent)}
+@media(max-width:860px){.profile-cards-grid{grid-template-columns:1fr;gap:1px}}
+@media(min-width:540px) and (max-width:860px){.profile-cards-grid{grid-template-columns:1fr 1fr}}
+.value-section{padding:80px 24px;background:linear-gradient(180deg,transparent,rgba(11,22,33,0.6) 20%,rgba(11,22,33,0.6) 80%,transparent);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord)}
+.value-inner{max-width:1160px;margin:0 auto}
+.value-headline{text-align:center;margin-bottom:64px}
+.value-headline .sec-eyebrow{justify-content:center}
+.value-headline .sec-title{margin-bottom:16px}
+.value-headline p{font-size:clamp(.95rem,2vw,1.1rem);color:var(--cream-muted);max-width:640px;margin:0 auto;line-height:1.8;font-weight:300}
+.value-headline p strong{color:var(--cream);font-weight:500}
+.value-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--bord)}
+.value-card{background:var(--card);backdrop-filter:blur(16px);padding:36px 28px;position:relative;overflow:hidden;transition:background .3s var(--easein)}
+.value-card:hover{background:rgba(15,28,44,0.95)}
+.value-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--card-accent)}
+.value-card-num{font-family:'Cormorant Garamond',serif;font-size:5rem;font-weight:300;color:rgba(237,232,224,0.03);position:absolute;top:10px;right:20px;line-height:1;pointer-events:none}
+.value-ico{width:46px;height:46px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:22px;background:var(--ico-bg);color:var(--ico-color)}
+.value-card h3{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:400;letter-spacing:0.01em;margin-bottom:12px;line-height:1}
+.value-card p{font-size:.86rem;color:var(--cream-muted);line-height:1.8}
+.value-badge{display:inline-flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;border:1px solid var(--badge-color);color:var(--badge-color);border-radius:1px;padding:4px 10px;margin-top:18px}
+.vc-1{--card-accent:linear-gradient(90deg,var(--gold),transparent);--ico-bg:rgba(191,155,90,0.1);--ico-color:var(--gold);--badge-color:var(--gold)}
+.vc-2{--card-accent:linear-gradient(90deg,var(--blue-light),transparent);--ico-bg:rgba(37,107,199,0.1);--ico-color:var(--blue-light);--badge-color:var(--blue-light)}
+.vc-3{--card-accent:linear-gradient(90deg,#A78BFF,transparent);--ico-bg:rgba(167,139,255,0.08);--ico-color:#A78BFF;--badge-color:#A78BFF}
+.vc-4{--card-accent:linear-gradient(90deg,#3ACA5A,transparent);--ico-bg:rgba(58,202,90,0.08);--ico-color:#3ACA5A;--badge-color:#3ACA5A}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--bord)}
+.how-step{padding:40px 28px;background:var(--card);backdrop-filter:blur(12px);position:relative;transition:background .3s}
+.how-step:hover{background:rgba(15,28,44,0.95)}
+.how-num{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.32em;color:var(--muted);text-transform:uppercase;margin-bottom:22px}
+.how-ico{font-size:1.6rem;color:var(--gold);display:block;margin-bottom:16px}
+.how-step h3{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:400;letter-spacing:0.01em;margin-bottom:12px;line-height:1}
+.how-step p{font-size:.84rem;color:var(--cream-muted);line-height:1.75}
+.prizes-clean{max-width:860px;margin:0 auto}
+.prizes-summary{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;background:var(--card);border:1px solid var(--bord);border-radius:2px 2px 0 0;padding:28px 32px;backdrop-filter:blur(16px)}
+.ps-stat{text-align:center;padding:0 32px;flex:1;min-width:120px}
+.ps-num{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:400;letter-spacing:0.04em;color:var(--gold);display:block;margin-bottom:4px}
+.ps-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:500;letter-spacing:0.28em;color:var(--muted);text-transform:uppercase}
+.ps-divider{width:1px;height:40px;background:var(--bord);flex-shrink:0}
+.prizes-table{border:1px solid var(--bord);border-top:none;border-radius:0 0 2px 2px;overflow:hidden;background:rgba(11,22,33,0.6);backdrop-filter:blur(12px)}
+.pt-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:12px 24px;background:rgba(191,155,90,0.05);border-bottom:1px solid var(--bord);font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.28em;color:var(--muted);text-transform:uppercase}
+.pt-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:14px 24px;border-bottom:1px solid rgba(237,232,224,0.03);transition:background .2s;align-items:center}
+.pt-row:hover{background:rgba(191,155,90,0.04)}
+.pt-row--top{background:rgba(191,155,90,0.04)}
+.pt-footer{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:16px 24px;background:rgba(191,155,90,0.05);border-top:1px solid var(--bord);align-items:center}
+.pt-level{font-family:'Barlow',sans-serif;font-size:.86rem;color:var(--cream);display:flex;align-items:center;gap:10px}
+.pt-level i{color:var(--gold);font-size:.8rem;width:16px;text-align:center}
+.pt-amount{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:400;letter-spacing:0.02em}
+.pt-qty{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.1em;color:var(--cream-muted)}
+.pt-total{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.1em;color:var(--cream-muted)}
+.gold-text{color:var(--gold)}
+.faq-section{padding:80px 24px;max-width:860px;margin:0 auto}
+.faq-item{border:1px solid rgba(237,232,224,0.05);border-radius:2px;margin-bottom:8px;background:var(--card);backdrop-filter:blur(12px);overflow:hidden;transition:border-color .2s}
+.faq-item:hover{border-color:var(--bord-b)}
+.faq-q{width:100%;background:none;border:none;cursor:pointer;padding:20px 24px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:'Barlow',sans-serif;font-size:.95rem;font-weight:400;color:var(--cream)}
+.faq-q i{color:var(--gold);font-size:.75rem;transition:transform .3s;flex-shrink:0}
+.faq-item.open .faq-q i{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1),padding .3s;font-size:.88rem;color:var(--cream-muted);line-height:1.8;padding:0 24px}
+.faq-item.open .faq-a{max-height:400px;padding:0 24px 20px}
+.final-section{padding:130px 24px;text-align:center;position:relative;overflow:hidden}
+.final-section::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(37,107,199,0.09) 0%,transparent 70%)}
+.final-section::after{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:linear-gradient(to right,transparent,rgba(37,107,199,0.5),transparent)}
+.final-title{font-family:'Cormorant Garamond',serif;font-size:clamp(3rem,9vw,8rem);font-weight:300;line-height:0.9;letter-spacing:-0.01em;margin-bottom:24px}
+.final-title .gold{background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.final-title .outline{-webkit-text-stroke:2px rgba(191,155,90,0.35);-webkit-text-fill-color:transparent}
+.final-sub{font-family:'Barlow',sans-serif;font-size:clamp(.95rem,2vw,1.15rem);color:var(--cream-muted);margin-bottom:48px;font-weight:300;font-style:italic;max-width:580px;margin-left:auto;margin-right:auto}
+footer{border-top:1px solid rgba(237,232,224,0.05);position:relative;z-index:5;background:rgba(8,9,15,0.9);backdrop-filter:blur(20px)}
+.footer-main{max-width:1160px;margin:0 auto;padding:52px 40px 40px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;align-items:start}
+.footer-brand-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.footer-brand-logo-img{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid var(--gold-dim);box-shadow:0 2px 12px rgba(191,155,90,0.12);background:#000}
+.footer-brand-logo-img img{width:100%;height:100%;object-fit:cover;display:block}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:400;letter-spacing:0.12em;color:var(--gold)}
+.footer-brand-desc{font-family:'Barlow',sans-serif;font-size:.82rem;color:var(--cream-muted);line-height:1.75;max-width:280px;margin-bottom:24px;font-weight:300}
+.footer-social{display:flex;gap:10px;flex-wrap:wrap}
+.footer-social-link{width:36px;height:36px;border-radius:2px;background:rgba(237,232,224,0.04);border:1px solid rgba(237,232,224,0.07);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;text-decoration:none;transition:all .22s var(--easein)}
+.footer-social-link:hover{background:var(--gold-pale);border-color:var(--gold-dim);color:var(--gold);transform:translateY(-3px)}
+.footer-col-title{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.3em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(191,155,90,0.12)}
+.footer-col-links{list-style:none;display:flex;flex-direction:column;gap:10px}
+.footer-col-links a{font-family:'Barlow',sans-serif;font-size:.82rem;color:var(--cream-muted);text-decoration:none;transition:color .2s;display:flex;align-items:center;gap:8px;font-weight:300}
+.footer-col-links a:hover{color:var(--gold)}
+.footer-col-links a::before{content:'›';color:var(--gold);opacity:0.4;font-size:.9rem}
+.footer-bottom{border-top:1px solid rgba(237,232,224,0.04);padding:20px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-bottom-left{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--muted);letter-spacing:0.22em;text-transform:uppercase}
+.footer-bottom-right{display:flex;gap:20px;flex-wrap:wrap}
+.footer-badge{display:inline-flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:0.2em;color:var(--blue-light);border:1px solid var(--bord-b);padding:4px 10px;border-radius:1px}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s var(--easein),transform .7s var(--easein)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.rd1{transition-delay:.08s}.rd2{transition-delay:.16s}.rd3{transition-delay:.24s}.rd4{transition-delay:.32s}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(191,155,90,0.4);border-radius:2px}
+@media(max-width:768px){
+  nav{padding:18px 24px}
+  .hero-title{font-size:clamp(3.2rem,11vw,5.5rem) !important}
+  .hero-stats{flex-wrap:wrap}
+  .stat{flex:1;min-width:100px;padding:16px 18px}
+  .footer-main{grid-template-columns:1fr 1fr;gap:30px 20px;padding:40px 24px 32px}
+  .footer-brand{grid-column:span 2}
+  .profile-cards-grid{background:transparent;gap:12px}
+  .profile-card{border:1px solid rgba(237,232,224,0.06)}
+  .value-grid{background:transparent;gap:12px}
+  .value-card{border:1px solid rgba(237,232,224,0.05)}
+  .how-grid{background:transparent;gap:12px}
+  .how-step{border:1px solid rgba(237,232,224,0.04)}
+}
+@media(max-width:480px){
+  nav{padding:14px 18px;height:60px}
+  .nav-logo-main{font-size:15px}
+  .nav-logo-sub,.nav-tag{display:none}
+  .nav-cta{padding:7px 14px;font-size:10px;letter-spacing:0.2em;gap:4px}
+  .content{padding-top:60px}
+  .footer-main{grid-template-columns:1fr 1fr;padding:32px 18px 24px}
+  .footer-brand{grid-column:span 2}
+  .footer-bottom{flex-direction:column;align-items:center;text-align:center;padding:14px 18px}
+  .pt-header,.pt-row,.pt-footer{grid-template-columns:1.6fr 1fr 0.6fr 0.8fr;padding:12px 14px}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="vignette"></div>
+<div class="grid-overlay"></div>
+<div class="panel-glow"></div>
+<div class="content">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-img">
+      <img src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="ZonaVIP Trends Logo"/>
+    </div>
+    <div class="nav-logo-text">
+      <span class="nav-logo-main">Zona<span class="nav-logo-vip">Vip</span>&nbsp;<span class="nav-logo-trends">Trends</span></span>
+      <span class="nav-logo-sub">Marketplace para fans</span>
+    </div>
+    <span class="nav-tag">VIP</span>
+  </div>
+  <div class="nav-right">
+    <a class="nav-cta" href="index.html"><i class="fas fa-heart"></i> Apoyar a un creador</a>
+  </div>
+</nav>
+
+<!-- HERO (FANS) -->
+<section class="hero">
+  <div class="hero-eyebrow">Apoya, gana visibilidad y participa en sorteos</div>
+  <div class="hero-index">01 &mdash; Fan / Usuario</div>
+  <h1 class="hero-title">
+    <span class="outline">HAZ QUE TU</span><br/>
+    <span class="gold">APOYO BRILLE</span>
+  </h1>
+  <div class="hero-rule"></div>
+  <p class="hero-slogan">Convierte tu apoyo en <strong>exposición viral para siempre</strong> + premios en efectivo.</p>
+  <p class="hero-desc">
+    Reserva una zona VIP en el marketplace de tu creador favorito. Tu logo, nombre o marca personal quedará
+    visible de forma permanente en su perfil. Además, <strong>participas automáticamente en los sorteos</strong> de su expositor
+    y en los sorteos globales de ZonaVIP Trends. ¿Quieres tu propio espacio? Como fan también puedes solicitar
+    tu marketplace personal para tu círculo más cercano.
+  </p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="index.html"><i class="fas fa-gem"></i> Reservar zona VIP &nbsp;&rarr;</a>
+    <a class="btn-ghost" href="#como-funciona"><i class="fas fa-circle-info"></i> Cómo funciona</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">13K</span><span class="stat-label">Zonas para apoyar</span></div>
+    <div class="stat"><span class="stat-num">50€</span><span class="stat-label">Desde /zona</span></div>
+    <div class="stat"><span class="stat-num">770</span><span class="stat-label">Premios</span></div>
+    <div class="stat"><span class="stat-num">150K€</span><span class="stat-label">En premios</span></div>
+    <div class="stat"><span class="stat-num">∞</span><span class="stat-label">Exposición</span></div>
+  </div>
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- COUNTER -->
+<div class="counter-wrap">
+  <div class="counter-card reveal">
+    <div class="counter-dot"></div>
+    <div class="counter-label">Zonas ocupadas</div>
+    <div class="counter-bar-wrap"><div class="counter-track"><div class="counter-fill" id="counterFill"></div></div></div>
+    <div class="counter-nums"><b id="occupiedCount">0</b> / 13,040</div>
+  </div>
+</div>
+<div class="counter-wrap" style="padding-bottom:80px">
+  <div class="counter-card reveal">
+    <div class="counter-dot"></div>
+    <div class="counter-label">Premios repartidos</div>
+    <div class="counter-bar-wrap"><div class="counter-track"><div class="counter-fill" id="counterFill2"></div></div></div>
+    <div class="counter-nums"><b id="prizesCount">0</b> / 770</div>
+  </div>
+</div>
+
+<!-- IFRAME (expositor global) -->
+<div class="iframe-section" id="expositor">
+  <div class="sec-eyebrow reveal" style="justify-content:center">El marketplace de los fans</div>
+  <h2 class="sec-title reveal" style="text-align:center">
+    <span class="outline">ENCUENTRA</span> <span class="gold">A TU CREADOR</span><br/>y elige tu zona
+  </h2>
+  <div class="iframe-outer reveal">
+    <div class="iframe-inner">
+      <iframe scrolling="no" src="index.html" tabindex="-1"></iframe>
+      <div class="iframe-overlay" onclick="window.location.href='index.html'">
+        <div class="iframe-pill"><i class="fas fa-expand-arrows-alt"></i> Explorar marketplaces</div>
+      </div>
+    </div>
+  </div>
+  <p class="iframe-foot reveal">// clic para pantalla completa &nbsp;&middot;&nbsp; elige a tu creador &nbsp;&middot;&nbsp; visibilidad eterna</p>
+</div>
+
+<!-- WHAT IS IT (para fans) -->
+<section class="what-section" id="ecosistema">
+  <div class="what-inner">
+    <div class="what-headline reveal">
+      <div class="sec-eyebrow">Para fans y seguidores</div>
+      <h2 class="sec-title"><span class="gold">Apoya, gana</span><br/>y sé visible para siempre</h2>
+      <p>
+        En ZonaVIP Trends, cuando compras una zona VIP en el expositor de un creador, <strong>tu imagen/enlace queda fijado de por vida</strong>.
+        Es tu forma de decir "yo estuve aquí" y además <strong>entras en los sorteos que ese creador configure</strong> (además de los sorteos globales
+        de la plataforma). Cada expositor tiene sus propias reglas y premios. ¡Tu apoyo se convierte en viralidad permanente!
+      </p>
+      <div class="what-highlight">
+        <strong>¿Quieres tu propio marketplace?</strong> Como fan también puedes solicitarlo. Ideal para tu marca personal, tu negocio pequeño o tu círculo más cercano. Se publica automáticamente en la red de ZonaVIP Trends.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PERFILES (fans como protagonistas) -->
+<section class="sec-wrap" id="audiencias" style="padding-bottom:100px">
+  <div class="sec-eyebrow reveal" style="justify-content:center">Elige cómo participar</div>
+  <h2 class="sec-title reveal" style="text-align:center;margin-bottom:16px">Tú decides <span class="gold">tu nivel de apoyo</span></h2>
+  <p class="reveal" style="text-align:center;color:var(--cream-muted);font-size:.9rem;max-width:600px;margin:0 auto 48px;line-height:1.8;font-weight:300">
+    Como fan eres el centro del ecosistema. Apoyas, ganas premios y visibilidad, e incluso puedes tener tu propio espacio.
+  </p>
+  <div class="profile-cards-grid reveal">
+    <!-- FANS (principal) -->
+    <div class="profile-card pc-usuario">
+      <div class="pc-header">
+        <div class="pc-icon-wrap"><i class="fas fa-heart"></i></div>
+        <div class="pc-header-text">
+          <div class="pc-title">Fans VIP</div>
+          <div class="pc-tagline">Apoyo con recompensa</div>
+        </div>
+      </div>
+      <div class="pc-divider"></div>
+      <ul class="pc-features">
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Visibilidad eterna</strong>Tu logo/imagen aparece para siempre en el perfil del creador que apoyas.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Participa en sorteos</strong>Cada zona comprada entra en los sorteos del creador y en los globales de ZonaVIP.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Tu propio marketplace</strong>Si lo deseas, puedes solicitar tu expositor personal para tu círculo cercano.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Red de contactos</strong>Conecta con otros fans, marcas y creadores dentro del ecosistema.</div></li>
+      </ul>
+      <div class="pc-pills">
+        <span class="pc-pill">Exposición viral</span>
+        <span class="pc-pill">Premios reales</span>
+        <span class="pc-pill">Marketplace propio</span>
+      </div>
+      <a class="pc-btn" href="index.html"><i class="fas fa-heart"></i> Reservar zona</a>
+    </div>
+    <!-- CREADORES (donde apoyar) -->
+    <div class="profile-card pc-influencer">
+      <div class="pc-header">
+        <div class="pc-icon-wrap"><i class="fas fa-video"></i></div>
+        <div class="pc-header-text">
+          <div class="pc-title">Creadores</div>
+          <div class="pc-tagline">A quién apoyas</div>
+        </div>
+      </div>
+      <div class="pc-divider"></div>
+      <ul class="pc-features">
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Encuentra a tu ídolo</strong>Explora el directorio de creadores y elige en qué comunidad quieres destacar.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Sorteos personalizados</strong>Cada creador puede configurar sus propios premios para sus fans.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Apoyo directo</strong>Tu compra va directa al creador. Le ayudas a monetizar sin intermediarios.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Contenido exclusivo</strong>Algunos creadores ofrecen ventajas adicionales a sus compradores VIP.</div></li>
+      </ul>
+      <div class="pc-pills">
+        <span class="pc-pill">Directorio</span>
+        <span class="pc-pill">Sorteos</span>
+        <span class="pc-pill">Sin comisiones</span>
+      </div>
+      <a class="pc-btn" href="index.html"><i class="fas fa-search"></i> Explorar creadores</a>
+    </div>
+    <!-- MARCAS (opción adicional) -->
+    <div class="profile-card pc-marcas">
+      <div class="pc-header">
+        <div class="pc-icon-wrap"><i class="fas fa-building"></i></div>
+        <div class="pc-header-text">
+          <div class="pc-title">Marcas</div>
+          <div class="pc-tagline">Publicidad segmentada</div>
+        </div>
+      </div>
+      <div class="pc-divider"></div>
+      <ul class="pc-features">
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Llega a audiencias</strong>Las marcas también compran zonas en creadores para promocionarse.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Visibilidad permanente</strong>Su logo queda fijo en el feed, igual que el de los fans.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Colaboraciones</strong>Negocian directamente con los creadores para campañas especiales.</div></li>
+        <li><span class="pcf-ico"><i class="fas fa-circle"></i></span><div><strong>Marketplace propio</strong>Al igual que los fans, pueden tener su expositor de marca.</div></li>
+      </ul>
+      <div class="pc-pills">
+        <span class="pc-pill">Segmentación</span>
+        <span class="pc-pill">Branding</span>
+        <span class="pc-pill">B2B directo</span>
+      </div>
+      <a class="pc-btn" href="index.html"><i class="fas fa-building"></i> Ver marcas</a>
+    </div>
+  </div>
+</section>
+
+<!-- VALUE PROP (para fans) -->
+<section class="value-section" id="beneficios">
+  <div class="value-inner">
+    <div class="value-headline reveal">
+      <div class="sec-eyebrow">Beneficios exclusivos para fans</div>
+      <h2 class="sec-title"><span class="gold">¿Qué ganas</span> al apoyar?</h2>
+      <p>Más allá del apoyo a tu creador favorito, obtienes <strong>visibilidad de por vida, premios en metálico y la posibilidad de tener tu propio expositor</strong>.</p>
+    </div>
+    <div class="value-grid">
+      <div class="value-card vc-4 reveal rd1">
+        <div class="value-card-num">01</div>
+        <div class="value-ico"><i class="fas fa-infinity"></i></div>
+        <h3>Exposición eterna</h3>
+        <p>Tu zona VIP queda fijada en el perfil del creador. Miles de visitas verán tu apoyo para siempre.</p>
+        <div class="value-badge" style="--badge-color:#3ACA5A"><i class="fas fa-check"></i> Visibilidad garantizada</div>
+      </div>
+      <div class="value-card vc-1 reveal rd2">
+        <div class="value-card-num">02</div>
+        <div class="value-ico"><i class="fas fa-gift"></i></div>
+        <h3>Sorteos constantes</h3>
+        <p>Participas en los sorteos del creador y en los 150.000€ en premios de ZonaVIP Trends.</p>
+        <div class="value-badge"><i class="fas fa-ticket-alt"></i> Participación automática</div>
+      </div>
+      <div class="value-card vc-3 reveal rd3">
+        <div class="value-card-num">03</div>
+        <div class="value-ico"><i class="fas fa-store"></i></div>
+        <h3>Tu propio marketplace</h3>
+        <p>Si quieres ir más allá, solicita tu expositor personal. Ideal para tu marca o círculo íntimo.</p>
+        <div class="value-badge" style="--badge-color:#A78BFF"><i class="fas fa-user-plus"></i> Acceso a red</div>
+      </div>
+      <div class="value-card vc-2 reveal rd4">
+        <div class="value-card-num">04</div>
+        <div class="value-ico"><i class="fas fa-star"></i></div>
+        <h3>Comunidad VIP</h3>
+        <p>Accede a canales exclusivos y conviértete en un mecenas reconocido dentro del ecosistema.</p>
+        <div class="value-badge" style="--badge-color:var(--blue-light)"><i class="fas fa-crown"></i> Estatus VIP</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA (para fans) -->
+<div class="sec-wrap" id="como-funciona">
+  <div class="sec-eyebrow reveal">Simple y gratificante</div>
+  <h2 class="sec-title reveal">¿Cómo funciona para fans?</h2>
+  <div class="how-grid">
+    <div class="how-step reveal rd1">
+      <div class="how-num">01 / ELIGE</div>
+      <i class="fas fa-users how-ico"></i>
+      <h3>Elige a tu creador</h3>
+      <p>Explora el marketplace y selecciona el perfil del creador al que quieres apoyar.</p>
+    </div>
+    <div class="how-step reveal rd2">
+      <div class="how-num">02 / RESERVA</div>
+      <i class="fas fa-shopping-cart how-ico"></i>
+      <h3>Compra tu zona VIP</h3>
+      <p>Selecciona una zona disponible, personaliza tu imagen/enlace y realiza el pago.</p>
+    </div>
+    <div class="how-step reveal rd3">
+      <div class="how-num">03 / BRILLA</div>
+      <i class="fas fa-bullhorn how-ico"></i>
+      <h3>Visibilidad eterna</h3>
+      <p>Tu apoyo queda inmortalizado en el feed del creador. Viralidad y reconocimiento asegurados.</p>
+    </div>
+    <div class="how-step reveal rd4">
+      <div class="how-num">04 / GANA</div>
+      <i class="fas fa-trophy how-ico"></i>
+      <h3>Participa en sorteos</h3>
+      <p>Automáticamente entras en los sorteos del creador y en los premios globales de la plataforma.</p>
+    </div>
+  </div>
+  <p class="reveal" style="text-align:center; margin-top:32px; color:var(--gold); font-style:italic;">¿Quieres tu propio marketplace? <a href="soporte.html" style="color:var(--gold); text-decoration:underline;">Solicítalo aquí</a> y lo tendrás listo en minutos.</p>
+</div>
+
+<!-- PREMIOS (tabla de premios globales) -->
+<section class="sec-wrap" id="premios">
+  <div class="sec-eyebrow reveal">Transparencia total</div>
+  <h2 class="sec-title reveal"><span class="gold">Sorteos</span> globales ZonaVIP</h2>
+  <p class="reveal" style="color:var(--cream-muted);font-size:.9rem;margin-bottom:16px;margin-top:-24px;max-width:680px;line-height:1.8;font-weight:300">
+    Estos son los premios financiados por acuerdos publicitarios globales. <strong>Cada zona reservada en cualquier expositor participa automáticamente.</strong>
+    Además, recuerda que cada creador puede configurar sus propios sorteos adicionales.
+  </p>
+  <div class="prizes-clean reveal">
+    <div class="prizes-summary">
+      <div class="ps-stat"><span class="ps-num">770</span><span class="ps-label">Premios totales</span></div>
+      <div class="ps-divider"></div>
+      <div class="ps-stat"><span class="ps-num">150K€</span><span class="ps-label">En premios</span></div>
+      <div class="ps-divider"></div>
+      <div class="ps-stat"><span class="ps-num">100%</span><span class="ps-label">Financiado</span></div>
+      <div class="ps-divider"></div>
+      <div class="ps-stat"><span class="ps-num"><i class="fas fa-lock" style="font-size:1.6rem;color:var(--gold)"></i></span><span class="ps-label">Auditable</span></div>
+    </div>
+    <div class="prizes-table">
+      <div class="pt-header"><span>Nivel</span><span>Premio</span><span>Cantidad</span><span>Total</span></div>
+      <div class="pt-row pt-row--top"><span class="pt-level"><i class="fas fa-star"></i> Premium</span><span class="pt-amount" style="color:#3ACA5A">€3.000</span><span class="pt-qty">×10</span><span class="pt-total" style="color:#3ACA5A">€30.000</span></div>
+      <div class="pt-row"><span class="pt-level"><i class="fas fa-star"></i> Premium</span><span class="pt-amount" style="color:#3ACA5A">€1.000</span><span class="pt-qty">×10</span><span class="pt-total" style="color:#3ACA5A">€10.000</span></div>
+      <div class="pt-row"><span class="pt-level"><i class="fas fa-bolt"></i> Top</span><span class="pt-amount gold-text">€500</span><span class="pt-qty">×50</span><span class="pt-total gold-text">€25.000</span></div>
+      <div class="pt-row"><span class="pt-level"><i class="fas fa-coins"></i> Estándar</span><span class="pt-amount" style="color:var(--cream-muted)">€250</span><span class="pt-qty">×100</span><span class="pt-total" style="color:var(--cream-muted)">€25.000</span></div>
+      <div class="pt-row"><span class="pt-level"><i class="fas fa-coins"></i> Acceso</span><span class="pt-amount" style="color:var(--cream-muted)">€100</span><span class="pt-qty">×600</span><span class="pt-total" style="color:var(--cream-muted)">€60.000</span></div>
+      <div class="pt-footer"><span class="pt-level">Participación automática · Sin coste extra</span><span></span><span class="pt-qty">770</span><span class="pt-total gold-text">150K€</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ (fans) -->
+<div style="max-width:1160px;margin:0 auto;padding:0 24px">
+  <div class="sec-eyebrow reveal" style="justify-content:center;margin-bottom:14px">Resolvemos tus dudas</div>
+  <h2 class="sec-title reveal" style="text-align:center;margin-bottom:40px">Preguntas <span class="gold">frecuentes</span></h2>
+</div>
+<div class="faq-section" style="padding-top:0">
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">¿Qué obtengo al comprar una zona VIP?<i class="fas fa-plus"></i></button>
+    <div class="faq-a">Obtienes visibilidad permanente en el perfil del creador (tu logo/imagen y enlace). Además, participas automáticamente en los sorteos que ese creador haya configurado, así como en los sorteos globales de ZonaVIP Trends.</div>
+  </div>
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">¿Puedo tener mi propio marketplace siendo fan?<i class="fas fa-plus"></i></button>
+    <div class="faq-a">¡Sí! Cualquier usuario puede solicitar su expositor personal. Es ideal si quieres que tu círculo cercano te apoye, o para dar visibilidad a tu marca personal. Se publica automáticamente en la red.</div>
+  </div>
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">¿Los sorteos son solo los de la tabla?<i class="fas fa-plus"></i></button>
+    <div class="faq-a">La tabla muestra los premios globales financiados por acuerdos publicitarios. Sin embargo, cada creador puede configurar sus propios sorteos adicionales para sus compradores. Consulta el expositor de tu creador favorito para ver sus premios específicos.</div>
+  </div>
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">¿Mi zona VIP es realmente para siempre?<i class="fas fa-plus"></i></button>
+    <div class="faq-a">Sí. Una vez comprada, la zona queda asociada a ese espacio del expositor de forma permanente. Es una forma de inmortalizar tu apoyo y ganar visibilidad continua.</div>
+  </div>
+  <div class="faq-item reveal">
+    <button class="faq-q" onclick="toggleFaq(this)">¿Cómo puedo solicitar mi propio marketplace?<i class="fas fa-plus"></i></button>
+    <div class="faq-a">Simplemente ve a la sección de soporte o haz clic en "Solicitar mi marketplace". Te guiaremos en el proceso y en poco tiempo tendrás tu expositor listo.</div>
+  </div>
+</div>
+
+<!-- FINAL CTA -->
+<section class="final-section reveal">
+  <h2 class="final-title"><span class="outline">APOYA</span><br/><span class="gold">Y BRILLA</span></h2>
+  <p class="final-sub">Reserva tu zona VIP, consigue visibilidad eterna y participa en sorteos. Tu apoyo merece ser recompensado.</p>
+  <a class="btn-primary" href="index.html"><i class="fas fa-heart"></i> Reservar zona ahora &nbsp;&rarr;</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-main">
+    <div class="footer-brand">
+      <div class="footer-brand-logo">
+        <div class="footer-brand-logo-img"><img src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="ZonaVIP"/></div>
+        <span class="footer-brand-name">ZonaVIP Trends</span>
+      </div>
+      <p class="footer-brand-desc">Marketplace donde los fans apoyan a sus creadores y ganan visibilidad y premios. Tu apoyo, tu espacio.</p>
+      <div class="footer-social">
+        <a href="#" class="footer-social-link instagram"><i class="fab fa-instagram"></i></a>
+        <a href="#" class="footer-social-link twitter"><i class="fab fa-x-twitter"></i></a>
+        <a href="#" class="footer-social-link tiktok"><i class="fab fa-tiktok"></i></a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Plataforma</div>
+      <ul class="footer-col-links">
+        <li><a href="index.html">Marketplace</a></li>
+        <li><a href="#ecosistema">Qué es</a></li>
+        <li><a href="#como-funciona">Cómo funciona</a></li>
+        <li><a href="#audiencias">Para fans</a></li>
+        <li><a href="#premios">Premios</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Fans</div>
+      <ul class="footer-col-links">
+        <li><a href="index.html">Reservar zona</a></li>
+        <li><a href="soporte.html">Solicitar marketplace</a></li>
+        <li><a href="index.html">Explorar creadores</a></li>
+        <li><a href="soporte.html">Soporte</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <div class="footer-col-title">Legal</div>
+      <ul class="footer-col-links">
+        <li><a href="avisolegal.html">Aviso Legal</a></li>
+        <li><a href="privacidad.html">Privacidad</a></li>
+        <li><a href="basessorteo.html">Bases sorteo</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-bottom-left">© 2026 ZonaVIP Trends &nbsp;&middot;&nbsp; Marketplace para fans y creadores</div>
+    <div class="footer-bottom-right"><span class="footer-badge"><i class="fas fa-lock"></i> Pagos seguros</span></div>
+  </div>
+</footer>
+</div>
+
+<script>
+/* Particles canvas (idéntico) */
+(function(){
+  var c=document.getElementById('bg-canvas'),ctx=c.getContext('2d'),W,H,particles=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  function randomBetween(a,b){return a+Math.random()*(b-a)}
+  function initParticles(){
+    particles=[];
+    for(var i=0;i<Math.floor((W*H)/42000);i++){
+      particles.push({x:randomBetween(0,W),y:randomBetween(0,H),r:randomBetween(0.4,1.2),vx:randomBetween(-0.04,0.04),vy:randomBetween(-0.04,0.04),alpha:randomBetween(0.03,0.14),blue:Math.random()>0.5});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<particles.length;i++){
+      for(var j=i+1;j<particles.length;j++){
+        var dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<85){ctx.beginPath();ctx.strokeStyle='rgba(191,155,90,'+(1-dist/85)*0.028+')';ctx.lineWidth=0.4;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke()}
+      }
+    }
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      var col=p.blue?'rgba(74,143,232,'+p.alpha+')':'rgba(191,155,90,'+p.alpha+')';
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    }
+    requestAnimationFrame(draw);
+  }
+  resize();initParticles();window.addEventListener('resize',function(){resize();initParticles()});draw();
+})();
+
+/* Reveal on scroll */
+var revs=document.querySelectorAll('.reveal');
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:0.08});
+revs.forEach(function(el){obs.observe(el)});
+
+/* Counter bars */
+var TOTAL=13040,ocupadas=0;
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    document.getElementById('counterFill').style.width=((ocupadas/TOTAL)*100)+'%';
+    document.getElementById('counterFill2').style.width='0%';
+  },500);
+});
+
+/* FAQ */
+function toggleFaq(btn){
+  var item=btn.closest('.faq-item');
+  var isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(el){el.classList.remove('open')});
+  if(!isOpen)item.classList.add('open');
+}
+</script>
+</body>
+</html>
