@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>ZonaVip Trends · Elige tu perfil</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --gold:#BF9B5A;
+  --gold-light:#D4B578;
+  --gold-dim:rgba(191,155,90,0.45);
+  --cream:#EDE8E0;
+  --cream-muted:rgba(237,232,224,0.5);
+  --cream-dim:rgba(237,232,224,0.25);
+  --transition:430ms cubic-bezier(0.4,0,0.2,1);
+}
+
+html,body{width:100%;height:100%;overflow:hidden;background:#08090F}
+
+body{font-family:'Barlow',sans-serif;color:var(--cream)}
+
+/* HEADER */
+.hdr{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:26px 52px;
+  background:linear-gradient(to bottom,rgba(8,9,15,0.92) 0%,transparent 100%);
+  animation:fadeDown 700ms 300ms both
+}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+
+.logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:19px;font-weight:400;
+  letter-spacing:0.22em;text-transform:uppercase;
+  color:var(--cream)
+}
+.logo-vip{color:var(--gold)}
+.logo-trends{opacity:0.55;font-weight:300;letter-spacing:0.18em}
+
+.nav{display:flex;align-items:center;gap:32px}
+.nav-link{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:500;
+  letter-spacing:0.28em;text-transform:uppercase;
+  color:var(--cream-muted);text-decoration:none;
+  transition:color 200ms
+}
+.nav-link:hover{color:var(--cream)}
+
+/* SPLIT */
+.split{
+  display:flex;width:100%;height:100vh;
+  position:relative
+}
+
+.pnl{
+  position:relative;
+  flex:1;overflow:hidden;
+  cursor:pointer;
+  transition:flex var(--transition),filter var(--transition);
+  animation:panelIn 800ms both
+}
+.pnl:nth-child(1){animation-delay:0ms;background:#0B1621}
+.pnl:nth-child(2){animation-delay:90ms;background:#10101E}
+.pnl:nth-child(3){animation-delay:180ms;background:#0A1910}
+@keyframes panelIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+/* Radial glow per panel */
+.pnl::before{
+  content:'';position:absolute;inset:0;
+  transition:opacity var(--transition),transform var(--transition);
+  pointer-events:none;z-index:1
+}
+.pnl--creator::before{background:radial-gradient(ellipse 55% 45% at 50% 65%,rgba(37,107,199,0.2) 0%,transparent 70%)}
+.pnl--brand::before{background:radial-gradient(ellipse 55% 45% at 50% 65%,rgba(191,155,90,0.16) 0%,transparent 70%)}
+.pnl--user::before{background:radial-gradient(ellipse 55% 45% at 50% 65%,rgba(28,130,72,0.18) 0%,transparent 70%)}
+
+/* Subtle grid pattern */
+.pnl::after{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(237,232,224,0.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(237,232,224,0.022) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0;
+  transition:opacity var(--transition)
+}
+
+/* Separator */
+.pnl:not(:last-child) .sep{
+  position:absolute;right:0;top:12%;bottom:12%;
+  width:1px;z-index:10;
+  background:linear-gradient(to bottom,transparent,var(--gold-dim),transparent)
+}
+
+/* Panel inner */
+.pnl__inner{
+  position:relative;z-index:3;
+  height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:20px;padding:80px 32px 40px;
+  text-align:center;
+  transition:opacity var(--transition);
+  /* Ajuste para bajar el contenido en estado colapsado */
+  transform:translateY(8%);
+}
+/* Cuando el panel está activo, volvemos a centrar perfectamente */
+.pnl.is-active .pnl__inner{
+  transform:translateY(0);
+}
+
+.pnl__index{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:10px;font-weight:600;
+  letter-spacing:0.38em;text-transform:uppercase;
+  color:var(--gold);opacity:0.65;
+  transition:opacity var(--transition)
+}
+
+.pnl__title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(34px,4.2vw,70px);
+  font-weight:300;color:var(--cream);
+  letter-spacing:-0.01em;line-height:1;
+  white-space:nowrap;
+  transition:font-size var(--transition)
+}
+
+.pnl__rule{
+  width:32px;height:1px;
+  background:linear-gradient(to right,transparent,var(--gold),transparent);
+  opacity:0.55;
+  transition:width var(--transition),opacity var(--transition)
+}
+
+.pnl__sub{
+  font-family:'Barlow',sans-serif;
+  font-size:13px;font-weight:300;
+  letter-spacing:0.04em;line-height:1.7;
+  color:var(--cream-muted);max-width:260px;
+  opacity:0;transform:translateY(14px);
+  transition:opacity 320ms 140ms,transform 320ms 140ms
+}
+
+.pnl__cta{
+  margin-top:6px;padding:13px 34px;
+  background:transparent;
+  border:1px solid var(--gold-dim);
+  color:var(--gold);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:0.3em;text-transform:uppercase;
+  cursor:pointer;white-space:nowrap;
+  opacity:0;transform:translateY(16px);
+  transition:opacity 320ms 230ms,transform 320ms 230ms,background 200ms,border-color 200ms;
+  border-radius:1px;
+  pointer-events:auto;
+  z-index:20;
+  position:relative;
+}
+.pnl__cta:hover{background:rgba(191,155,90,0.1);border-color:var(--gold)}
+
+/* Large bg number */
+.pnl__num{
+  position:absolute;bottom:28px;right:32px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:96px;font-weight:300;
+  color:rgba(237,232,224,0.035);
+  line-height:1;pointer-events:none;user-select:none;z-index:2;
+  transition:font-size var(--transition),color var(--transition)
+}
+
+/* Vertical label when collapsed */
+.pnl__vlabel{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) rotate(-90deg);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:9px;letter-spacing:0.45em;text-transform:uppercase;
+  color:rgba(237,232,224,0.18);white-space:nowrap;
+  pointer-events:none;z-index:4;
+  opacity:0;transition:opacity 300ms ease
+}
+
+/* Accent line per panel top */
+.pnl__accent{
+  position:absolute;top:0;left:20%;right:20%;
+  height:2px;z-index:5;
+  transition:opacity var(--transition)
+}
+.pnl--creator .pnl__accent{background:linear-gradient(to right,transparent,rgba(37,107,199,0.6),transparent)}
+.pnl--brand .pnl__accent{background:linear-gradient(to right,transparent,rgba(191,155,90,0.7),transparent)}
+.pnl--user .pnl__accent{background:linear-gradient(to right,transparent,rgba(28,130,72,0.6),transparent)}
+
+/* ===== ACTIVE STATES ===== */
+.split.has-active .pnl:not(.is-active){
+  flex:0.26;
+  filter:brightness(0.38)
+}
+.split.has-active .pnl.is-active{flex:2.9}
+
+.split.has-active .pnl:not(.is-active) .pnl__inner{opacity:0.3}
+.split.has-active .pnl:not(.is-active) .pnl__vlabel{opacity:1}
+.split.has-active .pnl:not(.is-active)::after{opacity:0.4}
+
+.pnl.is-active .pnl__sub,.pnl.is-active .pnl__cta{opacity:1;transform:translateY(0)}
+.pnl.is-active .pnl__rule{width:68px;opacity:0.85}
+.pnl.is-active .pnl__index{opacity:1}
+.pnl.is-active .pnl__num{font-size:150px;color:rgba(237,232,224,0.05)}
+.pnl.is-active .pnl__title{font-size:clamp(40px,5.5vw,88px)}
+
+/* Tagline bottom */
+.tagline{
+  position:fixed;bottom:26px;left:50%;transform:translateX(-50%);
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:9px;letter-spacing:0.42em;text-transform:uppercase;
+  color:rgba(237,232,224,0.18);z-index:100;white-space:nowrap;
+  animation:fadeUp 700ms 600ms both;
+  transition:opacity 400ms
+}
+.split.has-active~.tagline{opacity:0}
+@keyframes fadeUp{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* MOBILE */
+@media(max-width:768px){
+  html,body{overflow:hidden}
+  .hdr{padding:18px 24px}
+  .nav{gap:20px}
+  .split{flex-direction:column}
+  .split.has-active .pnl:not(.is-active){flex:0.1;filter:brightness(0.35)}
+  .split.has-active .pnl.is-active{flex:2.6}
+  .pnl:not(:last-child) .sep{
+    position:absolute;right:15%;left:15%;top:auto;bottom:0;
+    width:auto;height:1px;
+    background:linear-gradient(to right,transparent,var(--gold-dim),transparent)
+  }
+  .pnl__vlabel{transform:translate(-50%,-50%) rotate(0deg)}
+  .pnl__num{display:none}
+  .pnl__title{font-size:clamp(32px,8vw,48px) !important}
+  .pnl__accent{left:30%;right:30%}
+  .pnl__inner{padding:60px 24px; transform:translateY(12%);} /* más abajo en móvil */
+  .pnl.is-active .pnl__inner{transform:translateY(0);}
+  .pnl__sub{max-width:280px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo">Zona<span class="logo-vip">Vip</span>&nbsp;<span class="logo-trends">Trends</span></div>
+  <nav class="nav">
+    <a href="#" class="nav-link">Expositor</a>
+  </nav>
+</header>
+
+<main class="split" id="split">
+
+  <div class="pnl pnl--creator" id="p1">
+    <div class="pnl__accent"></div>
+    <div class="sep"></div>
+    <div class="pnl__inner">
+      <span class="pnl__index">01 &mdash; Creador</span>
+      <h2 class="pnl__title">Creador</h2>
+      <div class="pnl__rule"></div>
+      <p class="pnl__sub">Monetiza tu audiencia con herramientas diseñadas para creadores que van en serio.</p>
+      <button class="pnl__cta" id="btnCreator">Soy Creador &nbsp;&rarr;</button>
+    </div>
+    <span class="pnl__vlabel">Creador</span>
+    <div class="pnl__num">01</div>
+  </div>
+
+  <div class="pnl pnl--brand" id="p2">
+    <div class="pnl__accent"></div>
+    <div class="sep"></div>
+    <div class="pnl__inner">
+      <span class="pnl__index">02 &mdash; Marca</span>
+      <h2 class="pnl__title">Marca</h2>
+      <div class="pnl__rule"></div>
+      <p class="pnl__sub">Conecta con los creadores más influyentes y lleva tu campaña al siguiente nivel.</p>
+      <button class="pnl__cta" id="btnBrand">Soy Marca &nbsp;&rarr;</button>
+    </div>
+    <span class="pnl__vlabel">Marca</span>
+    <div class="pnl__num">02</div>
+  </div>
+
+  <div class="pnl pnl--user" id="p3">
+    <div class="pnl__accent"></div>
+    <div class="pnl__inner">
+      <span class="pnl__index">03 &mdash; Usuario</span>
+      <h2 class="pnl__title">Usuario</h2>
+      <div class="pnl__rule"></div>
+      <p class="pnl__sub">Descubre contenido exclusivo de los creadores que más te inspiran.</p>
+      <button class="pnl__cta" id="btnUser">Soy Usuario &nbsp;&rarr;</button>
+    </div>
+    <span class="pnl__vlabel">Usuario</span>
+    <div class="pnl__num">03</div>
+  </div>
+
+</main>
+
+<div class="tagline">Elige tu perfil &nbsp;&mdash;&nbsp; ZonaVip Trends</div>
+
+<script>
+const split=document.getElementById('split');
+const panels=split.querySelectorAll('.pnl');
+
+function activate(p){
+  split.classList.add('has-active');
+  panels.forEach(x=>x.classList.remove('is-active'));
+  p.classList.add('is-active');
+}
+function deactivate(){
+  split.classList.remove('has-active');
+  panels.forEach(x=>x.classList.remove('is-active'));
+}
+
+panels.forEach(p=>{
+  p.addEventListener('mouseenter',()=>{
+    if(window.innerWidth>768) activate(p);
+  });
+});
+split.addEventListener('mouseleave',()=>{
+  if(window.innerWidth>768) deactivate();
+});
+
+panels.forEach(p=>{
+  p.addEventListener('click',(e)=>{
+    if(e.target.closest('.pnl__cta')) return;
+    if(p.classList.contains('is-active')){
+      deactivate();
+    }else{
+      activate(p);
+    }
+  });
+});
+
+document.getElementById('btnCreator').addEventListener('click',(e)=>{
+  e.stopPropagation();
+  window.location.href='info.html#creador';
+});
+document.getElementById('btnBrand').addEventListener('click',(e)=>{
+  e.stopPropagation();
+  window.location.href='info.html#marca';
+});
+document.getElementById('btnUser').addEventListener('click',(e)=>{
+  e.stopPropagation();
+  window.location.href='info.html#usuario';
+});
+</script>
+</body>
+</html>
