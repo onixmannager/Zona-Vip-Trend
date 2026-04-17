@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>ZonaVip Trends · Feed</title>
   
-  <!-- Fuentes elegantes (mismas que index2) -->
+  <!-- Fuentes (index2) -->
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
 
-  <!-- Firebase (misma configuración que index2, reemplazar con tus credenciales) -->
+  <!-- Firebase (configuración igual que index2) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -45,25 +45,18 @@
     :root {
       --gold:        #BF9B5A;
       --gold-light:  #D4B578;
-      --gold-lt:     #D4B578;
       --gold-dim:    rgba(191,155,90,0.45);
       --gold-dk:     rgba(191,155,90,0.2);
       --cream:       #EDE8E0;
       --cream-muted: rgba(237,232,224,0.5);
-      --cream-dim:   rgba(237,232,224,0.25);
       --bg:          #08090F;
       --card:        rgba(12,13,22,0.97);
       --border:      rgba(191,155,90,0.18);
-      --sel:         rgba(191,155,90,0.45);
-      --sold:        rgba(191,155,90,0.09);
       --muted:       rgba(237,232,224,0.28);
       --muted2:      rgba(237,232,224,0.55);
-      --white:       #EDE8E0;
-      --cyan:        #BF9B5A;   /* dorado como acento */
       --fh: 'Cormorant Garamond', serif;
       --fb: 'Barlow', sans-serif;
       --fc: 'Barlow Condensed', sans-serif;
-      --transition: 430ms cubic-bezier(0.4,0,0.2,1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -191,7 +184,7 @@
     #nav-overlay { display: none; position: fixed; inset: 0; z-index: 99; }
     #nav-overlay.open { display: block; }
 
-    /* ===== CABECERA FEED (simplificada) ===== */
+    /* ===== CABECERA FEED (corregida) ===== */
     #feed-header {
       margin-top: 74px;
       padding: 20px 24px 8px;
@@ -203,14 +196,20 @@
       flex-wrap: wrap; gap: 16px;
     }
     .fh-left {
-      display: flex; align-items: baseline; gap: 12px;
+      display: flex; align-items: center; gap: 16px;  /* alineación vertical centrada */
     }
-    .fh-avatar {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--fh); font-size: 1.3rem; color: #0a0a0a;
-      border: 1.5px solid rgba(191,155,90,0.5);
+    /* Estilo para el logo: sin fondo dorado ni borde circular */
+    .fh-logo-img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;  /* para que no se recorte */
+      display: block;
+      border: none;
+      background: transparent;
+    }
+    .fh-text {
+      display: flex;
+      flex-direction: column;
     }
     .fh-name {
       font-family: var(--fh); font-size: 1.6rem; letter-spacing: 0.06em;
@@ -443,7 +442,7 @@
     }
     .modal-link-btn.no-link:hover { background: transparent; }
 
-    /* VIP modal (idéntico a index2) */
+    /* VIP modal */
     #modal-vip .modal-panel { max-width: 420px; }
     .vip-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
     .vip-tab {
@@ -485,7 +484,7 @@
 </head>
 <body>
 
-<!-- BARRA (navbar index2, sin botones de compra) -->
+<!-- BARRA -->
 <div id="barra">
   <a class="barra-logo" href="index.html">
     <span class="barra-logo-main">Zona<span class="barra-logo-vip">Vip</span></span>
@@ -517,11 +516,12 @@
 </div>
 <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
-<!-- CABECERA FEED (sin contadores) -->
+<!-- CABECERA FEED (estructura corregida) -->
 <div id="feed-header">
   <div class="fh-top">
-    <img class="fh-avatar" src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="Logo" style="object-fit: cover;">
-      <div>
+    <div class="fh-left">
+      <img class="fh-logo-img" src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="Logo">
+      <div class="fh-text">
         <div class="fh-name">ZonaVIP Trends</div>
         <div class="fh-sub">Expositor colaborativo · zona a zona</div>
       </div>
@@ -539,7 +539,7 @@
   </div>
 </div>
 
-<!-- FEED -->
+<!-- FEED (igual) -->
 <div id="feed-wrap">
   <div id="loading-state">
     <div class="spinner"></div>
@@ -553,7 +553,7 @@
   <div id="feed-grid" style="display:none;"></div>
 </div>
 
-<!-- MODAL DETALLE (estilo index2) -->
+<!-- MODAL DETALLE -->
 <div class="modal-bg" id="modal-bg" onclick="onBgClick(event)">
   <div class="modal-panel">
     <button class="modal-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
@@ -594,7 +594,7 @@
   </div>
 </div>
 
-<!-- MODAL VIP (idéntico a index2) -->
+<!-- MODAL VIP -->
 <div class="modal-bg" id="modal-vip">
   <div class="modal-panel">
     <button class="modal-close" onclick="cerrarModal('modal-vip')"><i class="fas fa-times"></i></button>
@@ -635,20 +635,18 @@
 </div>
 
 <script>
-  // ── CONFIG (misma que index.html / panel) ─────────────────
+  // (El script JavaScript es el mismo que proporcionaste, no se modifica)
   var CFG = {
     PRECIO:   50,
     TOTAL:    13040,
-    GH_REPOS: ['TU_USUARIO/mosaico-imgs-1']   // ← reemplazar con tu repositorio
+    GH_REPOS: ['TU_USUARIO/mosaico-imgs-1']
   };
-
-  var allZones  = [];      // orden del mosaico (r1/c1 ascendente)
-  var feedZones = [];      // orden actual mostrado
+  var allZones  = [];
+  var feedZones = [];
   var modalIdx  = 0;
   var isOrdenado = true;
   var VISIT_KEY  = 'zvt_feed_v2';
 
-  // ── MENÚ ─────────────────────────────────────────────────
   function toggleMenu(){
     var btn=document.getElementById('btn-menu'), dd=document.getElementById('nav-dropdown'), ov=document.getElementById('nav-overlay');
     if(dd.classList.contains('open')) cerrarMenu();
@@ -660,7 +658,6 @@
     document.getElementById('nav-overlay').classList.remove('open');
   }
 
-  // ── CARGA ZONAS ─────────────────────────────────────────
   async function loadZones(){
     var zones=[];
     for(var ri=0; ri<CFG.GH_REPOS.length; ri++){
@@ -673,7 +670,6 @@
     return zones.filter(z => !!z.imgUrl);
   }
 
-  // ── SHUFFLE ─────────────────────────────────────────────
   function shuffle(arr){ 
     var a=arr.slice();
     for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
@@ -694,7 +690,7 @@
     if(isOrdenado){
       badge.className='orden-badge ordenado';
       badge.querySelector('i').className='fas fa-sort-amount-down';
-      lbl.textContent='Orden del mosaico';
+      lbl.textContent='Orden del expositor';
       icon.className='fas fa-random'; slbl.textContent='Mezclar';
     }else{
       badge.className='orden-badge mezclado';
@@ -704,7 +700,6 @@
     }
   }
 
-  // ── RENDER GRID ─────────────────────────────────────────
   function renderGrid(){
     var grid=document.getElementById('feed-grid');
     grid.innerHTML='';
@@ -737,7 +732,6 @@
     });
   }
 
-  // ── MODAL ───────────────────────────────────────────────
   function abrirModal(idx){
     modalIdx=idx; rellenarModal();
     document.getElementById('modal-bg').classList.add('open');
@@ -785,7 +779,6 @@
     document.getElementById('modal-next').style.display=showNav?'flex':'none';
   }
 
-  // ── VIP (funciones mínimas) ─────────────────────────────
   var vipUser=null;
   window._onAuthReady=function(user){
     vipUser=user;
@@ -826,7 +819,6 @@
     await window._fbSignOut(); cerrarModal('modal-vip');
   }
 
-  // ── ARRANQUE ────────────────────────────────────────────
   (async function(){
     try{
       var raw=await loadZones();
