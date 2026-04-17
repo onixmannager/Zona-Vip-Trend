@@ -492,6 +492,7 @@
   </a>
 
   <div id="nav-menu-wrap">
+    <button id="btn-comprar" onclick="activar()"><i class="fas fa-mouse-pointer"></i>&nbsp; Elegir zona</button>
     <button id="btn-menu" onclick="toggleMenu()">
       <i class="fas fa-bars"></i>
       <span>Menú</span>
@@ -499,14 +500,14 @@
     </button>
     <div id="nav-dropdown">
       <div class="nav-header">Navegación</div>
-      <a class="nav-item" href="index.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Mosaico</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      <a class="nav-item" href="feed.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Modo feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      <a class="nav-item" href="comunidad.html"><span class="nav-icon"><i class="fab fa-discord"></i></span><span class="nav-item-label">Comunidad</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      <a class="nav-item" href="info.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="#"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Expositor</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="feed2.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="comunidad2.html"><span class="nav-icon"><i class="fab fa-discord"></i></span><span class="nav-item-label">Comunidad</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="paneldecontrol2.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>    
+      <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <div class="nav-divider"></div>
-      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;">
+      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
         <span class="nav-icon"><i class="fas fa-crown"></i></span>
         <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
         <i class="fas fa-chevron-right nav-item-arrow"></i>
