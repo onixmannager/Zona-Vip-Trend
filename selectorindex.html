@@ -62,8 +62,16 @@ body{font-family:'Barlow',sans-serif;color:var(--cream)}
   flex:1;overflow:hidden;
   cursor:pointer;
   transition:flex var(--transition),filter var(--transition);
-  animation:panelIn 800ms both
+  animation:panelIn 800ms both;
+  /* Eliminar highlight nativo en móviles */
+  -webkit-tap-highlight-color: transparent;
 }
+/* Feedback sutil al tocar (active) */
+.pnl:active {
+  background-color: rgba(255,255,255,0.02);
+  transition: background-color 0.1s;
+}
+
 .pnl:nth-child(1){animation-delay:0ms;background:#0B1621}
 .pnl:nth-child(2){animation-delay:90ms;background:#10101E}
 .pnl:nth-child(3){animation-delay:180ms;background:#0A1910}
@@ -108,11 +116,9 @@ body{font-family:'Barlow',sans-serif;color:var(--cream)}
   transition:opacity var(--transition);
   transform:translateY(18%);
 }
-/* Panel de Creador ligeramente más abajo en escritorio */
 .pnl--creator .pnl__inner {
   transform:translateY(16%);
 }
-/* Cuando el panel está activo, volvemos a centrar perfectamente */
 .pnl.is-active .pnl__inner{
   transform:translateY(0);
 }
@@ -165,8 +171,10 @@ body{font-family:'Barlow',sans-serif;color:var(--cream)}
   pointer-events:auto;
   z-index:20;
   position:relative;
+  -webkit-tap-highlight-color: transparent;
 }
 .pnl__cta:hover{background:rgba(191,155,90,0.1);border-color:var(--gold)}
+.pnl__cta:active{background:rgba(191,155,90,0.2);}
 
 /* Large bg number */
 .pnl__num{
@@ -246,7 +254,7 @@ body{font-family:'Barlow',sans-serif;color:var(--cream)}
   .pnl__title{font-size:clamp(32px,8vw,48px) !important}
   .pnl__accent{left:30%;right:30%}
   .pnl__inner{padding:60px 24px; transform:translateY(22%);}
-  .pnl--creator .pnl__inner { transform:translateY(30%); } /* ← Creador más abajo en móvil */
+  .pnl--creator .pnl__inner { transform:translateY(30%); }
   .pnl.is-active .pnl__inner{transform:translateY(0);}
   .pnl__sub{max-width:280px;font-size:12px}
 }
