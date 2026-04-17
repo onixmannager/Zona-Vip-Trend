@@ -106,8 +106,11 @@ body{font-family:'Barlow',sans-serif;color:var(--cream)}
   gap:20px;padding:80px 32px 40px;
   text-align:center;
   transition:opacity var(--transition);
-  /* Ajuste para bajar el contenido en estado colapsado */
-  transform:translateY(8%);
+  transform:translateY(18%);
+}
+/* Panel de Creador ligeramente más abajo en escritorio */
+.pnl--creator .pnl__inner {
+  transform:translateY(16%);
 }
 /* Cuando el panel está activo, volvemos a centrar perfectamente */
 .pnl.is-active .pnl__inner{
@@ -242,7 +245,8 @@ body{font-family:'Barlow',sans-serif;color:var(--cream)}
   .pnl__num{display:none}
   .pnl__title{font-size:clamp(32px,8vw,48px) !important}
   .pnl__accent{left:30%;right:30%}
-  .pnl__inner{padding:60px 24px; transform:translateY(12%);} /* más abajo en móvil */
+  .pnl__inner{padding:60px 24px; transform:translateY(22%);}
+  .pnl--creator .pnl__inner { transform:translateY(30%); } /* ← Creador más abajo en móvil */
   .pnl.is-active .pnl__inner{transform:translateY(0);}
   .pnl__sub{max-width:280px;font-size:12px}
 }
