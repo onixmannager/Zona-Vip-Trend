@@ -96,16 +96,22 @@ body {
 }
 .barra-logo-main {
   font-family: var(--fh);
-  font-size: 1.15rem; font-weight: 400;
-  letter-spacing: 0.22em; text-transform: uppercase;
+  font-size: 1.4rem;      /* Aumentado ligeramente */
+  font-weight: 400;
+  letter-spacing: 0.15em;  /* Ajustado para mayor legibilidad */
+  text-transform: uppercase;
   color: var(--cream);
 }
 .barra-logo-vip { color: var(--gold); }
-.barra-logo-tag {
+/* Eliminamos .barra-logo-tag porque ahora "Trends" va dentro del main */
+.barra-logo-main .trends-suffix {
   font-family: var(--fc);
-  font-size: 0.62rem; font-weight: 500;
-  letter-spacing: 0.28em; text-transform: uppercase;
-  color: var(--cream-muted); opacity: 0.7;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  margin-left: 6px;
+  color: var(--cream-muted);
+  text-transform: uppercase;
 }
 
 #barra-info {
@@ -130,7 +136,7 @@ body {
 
 #btn-pagar {
   display: none; align-items: center; gap: 6px;
-  padding: 6px 16px;
+  padding: 8px 16px;        /* Ligeramente más alto */
   font-family: var(--fc); font-size: .68rem; font-weight: 600;
   letter-spacing: 0.22em; text-transform: uppercase;
   color: #08090F;
@@ -145,7 +151,7 @@ body {
 
 #btn-cancelar {
   display: none; align-items: center; gap: 5px;
-  padding: 6px 12px;
+  padding: 8px 12px;        /* Ligeramente más alto */
   font-family: var(--fc); font-size: .66rem; font-weight: 500;
   letter-spacing: 0.22em; text-transform: uppercase;
   color: var(--muted2); background: transparent;
@@ -155,16 +161,24 @@ body {
 #btn-cancelar.visible { display: flex; }
 #btn-cancelar:hover { color: var(--cream); border-color: rgba(237,232,224,0.3); }
 
+/* ─── BOTÓN "ELEGIR ZONA" (ahora amarillo sólido) ────────── */
 #btn-comprar {
   display: flex; align-items: center; gap: 6px;
-  padding: 6px 14px;
+  padding: 8px 16px;         /* Más alto, como el de pagar */
   font-family: var(--fc); font-size: .68rem; font-weight: 600;
   letter-spacing: 0.22em; text-transform: uppercase;
-  color: var(--gold); background: transparent;
-  border: 1px solid var(--gold-dim); border-radius: 1px;
+  color: #08090F;            /* Texto oscuro */
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  border: none;              /* Sin borde */
+  border-radius: 1px;
   cursor: pointer; white-space: nowrap; transition: all .2s;
+  box-shadow: 0 0 12px rgba(191,155,90,0.2);
 }
-#btn-comprar:hover { background: rgba(191,155,90,0.08); border-color: var(--gold); }
+#btn-comprar:hover {
+  background: linear-gradient(135deg, #d9b86b, #c9a55e);
+  box-shadow: 0 0 18px rgba(191,155,90,0.4);
+  transform: translateY(-1px);
+}
 #btn-comprar.oculto { display: none; }
 
 /* ─── MENÚ NAVEGACIÓN ─────────────────────────────────────── */
@@ -175,7 +189,7 @@ body {
 
 #btn-menu {
   display: flex; align-items: center; gap: 7px;
-  padding: 6px 14px;
+  padding: 8px 16px;         /* Más alto */
   font-family: var(--fc); font-size: .68rem; font-weight: 600;
   letter-spacing: 0.22em; text-transform: uppercase;
   color: var(--muted2); background: transparent;
@@ -277,26 +291,27 @@ body {
   
   /* Logo más compacto */
   .barra-logo-main {
-    font-size: 0.95rem !important;
-    letter-spacing: 0.12em !important;
+    font-size: 1.2rem !important;
+    letter-spacing: 0.1em !important;
   }
-  .barra-logo-tag {
-    display: none; /* Ocultamos "Trends" para liberar espacio */
+  .barra-logo-main .trends-suffix {
+    font-size: 0.7rem;
+    margin-left: 3px;
   }
   
   /* Botones más estrechos */
   #btn-comprar {
-    padding: 5px 8px !important;
+    padding: 6px 10px !important;
     font-size: 0.6rem !important;
     letter-spacing: 0.15em !important;
   }
   #btn-menu {
-    padding: 5px 8px !important;
+    padding: 6px 10px !important;
     font-size: 0.6rem !important;
   }
   #btn-cancelar,
   #btn-pagar {
-    padding: 5px 10px !important;
+    padding: 6px 12px !important;
     font-size: 0.6rem !important;
   }
   
@@ -315,7 +330,7 @@ body {
 /* Ajustes extra para pantallas muy pequeñas (≤380px) */
 @media (max-width: 380px) {
   .barra-logo-main {
-    font-size: 0.85rem !important;
+    font-size: 1.0rem !important;
   }
   
   /* Ocultamos texto y dejamos solo iconos en botones */
@@ -791,14 +806,7 @@ body {
 }
 @keyframes hintFade { 0%,70%{opacity:1} 100%{opacity:0} }
 
-/* Tagline */
-.tagline {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  font-family: var(--fc); font-size: .58rem; font-weight: 500;
-  letter-spacing: .42em; text-transform: uppercase;
-  color: rgba(237,232,224,0.14); z-index: 50; white-space: nowrap;
-  pointer-events: none;
-}
+/* ─── ELIMINADA LA CLASE .tagline ────────────────────────── */
   </style>
 </head>
 <body>
@@ -806,8 +814,10 @@ body {
 <!-- ─── HEADER ─────────────────────────────────────────────── -->
 <div id="barra">
   <a class="barra-logo" href="info.html">
-    <span class="barra-logo-main">Zona<span class="barra-logo-vip">Vip</span></span>
-    <span class="barra-logo-tag">Trends</span>
+    <span class="barra-logo-main">
+      Zona<span class="barra-logo-vip">Vip</span>
+      <span class="trends-suffix">Trends</span>
+    </span>
   </a>
 
   <div id="barra-info"><span class="g"></span></div>
@@ -854,7 +864,7 @@ body {
   </div>
 </div>
 
-<div class="tagline">ZonaVip Trends &nbsp;&mdash;&nbsp; El mosaico</div>
+<!-- ELIMINADA LA LÍNEA CON class="tagline" -->
 
 <!-- ─── TOAST DEMO ─────────────────────────────────────────── -->
 <div id="demo-toast">
@@ -1114,6 +1124,7 @@ var precioFijo = document.getElementById('precio-fijo');
 var btnPagar   = document.getElementById('btn-pagar');
 var btnComprar = document.getElementById('btn-comprar');
 var btnCancel  = document.getElementById('btn-cancelar');
+var btnMenu    = document.getElementById('btn-menu');   // Añadido para ocultar/mostrar
 
 var COLS=0, celdas=[], vendidas=new Set(), zones=[];
 var activo=false, dragging=false, selStart=null, selEnd=null, selActual=new Set();
@@ -1280,7 +1291,10 @@ function renderZone(zone,isDemo){
 }
 
 function activar(){
-  activo=true;btnComprar.classList.add('oculto');btnCancel.classList.add('visible');
+  activo=true;
+  btnComprar.classList.add('oculto');
+  btnCancel.classList.add('visible');
+  btnMenu.style.display = 'none';           // Ocultar menú en modo selección
   wrap.classList.add('activo');wrap.style.cursor='crosshair';
   barraInfo.innerHTML='Arrastra para seleccionar tu zona &nbsp;&middot;&nbsp; <span class="g">50 € / cuadrito</span>';
   if(esTactil)showHint('Mantén y arrastra para seleccionar');
@@ -1289,7 +1303,9 @@ function cancelar(){
   activo=false;limpiar();selDiv.style.display='none';
   precioFijo.classList.remove('visible');precioFijo.textContent='';
   btnPagar.classList.remove('visible');btnCancel.classList.remove('visible');
-  btnComprar.classList.remove('oculto');wrap.classList.remove('activo');wrap.style.cursor='default';
+  btnComprar.classList.remove('oculto');
+  btnMenu.style.display = '';               // Mostrar menú de nuevo
+  wrap.classList.remove('activo');wrap.style.cursor='default';
   barraInfo.innerHTML='';
 }
 function showHint(txt){
