@@ -1,443 +1,743 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZonaVip Trends · Panel de Control</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
 
-  <!-- Fuentes elegantes (index2) -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <!-- EmailJS SDK — para envíos de email sin backend -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+             sendPasswordResetEmail, onAuthStateChanged, signOut }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, collection, query, where,
+             getDocs, orderBy, limit, onSnapshot, updateDoc, increment,
+             setDoc, serverTimestamp, addDoc }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    // ═══════════════════════════════════════════════════════════
+    // CONFIGURACIÓN FIREBASE — reemplaza con tus datos reales
+    // ═══════════════════════════════════════════════════════════
+    const firebaseConfig = {
+      apiKey:            "TU_API_KEY",
+      authDomain:        "TU_PROYECTO.firebaseapp.com",
+      projectId:         "TU_PROYECTO",
+      storageBucket:     "TU_PROYECTO.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId:             "TU_APP_ID"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // ── Auth helpers ──────────────────────────────────────────
+    window._fbAuth    = auth;
+    window._fbDb      = db;
+    window._fbSignIn  = (e,p) => signInWithEmailAndPassword(auth,e,p);
+    window._fbSignUp  = (e,p) => createUserWithEmailAndPassword(auth,e,p);
+    window._fbReset   = (e)   => sendPasswordResetEmail(auth,e);
+    window._fbSignOut = ()    => signOut(auth);
+    window._fbOnAuth  = (cb)  => onAuthStateChanged(auth,cb);
+
+    onAuthStateChanged(auth, user => {
+      if (window._onAuthReady) window._onAuthReady(user);
+    });
+
+    // ── Verificar si el usuario tiene zona (es VIP real) ──────
+    window._fbCheckVip = async (email) => {
+      const q = query(collection(db,'zones'), where('email','==',email));
+      const snap = await getDocs(q);
+      return !snap.empty;
+    };
+
+    // ── Obtener perfil del usuario desde Firestore ────────────
+    // Colección: users/{uid}
+    // Campos esperados: wallet (number), puntos (number), referralCode (string),
+    //                   referidos (array), celdas (array), premiosGanados (array)
+    window._fbGetUserProfile = async (uid) => {
+      const ref  = doc(db,'users',uid);
+      const snap = await getDoc(ref);
+      return snap.exists() ? snap.data() : null;
+    };
+
+    // ── Guardar/actualizar perfil ─────────────────────────────
+    window._fbSetUserProfile = async (uid, data) => {
+      const ref = doc(db,'users',uid);
+      await setDoc(ref, data, { merge: true });
+    };
+
+    // ── Obtener premios ganados por el usuario ────────────────
+    // Colección: prizes/{id}  → campos: uid, email, valor, fecha, estado
+    window._fbGetMisPremios = async (uid) => {
+      const q = query(collection(db,'prizes'), where('uid','==',uid), orderBy('fecha','desc'));
+      const snap = await getDocs(q);
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    };
+
+    // ── Registrar solicitud de retiro ─────────────────────────
+    // Colección: withdrawals/{id}
+    window._fbAddWithdrawal = async (data) => {
+      return addDoc(collection(db,'withdrawals'), {
+        ...data,
+        estado: 'pendiente',
+        createdAt: serverTimestamp()
+      });
+    };
+
+    // ── Obtener configuración de premios (tabla) ──────────────
+    // Documento: config/sorteo
+    // Campos: premios (array), premiados (array), estado (string: 'activo'|'inactivo')
+    window._fbGetSorteoCfg = async () => {
+      const snap = await getDoc(doc(db,'config','sorteo'));
+      return snap.exists() ? snap.data() : null;
+    };
+
+    // ── Obtener temporada de puntos activa ────────────────────
+    // Documento: config/puntos
+    // Campos: activo (bool), nombre (string), fechaFin (timestamp), descripcion (string)
+    window._fbGetPuntosCfg = async () => {
+      const snap = await getDoc(doc(db,'config','puntos'));
+      return snap.exists() ? snap.data() : null;
+    };
+
+    // ── Top compradores (desde zones) ────────────────────────
+    window._fbGetTopCompradores = async () => {
+      const snap = await getDocs(collection(db,'zones'));
+      const map = {};
+      snap.docs.forEach(d => {
+        const z = d.data();
+        const k = z.email || 'anon';
+        map[k] = (map[k]||0) + (z.n||1);
+      });
+      return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    };
+
+    // ── Listener en tiempo real del wallet del usuario ────────
+    window._fbWalletListener = (uid, cb) => {
+      return onSnapshot(doc(db,'users',uid), snap => {
+        if(snap.exists()) cb(snap.data());
+      });
+    };
+
+    // ── Listener config sorteo en tiempo real ─────────────────
+    window._fbSorteoListener = (cb) => {
+      return onSnapshot(doc(db,'config','sorteo'), snap => {
+        if(snap.exists()) cb(snap.data());
+      });
+    };
+  </script>
 
   <style>
-    /* ===== ESTILOS BASE (index2) ===== */
-    :root {
-      --gold:        #BF9B5A;
-      --gold-light:  #D4B578;
-      --gold-lt:     #D4B578;
-      --gold-dim:    rgba(191,155,90,0.45);
-      --gold-dk:     rgba(191,155,90,0.2);
-      --cream:       #EDE8E0;
-      --cream-muted: rgba(237,232,224,0.5);
-      --cream-dim:   rgba(237,232,224,0.25);
-      --bg:          #08090F;
-      --card:        rgba(12,13,22,0.97);
-      --border:      rgba(191,155,90,0.18);
-      --muted:       rgba(237,232,224,0.28);
-      --muted2:      rgba(237,232,224,0.55);
-      --white:       #EDE8E0;
-      --fh: 'Cormorant Garamond', serif;
-      --fb: 'Barlow', sans-serif;
-      --fc: 'Barlow Condensed', sans-serif;
-      --transition: 430ms cubic-bezier(0.4,0,0.2,1);
-    }
+/* ─── VARIABLES ──────────────────────────────────────────── */
+:root {
+  --gold:        #BF9B5A;
+  --gold-light:  #D4B578;
+  --gold-lt:     #D4B578;
+  --gold-dim:    rgba(191,155,90,0.45);
+  --gold-dk:     rgba(191,155,90,0.2);
+  --cream:       #EDE8E0;
+  --cream-muted: rgba(237,232,224,0.5);
+  --cream-dim:   rgba(237,232,224,0.25);
+  --bg:          #08090F;
+  --card:        rgba(12,13,22,0.97);
+  --border:      rgba(191,155,90,0.18);
+  --muted:       rgba(237,232,224,0.28);
+  --muted2:      rgba(237,232,224,0.55);
+  --fh: 'Cormorant Garamond', serif;
+  --fb: 'Barlow', sans-serif;
+  --fc: 'Barlow Condensed', sans-serif;
+  --transition: 430ms cubic-bezier(0.4,0,0.2,1);
+}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: var(--fb);
-      background: var(--bg);
-      color: var(--cream);
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 
-    /* ===== BARRA DE NAVEGACIÓN (index2) ===== */
-    #barra {
-      position: fixed; top: 0; left: 0; right: 0; height: 58px;
-      background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(24px);
-      display: flex; align-items: center;
-      padding: 0 36px; z-index: 100; gap: 6px;
-    }
-    @media (max-width: 600px) { #barra { padding: 0 16px; } }
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--cream);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:99px; }
 
-    .barra-logo {
-      display: flex; align-items: baseline; gap: 6px;
-      text-decoration: none; flex-shrink: 0;
-    }
-    .barra-logo-main {
-      font-family: var(--fh);
-      font-size: 1.15rem; font-weight: 400;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--cream);
-    }
-    .barra-logo-vip { color: var(--gold); }
-    .barra-logo-tag {
-      font-family: var(--fc);
-      font-size: 0.62rem; font-weight: 500;
-      letter-spacing: 0.28em; text-transform: uppercase;
-      color: var(--cream-muted); opacity: 0.7;
-    }
+/* ─── HEADER / NAVBAR — IDÉNTICO A INDEX ──────────────────── */
+#barra {
+  position: fixed; top:0; left:0; right:0; height:58px;
+  background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(24px);
+  display: flex; align-items: center;
+  padding: 0 36px; z-index:100; gap:6px;
+  animation: fadeDown 700ms 300ms both;
+}
+@keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
 
-    #nav-menu-wrap {
-      margin-left: auto;
-      display: flex; align-items: center; gap: 5px;
-    }
-    #btn-menu {
-      display: flex; align-items: center; gap: 7px;
-      padding: 6px 14px;
-      font-family: var(--fc); font-size: .68rem; font-weight: 600;
-      letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--muted2); background: transparent;
-      border: 1px solid rgba(237,232,224,0.12); border-radius: 1px;
-      cursor: pointer; white-space: nowrap; user-select: none;
-      transition: color .18s, border-color .18s, background .18s;
-    }
-    #btn-menu:hover { color: var(--cream); border-color: rgba(237,232,224,0.28); }
-    #btn-menu.open { color: var(--gold); border-color: var(--gold-dim); background: rgba(191,155,90,0.06); }
-    #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s; }
-    #btn-menu.open .menu-chevron { transform: rotate(180deg); }
+.barra-logo {
+  display: flex; align-items: baseline; gap:6px;
+  text-decoration: none; flex-shrink:0;
+}
+.barra-logo-main {
+  font-family: var(--fh);
+  font-size: 1.4rem; font-weight:400;
+  letter-spacing: 0.15em; text-transform:uppercase;
+  color: var(--cream);
+}
+.barra-logo-vip { color: var(--gold); }
+.barra-logo-main .trends-suffix {
+  font-family: var(--fc);
+  font-size: 0.9rem; font-weight:500;
+  letter-spacing: 0.12em; margin-left:6px;
+  color: var(--cream-muted); text-transform:uppercase;
+}
+#barra-spacer { flex:1; min-width:0; }
 
-    #nav-dropdown {
-      position: absolute; top: calc(100% + 12px); right: 0;
-      min-width: 220px;
-      background: rgba(8,9,15,0.98);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      backdrop-filter: blur(32px);
-      box-shadow: 0 24px 64px rgba(0,0,0,0.75);
-      z-index: 600; overflow: hidden;
-      opacity: 0; pointer-events: none;
-      transform: translateY(-8px) scale(0.97);
-      transform-origin: top right;
-      transition: opacity .2s, transform .2s;
-    }
-    #nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
-    .nav-header {
-      padding: 13px 18px 9px;
-      font-family: var(--fc); font-size: .6rem; font-weight: 600;
-      letter-spacing: .32em; text-transform: uppercase;
-      color: var(--gold); opacity: 0.7;
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 18px;
-      font-family: var(--fb); font-size: .78rem; font-weight: 300;
-      color: var(--muted2); text-decoration: none;
-      transition: background .15s, color .15s, padding-left .15s;
-      border-bottom: 1px solid rgba(237,232,224,0.03);
-      position: relative;
-    }
-    .nav-item:last-child { border-bottom: none; }
-    .nav-item::before {
-      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-      width: 1px; background: var(--gold);
-      opacity: 0; transition: opacity .15s;
-    }
-    .nav-item:hover { background: rgba(191,155,90,0.04); color: var(--cream); padding-left: 22px; }
-    .nav-item:hover::before { opacity: 1; }
-    .nav-icon {
-      width: 26px; height: 26px; border-radius: 2px;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(237,232,224,0.04);
-      border: 1px solid rgba(237,232,224,0.07);
-      font-size: .68rem; color: var(--muted2); flex-shrink: 0;
-      transition: background .15s, border-color .15s, color .15s;
-    }
-    .nav-item:hover .nav-icon {
-      background: rgba(191,155,90,0.1);
-      border-color: rgba(191,155,90,0.3);
-      color: var(--gold);
-    }
-    .nav-item-arrow {
-      font-size: .5rem; color: var(--muted);
-      opacity: 0; transition: opacity .15s, transform .15s;
-    }
-    .nav-item:hover .nav-item-arrow { opacity: 1; transform: translateX(2px); }
-    .nav-divider { height: 1px; background: var(--border); margin: 4px 0; }
-    .nav-item.nav-vip-item .nav-icon {
-      background: rgba(191,155,90,0.1); border-color: rgba(191,155,90,0.25); color: var(--gold);
-    }
+/* ─── MENÚ NAVEGACIÓN — IDÉNTICO A INDEX ──────────────────── */
+#nav-menu-wrap {
+  position: absolute; right:36px; top:50%; transform:translateY(-50%);
+  display: flex; align-items:center; gap:5px;
+}
+#btn-menu {
+  display: flex; align-items:center; gap:7px;
+  padding: 8px 16px;
+  font-family: var(--fc); font-size:.68rem; font-weight:600;
+  letter-spacing: 0.22em; text-transform:uppercase;
+  color: var(--muted2); background:transparent;
+  border: 1px solid rgba(237,232,224,0.12); border-radius:1px;
+  cursor: pointer; white-space:nowrap; user-select:none;
+  transition: color .18s, border-color .18s, background .18s;
+}
+@media (hover:hover) and (pointer:fine) {
+  #btn-menu:hover { color:var(--cream); border-color:rgba(237,232,224,0.28); }
+}
+#btn-menu.open { color:var(--gold); border-color:var(--gold-dim); background:rgba(191,155,90,0.06); }
+#btn-menu .menu-chevron { font-size:.5rem; transition:transform .25s cubic-bezier(.4,0,.2,1); }
+#btn-menu.open .menu-chevron { transform:rotate(180deg); }
 
-    #nav-overlay { display: none; position: fixed; inset: 0; z-index: 99; }
-    #nav-overlay.open { display: block; }
+#nav-dropdown {
+  position: absolute; top:calc(100% + 12px); right:0;
+  min-width: 220px;
+  background: rgba(8,9,15,0.98);
+  border: 1px solid var(--border); border-radius:2px;
+  backdrop-filter: blur(32px);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.75),
+              0 0 0 1px rgba(191,155,90,0.06),
+              inset 0 1px 0 rgba(237,232,224,0.03);
+  z-index:600; overflow:hidden;
+  opacity:0; pointer-events:none;
+  transform: translateY(-8px) scale(0.97);
+  transform-origin: top right;
+  transition: opacity .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1);
+}
+#nav-dropdown.open { opacity:1; pointer-events:all; transform:translateY(0) scale(1); }
 
-    /* ===== MAIN ===== */
-    #main {
-      margin-top: 74px;
-      padding: 24px 24px 80px;
-      max-width: 1300px;
-      margin-left: auto; margin-right: auto;
-    }
-    @media (max-width: 600px) { #main { padding: 20px 16px 60px; } }
+.nav-header {
+  padding: 13px 18px 9px;
+  font-family: var(--fc); font-size:.6rem; font-weight:600;
+  letter-spacing:.32em; text-transform:uppercase;
+  color: var(--gold); opacity:0.7;
+  border-bottom: 1px solid var(--border);
+}
+.nav-item {
+  display: flex; align-items:center; gap:12px;
+  padding: 12px 18px;
+  font-family: var(--fb); font-size:.78rem; font-weight:300;
+  color: var(--muted2); text-decoration:none;
+  transition: background .15s, color .15s, padding-left .15s;
+  border-bottom: 1px solid rgba(237,232,224,0.03);
+  position: relative;
+}
+.nav-item:last-child { border-bottom:none; }
+.nav-item::before {
+  content:''; position:absolute; left:0; top:0; bottom:0;
+  width:1px; background:var(--gold); opacity:0; transition:opacity .15s;
+}
+.nav-item:hover { background:rgba(191,155,90,0.04); color:var(--cream); padding-left:22px; }
+.nav-item:hover::before { opacity:1; }
+.nav-icon {
+  width:26px; height:26px; border-radius:2px;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(237,232,224,0.04); border:1px solid rgba(237,232,224,0.07);
+  font-size:.68rem; color:var(--muted2); flex-shrink:0;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.nav-item:hover .nav-icon { background:rgba(191,155,90,0.1); border-color:rgba(191,155,90,0.3); color:var(--gold); }
+.nav-item-label { flex:1; }
+.nav-item-arrow {
+  font-size:.5rem; color:var(--muted);
+  opacity:0; transition:opacity .15s, transform .15s;
+}
+.nav-item:hover .nav-item-arrow { opacity:1; transform:translateX(2px); }
+.nav-divider { height:1px; background:var(--border); margin:4px 0; }
+.nav-item.nav-vip-item .nav-icon {
+  background:rgba(191,155,90,0.1); border-color:rgba(191,155,90,0.25); color:var(--gold);
+}
+#nav-overlay { display:none; position:fixed; inset:0; z-index:99; }
+#nav-overlay.open { display:block; }
 
-    .page-header {
-      display: flex; align-items: flex-end; justify-content: space-between;
-      margin-bottom: 28px; padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap; gap: 16px;
-    }
-    .page-title {
-      font-family: var(--fh); font-size: 2.2rem; letter-spacing: 0.06em;
-      color: var(--cream); line-height: 1;
-    }
-    .page-sub {
-      font-family: var(--fc); font-size: .6rem; letter-spacing: .15em;
-      text-transform: uppercase; color: var(--muted2); margin-top: 5px;
-    }
-    .page-badge {
-      font-family: var(--fc); font-size: .6rem; letter-spacing: .12em;
-      color: var(--gold); border: 1px solid var(--gold-dim);
-      background: rgba(191,155,90,0.06); padding: 6px 14px; border-radius: 2px;
-      text-transform: uppercase; display: flex; align-items: center; gap: 8px;
-    }
-    .page-badge::before {
-      content: ''; width: 6px; height: 6px; border-radius: 50%;
-      background: var(--gold); box-shadow: 0 0 8px var(--gold);
-    }
+/* Móvil — idéntico a index */
+@media (max-width:420px) {
+  #barra { padding:0 12px; }
+  #nav-menu-wrap { right:12px; gap:2px; }
+  .barra-logo-main { font-size:1.2rem !important; letter-spacing:0.1em !important; }
+  .barra-logo-main .trends-suffix { font-size:0.7rem; margin-left:3px; }
+  #btn-menu { padding:6px 10px !important; font-size:0.6rem !important; }
+}
+@media (max-width:380px) {
+  .barra-logo-main { font-size:1.0rem !important; }
+  #btn-menu span { display:none; }
+  #barra { padding:0 8px !important; }
+}
 
-    /* Loading / error */
-    #loading-state {
-      display: flex; align-items: center; justify-content: center; gap: 14px;
-      padding: 40px; margin-bottom: 20px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px;
-    }
-    .spinner {
-      width: 22px; height: 22px; border: 2px solid rgba(191,155,90,0.2);
-      border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #error-state {
-      display: none; padding: 18px 20px; margin-bottom: 20px;
-      background: rgba(255,90,90,0.06); border: 1px solid rgba(255,90,90,0.2);
-      border-radius: 2px; font-family: var(--fc); font-size: .7rem; color: #ff9090;
-    }
+/* ─── MODAL BASE — idéntico a index ──────────────────────── */
+.modal-bg {
+  display:none; position:fixed; inset:0;
+  background:rgba(8,9,15,0.88); backdrop-filter:blur(14px);
+  z-index:900; align-items:center; justify-content:center; padding:20px;
+}
+.modal-bg.open { display:flex; }
+.modal-panel {
+  position:relative; background:var(--card);
+  border:1px solid var(--border); border-radius:2px;
+  padding:36px; width:min(480px, 94vw);
+  max-height:92vh; overflow-y:auto;
+  animation: modalIn .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes modalIn { from{opacity:0;transform:translateY(16px) scale(.97)} to{opacity:1;transform:none} }
+.modal-panel::before {
+  content:''; position:absolute; top:0; left:20%; right:20%; height:1px;
+  background:linear-gradient(to right, transparent, rgba(191,155,90,0.6), transparent);
+}
+.modal-title-h {
+  font-family: var(--fh); font-size:1.55rem; font-weight:300;
+  letter-spacing:0.02em; color:var(--cream); margin-bottom:5px; line-height:1.1;
+}
+.modal-sub-h {
+  font-family: var(--fb); font-size:.73rem; font-weight:300;
+  color:var(--muted2); margin-bottom:22px; line-height:1.65;
+}
+.modal-eyebrow {
+  font-family: var(--fc); font-size:.58rem; font-weight:600;
+  letter-spacing:.34em; text-transform:uppercase;
+  color:var(--gold); opacity:0.7; margin-bottom:6px; display:block;
+}
+.modal-rule {
+  width:32px; height:1px;
+  background:linear-gradient(to right, transparent, var(--gold), transparent);
+  opacity:0.5; margin-bottom:20px;
+}
+.modal-close-btn {
+  position:absolute; top:18px; right:18px;
+  background:rgba(237,232,224,0.04); border:1px solid rgba(237,232,224,0.1);
+  border-radius:1px; width:28px; height:28px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--muted2); font-size:.7rem; transition:all .2s;
+}
+.modal-close-btn:hover { color:var(--cream); background:rgba(237,232,224,0.1); }
 
-    /* Secciones */
-    .section-label {
-      font-family: var(--fc); font-size: .7rem; font-weight: 600;
-      letter-spacing: .2em; text-transform: uppercase; color: var(--gold);
-      display: flex; align-items: center; gap: 12px; margin: 32px 0 16px;
-    }
-    .section-label::after {
-      content: ''; flex: 1; height: 1px;
-      background: linear-gradient(90deg, var(--border), transparent);
-    }
-    .section-label i { color: var(--gold); font-size: .75rem; }
+/* Campos */
+.campo-label {
+  font-family: var(--fc); font-size:.6rem; font-weight:600;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--muted2); display:block; margin-bottom:6px;
+}
+.campo {
+  width:100%; background:rgba(237,232,224,0.03);
+  border:1px solid rgba(237,232,224,0.1);
+  border-radius:1px; padding:10px 14px;
+  color:var(--cream); font-family:var(--fb); font-size:.84rem; font-weight:300;
+  margin-bottom:14px; outline:none; transition:border-color .2s;
+}
+.campo:focus { border-color:var(--gold); }
+.campo::placeholder { color:var(--muted); }
 
-    /* Tarjetas resumen */
-    .stat-cards-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;
-    }
-    .stat-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 20px; transition: border-color .2s, transform .2s;
-    }
-    .stat-card:hover { border-color: var(--gold-dim); transform: translateY(-2px); }
-    .stat-icon-wrap {
-      width: 36px; height: 36px; border-radius: 2px; display: flex; align-items: center; justify-content: center;
-      font-size: .9rem; margin-bottom: 14px;
-      background: rgba(191,155,90,0.08); border: 1px solid var(--border); color: var(--gold);
-    }
-    .sc-lbl {
-      font-family: var(--fc); font-size: .6rem; letter-spacing: .12em; text-transform: uppercase;
-      color: var(--muted2); margin-bottom: 6px;
-    }
-    .sc-val {
-      font-family: var(--fh); font-size: 2rem; line-height: 1; color: var(--cream);
-      margin-bottom: 4px;
-    }
-    .sc-sub {
-      font-family: var(--fc); font-size: .58rem; color: var(--muted); letter-spacing: .04em;
-    }
+/* Botones */
+.btn-primary {
+  width:100%; padding:13px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:transparent; border:1px solid var(--gold-dim); border-radius:1px;
+  font-family:var(--fc); font-size:.68rem; font-weight:600;
+  letter-spacing:.28em; text-transform:uppercase; color:var(--gold);
+  cursor:pointer; transition:background .2s, border-color .2s, box-shadow .2s;
+}
+.btn-primary:hover:not(:disabled) {
+  background:rgba(191,155,90,0.1); border-color:var(--gold);
+  box-shadow:0 0 24px rgba(191,155,90,0.15);
+}
+.btn-primary:disabled { opacity:.35; cursor:not-allowed; }
 
-    /* Saldo bar */
-    .saldo-bar {
-      display: flex; align-items: center; justify-content: space-between; gap: 20px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 22px 24px; margin-top: 20px;
-    }
-    .btn-retiro-card {
-      padding: 10px 20px; display: flex; align-items: center; gap: 8px;
-      background: transparent; border: 1px solid var(--gold-dim);
-      border-radius: 2px; font-family: var(--fc); font-size: .7rem; font-weight: 600;
-      letter-spacing: .15em; text-transform: uppercase; color: var(--gold);
-      cursor: pointer; transition: all .2s; white-space: nowrap;
-    }
-    .btn-retiro-card:hover:not(:disabled) { background: rgba(191,155,90,0.08); border-color: var(--gold); }
-    .btn-retiro-card:disabled { opacity: .4; cursor: not-allowed; border-color: rgba(237,232,224,0.1); color: var(--muted); }
-    .retiro-min-note {
-      font-family: var(--fc); font-size: .55rem; color: var(--muted); letter-spacing: .08em;
-    }
+.btn-secondary {
+  width:100%; padding:10px; margin-top:8px;
+  background:transparent; border:1px solid rgba(237,232,224,0.1); border-radius:1px;
+  font-family:var(--fc); font-size:.6rem; font-weight:500;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--muted2);
+  cursor:pointer; transition:all .2s;
+}
+.btn-secondary:hover { color:var(--cream); border-color:rgba(237,232,224,0.25); }
 
-    /* Afiliados */
-    .aff-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 24px;
-    }
-    .aff-no-vip {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 32px 24px; text-align: center;
-    }
-    .aff-link-row {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(0,0,0,0.3); border: 1px solid var(--border);
-      border-radius: 2px; padding: 10px 14px; margin-bottom: 18px;
-    }
-    .aff-link-url {
-      font-family: var(--fc); font-size: .7rem; color: var(--gold);
-      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-    .btn-copy {
-      padding: 5px 12px; font-family: var(--fc); font-size: .6rem; font-weight: 600;
-      letter-spacing: .1em; text-transform: uppercase; color: #0a0a0a;
-      background: linear-gradient(135deg, var(--gold-light), var(--gold));
-      border: none; border-radius: 2px; cursor: pointer; transition: opacity .15s;
-    }
-    .btn-copy:hover { opacity: .88; }
-    .aff-commission {
-      display: flex; align-items: center; gap: 10px;
-      background: rgba(191,155,90,0.05); border: 1px solid var(--border);
-      border-radius: 2px; padding: 12px 16px; margin-bottom: 20px;
-      font-family: var(--fc); font-size: .7rem; color: var(--muted2);
-    }
-    .aff-commission .pct { font-family: var(--fh); font-size: 1.5rem; color: var(--gold); }
-    .aff-afiliados-list { max-height: 180px; overflow-y: auto; }
-    .aff-afiliado-row {
-      display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-      border-bottom: 1px solid rgba(237,232,224,0.05); font-family: var(--fc); font-size: .65rem;
-    }
+.status-msg {
+  font-family:var(--fb); font-size:.73rem; font-weight:300;
+  padding:9px 13px; border-radius:1px; margin-bottom:12px; display:none;
+}
+.status-msg.error { background:rgba(255,90,90,0.08); color:#ff9090; border:1px solid rgba(255,90,90,0.18); }
+.status-msg.ok    { background:rgba(191,155,90,0.08); color:var(--gold-light); border:1px solid var(--gold-dim); }
 
-    /* Celdas box */
-    .celdas-box {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 22px;
-    }
-    .celdas-header { display: flex; justify-content: space-between; margin-bottom: 16px; }
-    .celdas-count { font-family: var(--fh); font-size: 1.8rem; color: var(--gold); }
-    .celdas-grid { display: flex; flex-wrap: wrap; gap: 8px; max-height: 200px; overflow-y: auto; }
-    .celda-badge {
-      font-family: var(--fc); font-size: .65rem; padding: 5px 12px; border-radius: 2px;
-      background: rgba(191,155,90,0.08); border: 1px solid var(--border); color: var(--gold);
-    }
+/* ─── MODAL VIP — IDÉNTICO A INDEX ───────────────────────── */
+#modal-vip .modal-panel { max-width:400px; }
+.vip-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:22px; }
+.vip-tab {
+  flex:1; padding:10px; text-align:center;
+  font-family:var(--fc); font-size:.62rem; font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted2); cursor:pointer;
+  border-bottom:1px solid transparent; transition:all .2s;
+}
+.vip-tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+.vip-tab:hover:not(.active) { color:var(--cream); }
+#vip-panel-sesion { display:none; }
+#vip-panel-login  { display:block; }
+.vip-user-card {
+  background:rgba(191,155,90,0.05); border:1px solid var(--border);
+  border-radius:1px; padding:18px; text-align:center; margin-bottom:20px;
+}
+.vip-user-icon {
+  width:50px; height:50px; border-radius:50%;
+  border:1px solid var(--gold-dim);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--fh); font-size:1.4rem; font-weight:300; color:var(--gold);
+  margin:0 auto 12px;
+}
+.vip-user-email {
+  font-family:var(--fc); font-size:.72rem; font-weight:500; letter-spacing:.06em;
+  color:var(--cream); margin-bottom:6px; word-break:break-all;
+}
+.vip-user-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  background:rgba(191,155,90,0.1); border:1px solid rgba(191,155,90,0.28);
+  border-radius:20px; padding:3px 12px;
+  font-family:var(--fc); font-size:.58rem; font-weight:600;
+  letter-spacing:.16em; text-transform:uppercase; color:var(--gold);
+}
+.vip-nav-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px; }
+.vip-nav-link {
+  display:flex; flex-direction:column; align-items:center; gap:7px; padding:14px 10px;
+  background:rgba(237,232,224,0.03); border:1px solid rgba(237,232,224,0.08);
+  border-radius:1px; text-decoration:none;
+  font-family:var(--fc); font-size:.62rem; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--muted2); transition:all .2s;
+}
+.vip-nav-link:hover { background:rgba(191,155,90,0.07); border-color:rgba(191,155,90,0.28); color:var(--cream); }
+.vip-nav-link i { font-size:1rem; color:var(--gold); }
 
-    /* Premios */
-    .mis-premios-list { display: flex; flex-direction: column; gap: 6px; }
-    .mi-premio-row {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;
-    }
-    .mi-premio-icon {
-      width: 36px; height: 36px; border-radius: 2px; background: rgba(191,155,90,0.1);
-      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-      color: var(--gold);
-    }
-    .mi-premio-val { font-family: var(--fh); font-size: 1.1rem; color: var(--gold-light); }
-    .mi-premio-fecha { font-family: var(--fc); font-size: .6rem; color: var(--muted2); }
-    .mi-premio-estado { font-family: var(--fc); font-size: .6rem; padding: 3px 10px; border-radius: 20px; }
-    .mi-premio-estado.entregado { color: #7fc78b; background: rgba(72,199,120,0.06); border: 1px solid rgba(72,199,120,0.2); }
-    .mi-premio-estado.pendiente { color: var(--gold); background: rgba(191,155,90,0.06); border: 1px solid var(--border); }
+/* ─── MAIN ───────────────────────────────────────────────── */
+#main {
+  margin-top: 58px;
+  padding: 32px 24px 80px;
+  max-width: 1300px;
+  margin-left: auto; margin-right: auto;
+}
+@media (max-width:600px) { #main { padding:20px 16px 60px; } }
 
-    /* Probabilidad */
-    .prob-wrap {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 22px;
-    }
-    .prob-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px; }
-    .prob-mini {
-      padding: 18px; border-radius: 2px;
-      background: rgba(191,155,90,0.03); border: 1px solid var(--border);
-    }
-    .prob-mini-lbl { font-family: var(--fc); font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 6px; }
-    .prob-mini-val { font-family: var(--fh); font-size: 1.6rem; color: var(--gold-light); }
+.page-header {
+  display:flex; align-items:flex-end; justify-content:space-between;
+  margin-bottom:28px; padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+  flex-wrap:wrap; gap:16px;
+}
+.page-title {
+  font-family:var(--fh); font-size:2.2rem; letter-spacing:0.06em;
+  color:var(--cream); line-height:1;
+}
+.page-sub {
+  font-family:var(--fc); font-size:.6rem; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--muted2); margin-top:5px;
+}
+.page-badge {
+  font-family:var(--fc); font-size:.6rem; letter-spacing:.12em;
+  color:var(--gold); border:1px solid var(--gold-dim);
+  background:rgba(191,155,90,0.06); padding:6px 14px; border-radius:2px;
+  text-transform:uppercase; display:flex; align-items:center; gap:8px;
+}
+.page-badge::before {
+  content:''; width:6px; height:6px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 8px var(--gold); animation:pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* Premios categorías */
-    .premio-categoria-row {
-      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; margin-bottom: 6px;
-    }
-    .premio-cat-val { font-family: var(--fh); font-size: 1.2rem; color: var(--gold); min-width: 100px; }
-    .premio-cat-info { font-family: var(--fc); font-size: .65rem; color: var(--muted2); }
-    .pill {
-      font-family: var(--fc); font-size: .58rem; padding: 3px 10px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: .08em;
-    }
-    .pill.entregados { color: #7fc78b; background: rgba(72,199,120,0.06); border: 1px solid rgba(72,199,120,0.2); }
-    .pill.pendientes { color: var(--gold); background: rgba(191,155,90,0.06); border: 1px solid var(--border); }
-    .pill.agotado { color: var(--muted); background: transparent; border: 1px solid rgba(237,232,224,0.1); }
+/* Loading / error */
+#loading-state {
+  display:flex; align-items:center; justify-content:center; gap:14px;
+  padding:40px; margin-bottom:20px;
+  background:var(--card); border:1px solid var(--border); border-radius:2px;
+}
+.spinner {
+  width:22px; height:22px; border:2px solid rgba(191,155,90,0.2);
+  border-top-color:var(--gold); border-radius:50%; animation:spin .8s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+#error-state {
+  display:none; padding:18px 20px; margin-bottom:20px;
+  background:rgba(255,90,90,0.06); border:1px solid rgba(255,90,90,0.2);
+  border-radius:2px; font-family:var(--fc); font-size:.7rem; color:#ff9090;
+}
 
-    /* Historial / top */
-    .historial-item {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 14px 18px; display: flex; align-items: center; gap: 14px;
-    }
-    .part-row {
-      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-      background: rgba(12,13,22,0.5); border: 1px solid transparent; border-radius: 2px;
-    }
-    .part-row:hover { border-color: var(--border); }
-    .part-num {
-      width: 28px; height: 28px; border-radius: 2px; background: rgba(191,155,90,0.1);
-      border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-      font-family: var(--fh); color: var(--gold);
-    }
+/* Section labels */
+.section-label {
+  font-family:var(--fc); font-size:.7rem; font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--gold);
+  display:flex; align-items:center; gap:12px; margin:32px 0 16px;
+}
+.section-label::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, var(--border), transparent);
+}
+.section-label i { color:var(--gold); font-size:.75rem; }
 
-    /* Modal retiro */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; z-index: 900;
-      background: rgba(8,9,15,0.86); backdrop-filter: blur(14px);
-      align-items: center; justify-content: center; padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-box {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 2px; padding: 30px; width: 100%; max-width: 460px;
-      position: relative;
-    }
-    .modal-box::before {
-      content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
-      background: linear-gradient(to right, transparent, rgba(191,155,90,0.6), transparent);
-    }
-    .modal-title { font-family: var(--fh); font-size: 1.8rem; color: var(--cream); margin-bottom: 6px; }
-    .modal-sub { font-family: var(--fc); font-size: .65rem; color: var(--muted2); letter-spacing: .1em; margin-bottom: 24px; }
-    .modal-close {
-      position: absolute; top: 16px; right: 16px; background: none; border: none;
-      color: var(--muted2); font-size: .9rem; cursor: pointer;
-    }
-    .modal-field { margin-bottom: 16px; }
-    .modal-label {
-      font-family: var(--fc); font-size: .6rem; letter-spacing: .15em; text-transform: uppercase;
-      color: var(--muted2); display: block; margin-bottom: 6px;
-    }
-    .modal-input {
-      width: 100%; background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.1);
-      border-radius: 2px; padding: 10px 14px; color: var(--cream); font-family: var(--fb);
-      outline: none; transition: border-color .2s;
-    }
-    .modal-input:focus { border-color: var(--gold); }
-    .modal-note {
-      font-family: var(--fc); font-size: .6rem; color: var(--muted); line-height: 1.6;
-      padding: 12px; background: rgba(191,155,90,0.04); border-left: 2px solid var(--gold);
-      margin: 18px 0;
-    }
-    .btn-modal-submit {
-      width: 100%; padding: 13px; background: transparent; border: 1px solid var(--gold-dim);
-      border-radius: 2px; font-family: var(--fc); font-size: .7rem; font-weight: 600;
-      letter-spacing: .2em; text-transform: uppercase; color: var(--gold);
-      cursor: pointer; transition: all .2s;
-    }
-    .btn-modal-submit:hover { background: rgba(191,155,90,0.08); border-color: var(--gold); }
+/* ─── TARJETAS RESUMEN (2 col en móvil) ──────────────────── */
+.stat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+@media (max-width: 900px) { .stat-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 400px) { .stat-cards-grid { grid-template-columns: repeat(2, 1fr); gap:8px; } }
 
-    .fade-in { opacity: 0; transform: translateY(12px); animation: fadeUp .45s ease forwards; }
-    @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+.stat-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:18px; transition:border-color .2s, transform .2s;
+}
+.stat-card:hover { border-color:var(--gold-dim); transform:translateY(-2px); }
+.stat-icon-wrap {
+  width:34px; height:34px; border-radius:2px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.85rem; margin-bottom:12px;
+  background:rgba(191,155,90,0.08); border:1px solid var(--border); color:var(--gold);
+}
+.sc-lbl {
+  font-family:var(--fc); font-size:.58rem; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted2); margin-bottom:5px;
+}
+.sc-val {
+  font-family:var(--fh); font-size:1.7rem; line-height:1; color:var(--cream); margin-bottom:3px;
+}
+.sc-sub { font-family:var(--fc); font-size:.55rem; color:var(--muted); letter-spacing:.04em; }
+
+/* ─── PUNTOS VIP ─────────────────────────────────────────── */
+.puntos-card {
+  background: var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:22px;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:20px; flex-wrap:wrap;
+}
+.puntos-left { display:flex; align-items:center; gap:18px; }
+.puntos-icon-wrap {
+  width:48px; height:48px; border-radius:2px;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(191,155,90,0.1); border:1px solid var(--gold-dim);
+  font-size:1.3rem; color:var(--gold); flex-shrink:0;
+}
+.puntos-value { font-family:var(--fh); font-size:2.8rem; color:var(--gold-light); line-height:1; }
+.puntos-label { font-family:var(--fc); font-size:.6rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted2); margin-top:3px; }
+.temporada-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(191,155,90,0.08); border:1px solid var(--gold-dim);
+  border-radius:2px; padding:8px 14px;
+  font-family:var(--fc); font-size:.6rem; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--gold);
+}
+.temporada-badge::before {
+  content:''; width:6px; height:6px; border-radius:50%;
+  background:var(--gold); animation:pulse 2s infinite;
+}
+.puntos-inactivo {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:24px; text-align:center;
+}
+
+/* ─── SALDO / WALLET ─────────────────────────────────────── */
+.saldo-bar {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:20px; background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:22px 24px; margin-top:20px; flex-wrap:wrap;
+}
+.btn-retiro-card {
+  padding:10px 20px; display:flex; align-items:center; gap:8px;
+  background:transparent; border:1px solid var(--gold-dim);
+  border-radius:2px; font-family:var(--fc); font-size:.7rem; font-weight:600;
+  letter-spacing:.15em; text-transform:uppercase; color:var(--gold);
+  cursor:pointer; transition:all .2s; white-space:nowrap;
+}
+.btn-retiro-card:hover:not(:disabled) { background:rgba(191,155,90,0.08); border-color:var(--gold); }
+.btn-retiro-card:disabled { opacity:.4; cursor:not-allowed; border-color:rgba(237,232,224,0.1); color:var(--muted); }
+.retiro-min-note { font-family:var(--fc); font-size:.55rem; color:var(--muted); letter-spacing:.08em; margin-top:4px; }
+
+/* ─── AFILIADOS / REFERIDOS ──────────────────────────────── */
+.aff-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:24px;
+}
+.aff-no-vip {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:32px 24px; text-align:center;
+}
+.aff-no-vip-title { font-family:var(--fh); font-size:1.2rem; color:var(--cream); margin:12px 0 6px; }
+.aff-no-vip-sub { font-family:var(--fc); font-size:.68rem; letter-spacing:.06em; color:var(--muted2); line-height:1.7; }
+.aff-no-vip-link {
+  display:inline-block; margin-top:16px; padding:9px 22px;
+  border:1px solid var(--gold-dim); color:var(--gold);
+  font-family:var(--fc); font-size:.65rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:.16em; text-decoration:none;
+  transition:all .2s; border-radius:1px;
+}
+.aff-no-vip-link:hover { background:rgba(191,155,90,0.1); border-color:var(--gold); }
+.aff-link-row {
+  display:flex; align-items:center; gap:10px;
+  background:rgba(0,0,0,0.3); border:1px solid var(--border);
+  border-radius:2px; padding:10px 14px; margin-bottom:18px;
+}
+.aff-link-url {
+  font-family:var(--fc); font-size:.7rem; color:var(--gold);
+  flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.btn-copy {
+  padding:5px 12px; font-family:var(--fc); font-size:.6rem; font-weight:600;
+  letter-spacing:.1em; text-transform:uppercase; color:#0a0a0a;
+  background:linear-gradient(135deg, var(--gold-light), var(--gold));
+  border:none; border-radius:2px; cursor:pointer; transition:opacity .15s; flex-shrink:0;
+}
+.btn-copy:hover { opacity:.88; }
+.aff-commission {
+  display:flex; align-items:center; gap:10px;
+  background:rgba(191,155,90,0.05); border:1px solid var(--border);
+  border-radius:2px; padding:12px 16px; margin-bottom:20px;
+  font-family:var(--fc); font-size:.7rem; color:var(--muted2);
+}
+.aff-commission .pct { font-family:var(--fh); font-size:1.5rem; color:var(--gold); }
+.aff-afiliados-list { max-height:180px; overflow-y:auto; }
+.aff-afiliado-row {
+  display:flex; align-items:center; gap:10px; padding:8px 10px;
+  border-bottom:1px solid rgba(237,232,224,0.05);
+  font-family:var(--fc); font-size:.65rem;
+}
+
+/* Celdas */
+.celdas-box { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:22px; }
+.celdas-header { display:flex; justify-content:space-between; margin-bottom:16px; }
+.celdas-count { font-family:var(--fh); font-size:1.8rem; color:var(--gold); }
+.celdas-grid { display:flex; flex-wrap:wrap; gap:8px; max-height:200px; overflow-y:auto; }
+.celda-badge {
+  font-family:var(--fc); font-size:.65rem; padding:5px 12px; border-radius:2px;
+  background:rgba(191,155,90,0.08); border:1px solid var(--border); color:var(--gold);
+}
+.celdas-empty { color:var(--muted); font-family:var(--fc); font-size:.7rem; }
+
+/* Premios propios */
+.mi-premio-row {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:14px 18px; display:flex; align-items:center; gap:14px;
+  margin-bottom:6px;
+}
+.mi-premio-icon {
+  width:36px; height:36px; border-radius:2px; background:rgba(191,155,90,0.1);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:var(--gold);
+}
+.mi-premio-val { font-family:var(--fh); font-size:1.1rem; color:var(--gold-light); }
+.mi-premio-fecha { font-family:var(--fc); font-size:.6rem; color:var(--muted2); }
+.mi-premio-estado { font-family:var(--fc); font-size:.6rem; padding:3px 10px; border-radius:20px; }
+.mi-premio-estado.entregado { color:#7fc78b; background:rgba(72,199,120,0.06); border:1px solid rgba(72,199,120,0.2); }
+.mi-premio-estado.pendiente { color:var(--gold); background:rgba(191,155,90,0.06); border:1px solid var(--border); }
+
+/* Probabilidad */
+.prob-wrap { background:var(--card); border:1px solid var(--border); border-radius:2px; padding:22px; }
+.prob-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:10px; }
+@media (max-width:480px) { .prob-grid { grid-template-columns:repeat(2,1fr); } }
+.prob-mini {
+  padding:16px; border-radius:2px;
+  background:rgba(191,155,90,0.03); border:1px solid var(--border);
+}
+.prob-mini-lbl { font-family:var(--fc); font-size:.58rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted2); margin-bottom:6px; }
+.prob-mini-val { font-family:var(--fh); font-size:1.6rem; color:var(--gold-light); }
+
+/* Sistema premios
+   ────────────────────────────────────────────────────────────
+   TABLA DE PREMIOS — PARA MODIFICAR:
+   Los datos se leen en tiempo real de Firestore: config/sorteo
+   Campos del documento:
+     premios: array de { valor: number, cantidad: number, descripcion?: string }
+     premiados: array de { email, nombre, premio, fecha, avatar? }
+     estado: 'activo' | 'inactivo'
+   Para editar la tabla desde Firebase Console:
+     Firestore → config → sorteo → editar campo "premios"
+   ────────────────────────────────────────────────────────────
+*/
+.premio-categoria-row {
+  display:flex; align-items:center; gap:12px; padding:14px 16px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; margin-bottom:6px; flex-wrap:wrap;
+}
+@media (max-width:480px) { .premio-categoria-row { gap:8px; } }
+.premio-cat-val { font-family:var(--fh); font-size:1.2rem; color:var(--gold); min-width:90px; }
+.premio-cat-info { font-family:var(--fc); font-size:.65rem; color:var(--muted2); flex:1; min-width:80px; }
+.pill {
+  font-family:var(--fc); font-size:.58rem; padding:3px 10px; border-radius:20px;
+  text-transform:uppercase; letter-spacing:.08em;
+}
+.pill.entregados { color:#7fc78b; background:rgba(72,199,120,0.06); border:1px solid rgba(72,199,120,0.2); }
+.pill.pendientes { color:var(--gold); background:rgba(191,155,90,0.06); border:1px solid var(--border); }
+.pill.agotado { color:var(--muted); background:transparent; border:1px solid rgba(237,232,224,0.1); }
+
+/* Historial / top */
+.historial-item {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:2px; padding:14px 18px; display:flex; align-items:center; gap:14px; margin-bottom:6px;
+}
+.part-row {
+  display:flex; align-items:center; gap:10px; padding:10px 14px;
+  background:rgba(12,13,22,0.5); border:1px solid transparent; border-radius:2px; margin-bottom:4px;
+}
+.part-row:hover { border-color:var(--border); }
+.part-num {
+  width:28px; height:28px; border-radius:2px; background:rgba(191,155,90,0.1);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+  font-family:var(--fh); color:var(--gold); flex-shrink:0;
+}
+
+/* Toast */
+#hint-movil {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  z-index:400; font-family:var(--fc); font-size:.6rem; font-weight:600;
+  letter-spacing:.18em; text-transform:uppercase; color:var(--muted2);
+  background:rgba(8,9,15,0.92); backdrop-filter:blur(14px);
+  border:1px solid var(--border); padding:8px 18px; border-radius:99px;
+  white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .2s;
+}
+#hint-movil.show { opacity:1; }
+#hint-movil.err  { border-color:rgba(255,90,90,0.4); color:#ff9090; }
+#hint-movil.ok   { border-color:rgba(35,165,90,0.4); color:#7fc78b; }
+
+.fade-in { opacity:0; transform:translateY(12px); animation:fadeUp .45s ease forwards; }
+@keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
   </style>
 </head>
 <body>
 
-<!-- BARRA -->
+<!-- ─── HEADER — IDÉNTICO A INDEX ────────────────────────────── -->
 <div id="barra">
   <a class="barra-logo" href="index.html">
-    <span class="barra-logo-main">Zona<span class="barra-logo-vip">Vip</span></span>
-    <span class="barra-logo-tag">Trends</span>
+    <span class="barra-logo-main">
+      Zona<span class="barra-logo-vip">Vip</span>
+      <span class="trends-suffix">Trends</span>
+    </span>
   </a>
-
+  <div id="barra-spacer"></div>
   <div id="nav-menu-wrap">
     <button id="btn-menu" onclick="toggleMenu()">
       <i class="fas fa-bars"></i>
@@ -449,11 +749,11 @@
       <a class="nav-item" href="index.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Expositor</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="feed.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="comunidad.html"><span class="nav-icon"><i class="fab fa-discord"></i></span><span class="nav-item-label">Comunidad</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      <a class="nav-item" href="#"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>      
-      <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="#"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Información</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <div class="nav-divider"></div>
-      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;">
+      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
         <span class="nav-icon"><i class="fas fa-crown"></i></span>
         <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
         <i class="fas fa-chevron-right nav-item-arrow"></i>
@@ -463,272 +763,756 @@
 </div>
 <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
-<!-- MODAL RETIRO -->
-<div class="modal-overlay" id="modal-retiro">
-  <div class="modal-box">
-    <button class="modal-close" onclick="cerrarModalRetiro()"><i class="fas fa-times"></i></button>
-    <div class="modal-title">Solicitar Retiro</div>
-    <div class="modal-sub">Mínimo 20 € · Procesado manualmente</div>
+<!-- ─── TOAST ─────────────────────────────────────────────────── -->
+<div id="hint-movil"></div>
 
-    <div class="modal-field">
-      <label class="modal-label">Importe (€)</label>
-      <input class="modal-input" type="number" id="retiro-importe" min="20" placeholder="Ej: 50">
+<!-- ─── MODAL VIP — IDÉNTICO A INDEX ─────────────────────────── -->
+<div class="modal-bg" id="modal-vip">
+  <div class="modal-panel">
+    <button class="modal-close-btn" onclick="cerrarModal('modal-vip')"><i class="fas fa-times"></i></button>
+
+    <!-- Sin sesión -->
+    <div id="vip-panel-login">
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Área VIP</span>
+      <div class="modal-title-h">Acceso VIP</div>
+      <div class="modal-rule"></div>
+      <div class="modal-sub-h">Inicia sesión con el email que usaste al pagar tu zona.</div>
+      <div class="vip-tabs">
+        <div class="vip-tab active" id="tab-login" onclick="cambiarTabVip('login')">Iniciar sesión</div>
+        <div class="vip-tab" id="tab-reset" onclick="cambiarTabVip('reset')">Recuperar acceso</div>
+      </div>
+      <div id="vip-form-login">
+        <label class="campo-label" for="vip-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email"/>
+        <label class="campo-label" for="vip-pass">Contraseña</label>
+        <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')loginVip()"/>
+        <div class="status-msg" id="st-vip-login"></div>
+        <button class="btn-primary" id="btn-login-vip" onclick="loginVip()">
+          <i class="fas fa-sign-in-alt"></i>&nbsp; Entrar
+        </button>
+        <p style="font-family:var(--fc);font-size:.6rem;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7">
+          ¿Primera vez? Tu cuenta se creó al reservar una zona.<br>
+          Usa "Recuperar acceso" para establecer tu contraseña.
+        </p>
+      </div>
+      <div id="vip-form-reset" style="display:none">
+        <div class="modal-sub-h" style="margin-bottom:16px">Introduce el email con el que pagaste y te enviaremos un enlace para crear tu contraseña.</div>
+        <label class="campo-label" for="vip-reset-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')resetVip()"/>
+        <div class="status-msg" id="st-vip-reset"></div>
+        <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()">
+          <i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace
+        </button>
+        <button class="btn-secondary" onclick="cambiarTabVip('login')">← Volver al login</button>
+      </div>
     </div>
-    <div class="modal-field">
-      <label class="modal-label">Método preferido</label>
-      <input class="modal-input" type="text" id="retiro-metodo" placeholder="Bizum, PayPal, IBAN...">
+
+    <!-- Con sesión activa -->
+    <div id="vip-panel-sesion">
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Mi cuenta</span>
+      <div class="modal-title-h">Mi cuenta VIP</div>
+      <div class="modal-rule"></div>
+      <div class="vip-user-card">
+        <div class="vip-user-icon" id="vip-sesion-icon">V</div>
+        <div class="vip-user-email" id="vip-sesion-email">—</div>
+        <div class="vip-user-badge"><i class="fas fa-crown"></i>&nbsp; Miembro VIP</div>
+      </div>
+      <div class="vip-nav-links">
+        <a class="vip-nav-link" href="#">
+          <i class="fas fa-sliders-h"></i>Panel
+        </a>
+        <a class="vip-nav-link" href="comunidad.html">
+          <i class="fab fa-discord"></i>Comunidad
+        </a>
+      </div>
+      <div class="status-msg" id="st-vip-sesion"></div>
+      <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px">
+        <i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión
+      </button>
     </div>
-    <div class="modal-field">
-      <label class="modal-label">Datos destinatario</label>
-      <input class="modal-input" type="text" id="retiro-datos" placeholder="Número, email o IBAN">
-    </div>
-    <div class="modal-note">
-      Tu solicitud será revisada en 24–72 h. Recibirás confirmación.
-    </div>
-    <button class="btn-modal-submit" onclick="enviarSolicitudRetiro()">
-      <i class="fas fa-paper-plane" style="margin-right:8px"></i>Enviar solicitud
-    </button>
   </div>
 </div>
 
-<!-- MAIN -->
+<!-- ─── MODAL RETIRO (con EmailJS) ──────────────────────────── -->
+<div class="modal-bg" id="modal-retiro">
+  <div class="modal-panel" style="max-width:480px">
+    <button class="modal-close-btn" onclick="cerrarModal('modal-retiro')"><i class="fas fa-times"></i></button>
+    <span class="modal-eyebrow"><i class="fas fa-wallet" style="margin-right:5px"></i>Wallet</span>
+    <div class="modal-title-h">Solicitar Retiro</div>
+    <div class="modal-rule"></div>
+    <div class="modal-sub-h">Mínimo 20 € · Procesado en 24–72 h</div>
+
+    <label class="campo-label">Importe (€)</label>
+    <input class="campo" type="number" id="retiro-importe" min="20" placeholder="Ej: 50"/>
+
+    <label class="campo-label">Método preferido</label>
+    <select class="campo" id="retiro-metodo" style="cursor:pointer">
+      <option value="">Elige un método...</option>
+      <option value="Bizum">Bizum</option>
+      <option value="PayPal">PayPal</option>
+      <option value="Transferencia IBAN">Transferencia IBAN</option>
+    </select>
+
+    <label class="campo-label">Datos del destinatario</label>
+    <input class="campo" type="text" id="retiro-datos" placeholder="Número, email o IBAN"/>
+
+    <div style="font-family:var(--fc);font-size:.6rem;color:var(--muted);line-height:1.6;padding:12px;background:rgba(191,155,90,0.04);border-left:2px solid var(--gold);margin-bottom:18px">
+      Tu solicitud será revisada en 24–72 h. Recibirás un email de confirmación en la dirección de tu cuenta.
+    </div>
+
+    <div class="status-msg" id="st-retiro"></div>
+    <button class="btn-primary" id="btn-retiro-submit" onclick="enviarSolicitudRetiro()">
+      <i class="fas fa-paper-plane"></i>&nbsp; Enviar solicitud
+    </button>
+    <button class="btn-secondary" onclick="cerrarModal('modal-retiro')">Cancelar</button>
+  </div>
+</div>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────── -->
 <div id="main">
   <div class="page-header fade-in">
     <div>
       <div class="page-title">Panel de Control</div>
       <div class="page-sub">ZonaVIP Trends · Tu espacio personal</div>
     </div>
-    <div class="page-badge">En vivo · <span id="last-update">—</span></div>
+    <div class="page-badge">En vivo &middot; <span id="last-update">—</span></div>
   </div>
 
   <div id="loading-state">
     <div class="spinner"></div>
-    <span style="font-family:var(--fc); letter-spacing:.1em; color:var(--muted2);">Cargando panel...</span>
+    <span style="font-family:var(--fc);letter-spacing:.1em;color:var(--muted2)">Cargando panel...</span>
   </div>
   <div id="error-state"></div>
 
   <div id="panel-content" style="display:none">
-    <!-- Afiliados -->
-    <div class="section-label"><i class="fas fa-link"></i> Programa de Afiliados</div>
+
+    <!-- Puntos VIP (solo si temporada activa) -->
+    <div class="section-label"><i class="fas fa-star"></i> Puntos VIP</div>
+    <div id="puntos-section" class="fade-in"></div>
+
+    <!-- Afiliados / Referidos -->
+    <div class="section-label"><i class="fas fa-link"></i> Programa de Referidos</div>
     <div id="aff-section" class="fade-in"></div>
 
     <!-- Resumen tarjetas -->
     <div class="section-label"><i class="fas fa-chart-pie"></i> Tu Resumen</div>
     <div class="stat-cards-grid fade-in" id="resumen-cards"></div>
 
-    <!-- Saldo total -->
+    <!-- Saldo / Wallet -->
     <div class="saldo-bar fade-in" id="saldo-bar"></div>
 
-    <!-- Celdas -->
+    <!-- Participación / Celdas -->
     <div class="section-label"><i class="fas fa-ticket-alt"></i> Tu Participación</div>
     <div class="celdas-box fade-in" id="celdas-section"></div>
 
-    <!-- Mis premios -->
+    <!-- Mis premios ganados -->
     <div class="section-label"><i class="fas fa-trophy"></i> Tus Premios Ganados</div>
     <div id="mis-premios-section" class="fade-in"></div>
 
-    <!-- Probabilidad -->
+    <!-- Probabilidad en tiempo real -->
     <div class="section-label"><i class="fas fa-dice"></i> Probabilidad en Tiempo Real</div>
     <div class="prob-wrap fade-in" id="prob-section"></div>
 
-    <!-- Sistema de premios -->
+    <!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  TABLA DE PREMIOS — CÓMO EDITARLA                           ║
+    ║                                                             ║
+    ║  Los datos se cargan en tiempo real desde Firebase.        ║
+    ║  Para modificar premios, abre Firebase Console:            ║
+    ║    Firestore Database → Colección "config" → Documento     ║
+    ║    "sorteo" → Campo "premios" (array de objetos)           ║
+    ║                                                             ║
+    ║  Cada objeto tiene: { valor: number, cantidad: number }    ║
+    ║  Ejemplo: { valor: 500, cantidad: 50 }                     ║
+    ║                                                             ║
+    ║  También puedes editar "premiados" y cambiar "estado"      ║
+    ║  entre "activo" e "inactivo".                              ║
+    ╚══════════════════════════════════════════════════════════════╝
+    -->
     <div class="section-label"><i class="fas fa-gift"></i> Sistema de Premios</div>
     <div id="premios-categorias" class="fade-in"></div>
 
-    <!-- Premiados -->
+    <!-- VIPs Premiados -->
     <div class="section-label"><i class="fas fa-crown"></i> VIPs Premiados</div>
     <div id="premiados-list" class="fade-in"></div>
 
-    <!-- Top compradores -->
+    <!-- Top Compradores -->
     <div class="section-label"><i class="fas fa-medal"></i> Top Compradores</div>
     <div id="top-section" class="fade-in"></div>
-  </div>
-</div>
 
+  </div><!-- /panel-content -->
+</div><!-- /main -->
+
+<!-- ════════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════════ -->
 <script>
-  // ═══════════════════════════════════════════════════════════
-  // CONFIGURACIÓN (misma lógica de datos)
-  // ═══════════════════════════════════════════════════════════
-  var CFG = {
-    PRECIO:        50,
-    TOTAL:         13040,
-    TOTAL_PREMIOS: 773,
-    GH_REPOS:      ['TU_USUARIO/mosaico-imgs-1'],
-    PREMIADOS: []
-  };
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURACIÓN ESTÁTICA
+// ═══════════════════════════════════════════════════════════════
+var CFG = {
+  PRECIO:   50,
+  TOTAL:    13040,
+  // URL base del sitio para generar el link de referido
+  SITE_URL: 'https://zonavip.com',
+  // Repositorios GitHub para leer zones.json (como en index)
+  GH_REPOS: ['TU_USUARIO/mosaico-imgs-1']
+};
 
-  var USER_DATA = {
-    esVip:            true,
-    linkAfiliado:     'https://zonavip.com/?ref=ABC123',
-    afiliados:        [{ nombre: 'usuario1', celdas: 4 }, { nombre: 'maria_l', celdas: 12 }],
-    gananciasAff:     160,
-    misCeldas:        [1024, 1025, 2048, 3072, 4096],
-    misPremios:       [{ valor: '250 €', fecha: '12 Abr 2025', estado: 'entregado' }],
-    saldoPendiente:   250
-  };
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURACIÓN EMAILJS
+// ─────────────────────────────────────────────────────────────
+// 1. Crea cuenta en https://www.emailjs.com (plan gratuito = 200/mes)
+// 2. Crea un Service y conecta tu proveedor (Gmail, Outlook, etc.)
+// 3. Crea un Template con las variables: to_email, to_name,
+//    amount, method, destination, request_id, date
+// 4. Rellena los valores aquí:
+// ═══════════════════════════════════════════════════════════════
+var EMAILJS_CFG = {
+  PUBLIC_KEY:  'TU_PUBLIC_KEY_EMAILJS',   // Account → API Keys
+  SERVICE_ID:  'TU_SERVICE_ID',           // Email Services → Service ID
+  TEMPLATE_ID: 'TU_TEMPLATE_RETIRO'       // Email Templates → Template ID
+};
 
-  var SORTEO_CFG = {
-    PREMIOS: [
-      { valor: 100,   cantidad: 600 },
-      { valor: 250,   cantidad: 100 },
-      { valor: 500,   cantidad: 50  },
-      { valor: 1000,  cantidad: 10  },
-      { valor: 3000,  cantidad: 10  },
-      { valor: 10000, cantidad: 1   },
-      { valor: 20000, cantidad: 1   },
-      { valor: 50000, cantidad: 1   },
-    ]
-  };
-  var sorteoEstado = { premiosOtorgados: [] };
+// Inicializar EmailJS
+(function() {
+  if(window.emailjs) emailjs.init({ publicKey: EMAILJS_CFG.PUBLIC_KEY });
+})();
 
-  // ═══════════════════════════════════════════════════════════
-  // MENÚ
-  // ═══════════════════════════════════════════════════════════
-  function toggleMenu(){
-    var btn=document.getElementById('btn-menu'), dd=document.getElementById('nav-dropdown'), ov=document.getElementById('nav-overlay');
-    if(dd.classList.contains('open')) cerrarMenu();
-    else { btn.classList.add('open'); dd.classList.add('open'); ov.classList.add('open'); }
+
+// ── Helpers genéricos ──────────────────────────────────────────
+function escHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); }
+
+var _hintTimer=null;
+function showHint(msg,type){
+  var el=document.getElementById('hint-movil');
+  el.textContent=msg; el.className='show '+(type||'');
+  clearTimeout(_hintTimer);
+  _hintTimer=setTimeout(()=>{ el.className=''; },3200);
+}
+
+function abrirModal(id){ var el=document.getElementById(id); if(el){ el.classList.add('open'); document.body.style.overflow='hidden'; } }
+function cerrarModal(id){ var el=document.getElementById(id); if(el){ el.classList.remove('open'); document.body.style.overflow=''; } }
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{ if(e.target===bg) cerrarModal(bg.id); });
+});
+
+function setStatus(id,type,msg){
+  var el=document.getElementById(id); if(!el) return;
+  if(!msg){ el.style.display='none'; el.textContent=''; return; }
+  el.className='status-msg '+(type||''); el.textContent=msg; el.style.display='block';
+}
+
+// ── Menú — idéntico a index ────────────────────────────────────
+function toggleMenu(){
+  var btn=document.getElementById('btn-menu'), dd=document.getElementById('nav-dropdown'), ov=document.getElementById('nav-overlay');
+  dd.classList.contains('open') ? cerrarMenu() : (btn.classList.add('open'), dd.classList.add('open'), ov.classList.add('open'));
+}
+function cerrarMenu(){
+  document.getElementById('btn-menu').classList.remove('open');
+  document.getElementById('nav-dropdown').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cerrarMenu(); ['modal-vip','modal-retiro'].forEach(cerrarModal); } });
+
+// ── Auth UI — idéntica a index ─────────────────────────────────
+var vipUser=null;
+
+window._onAuthReady=function(user){
+  vipUser=user;
+  actualizarUIVip(user);
+  if(window._onPanelAuthChange) window._onPanelAuthChange(user);
+};
+
+function actualizarUIVip(user){
+  var panelSes=document.getElementById('vip-panel-sesion');
+  var panelLog=document.getElementById('vip-panel-login');
+  var navVipLbl=document.getElementById('nav-vip-label');
+  var navVipIcon=document.querySelector('#nav-vip-link .nav-icon i');
+  if(user){
+    document.getElementById('vip-sesion-icon').textContent=(user.email||'V').charAt(0).toUpperCase();
+    document.getElementById('vip-sesion-email').textContent=user.email||'';
+    panelSes.style.display='block'; panelLog.style.display='none';
+    if(navVipLbl) navVipLbl.textContent='Mi cuenta VIP';
+    if(navVipIcon) navVipIcon.className='fas fa-user-circle';
+  } else {
+    panelSes.style.display='none'; panelLog.style.display='block';
+    if(navVipLbl) navVipLbl.textContent='Acceso VIP';
+    if(navVipIcon) navVipIcon.className='fas fa-crown';
   }
-  function cerrarMenu(){
-    document.getElementById('btn-menu').classList.remove('open');
-    document.getElementById('nav-dropdown').classList.remove('open');
-    document.getElementById('nav-overlay').classList.remove('open');
+}
+
+function abrirModalVip(){ setStatus('st-vip-login','',''); setStatus('st-vip-reset','',''); abrirModal('modal-vip'); }
+
+function cambiarTabVip(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-reset').classList.toggle('active',tab==='reset');
+  document.getElementById('vip-form-login').style.display=tab==='login'?'':'none';
+  document.getElementById('vip-form-reset').style.display=tab==='reset'?'':'none';
+  setStatus('st-vip-login','',''); setStatus('st-vip-reset','','');
+}
+
+async function loginVip(){
+  var email=document.getElementById('vip-email').value.trim();
+  var pass=document.getElementById('vip-pass').value;
+  if(!email||!pass){ setStatus('st-vip-login','error','Rellena email y contraseña.'); return; }
+  var btn=document.getElementById('btn-login-vip');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Entrando...';
+  try{
+    if(!window._fbSignIn) throw new Error('Firebase no configurado.');
+    await window._fbSignIn(email,pass);
+    cerrarModal('modal-vip'); showHint('¡Bienvenido de nuevo, VIP!','ok');
+  }catch(err){ setStatus('st-vip-login','error',traducirErrorFirebase(err.code)); }
+  finally{ btn.disabled=false; btn.innerHTML='<i class="fas fa-sign-in-alt"></i>&nbsp; Entrar'; }
+}
+
+async function resetVip(){
+  var email=document.getElementById('vip-reset-email').value.trim();
+  if(!email){ setStatus('st-vip-reset','error','Introduce tu email.'); return; }
+  var btn=document.getElementById('btn-reset-vip');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
+  try{
+    if(!window._fbReset) throw new Error('Firebase no configurado.');
+    await window._fbReset(email);
+    setStatus('st-vip-reset','ok','✓ Enlace enviado. Revisa tu bandeja (y spam).');
+  }catch(err){ setStatus('st-vip-reset','error',traducirErrorFirebase(err.code)); }
+  finally{ btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace'; }
+}
+
+async function logoutVip(){
+  var btn=document.querySelector('#vip-panel-sesion .btn-secondary');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...'; }
+  try{
+    if(window._fbSignOut) await window._fbSignOut();
+    cerrarModal('modal-vip'); showHint('Sesión cerrada.');
+  }catch(e){}
+  finally{ if(btn){ btn.disabled=false; btn.innerHTML='<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión'; } }
+}
+
+function traducirErrorFirebase(code){
+  var msgs={
+    'auth/invalid-email':'Email no válido.',
+    'auth/user-not-found':'No existe cuenta VIP con ese email.',
+    'auth/wrong-password':'Contraseña incorrecta.',
+    'auth/invalid-credential':'Email o contraseña incorrectos.',
+    'auth/too-many-requests':'Demasiados intentos. Espera o recupera tu acceso.',
+    'auth/network-request-failed':'Error de red.',
+    'auth/configuration-not-found':'Firebase no está configurado en este entorno.',
+  };
+  return msgs[code]||'Error ('+(code||'desconocido')+').';
+}
+
+// ── MODAL RETIRO + EMAILJS ─────────────────────────────────────
+function abrirModalRetiro(){
+  setStatus('st-retiro','','');
+  if(!vipUser){ showHint('Inicia sesión primero','err'); return; }
+  abrirModal('modal-retiro');
+}
+
+async function enviarSolicitudRetiro(){
+  var importe  = parseFloat(document.getElementById('retiro-importe').value)||0;
+  var metodo   = document.getElementById('retiro-metodo').value.trim();
+  var datos    = document.getElementById('retiro-datos').value.trim();
+
+  if(importe<20){ setStatus('st-retiro','error','El importe mínimo es 20 €.'); return; }
+  if(!metodo)   { setStatus('st-retiro','error','Selecciona un método de cobro.'); return; }
+  if(!datos)    { setStatus('st-retiro','error','Indica los datos del destinatario.'); return; }
+  if(!vipUser)  { setStatus('st-retiro','error','Sin sesión activa.'); return; }
+
+  var btn=document.getElementById('btn-retiro-submit');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
+  setStatus('st-retiro','','');
+
+  try{
+    // 1. Guardar solicitud en Firestore
+    var requestId = 'RET-'+Date.now();
+    if(window._fbAddWithdrawal){
+      await window._fbAddWithdrawal({
+        uid:      vipUser.uid,
+        email:    vipUser.email,
+        importe:  importe,
+        metodo:   metodo,
+        datos:    datos,
+        requestId: requestId
+      });
+    }
+
+    // 2. Enviar email de confirmación al usuario vía EmailJS
+    if(window.emailjs){
+      await emailjs.send(EMAILJS_CFG.SERVICE_ID, EMAILJS_CFG.TEMPLATE_ID, {
+        to_email:    vipUser.email,
+        to_name:     vipUser.email.split('@')[0],
+        amount:      importe + ' €',
+        method:      metodo,
+        destination: datos,
+        request_id:  requestId,
+        date:        new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'})
+      });
+    }
+
+    setStatus('st-retiro','ok','✓ Solicitud enviada. Recibirás un email de confirmación en breve.');
+    showHint('Retiro solicitado','ok');
+    setTimeout(()=>cerrarModal('modal-retiro'),2800);
+  }catch(e){
+    console.error('[Retiro]',e);
+    setStatus('st-retiro','error','Error al enviar la solicitud. Inténtalo de nuevo.');
+  }finally{
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i>&nbsp; Enviar solicitud';
   }
+}
+</script>
 
-  // ═══════════════════════════════════════════════════════════
-  // MODAL RETIRO
-  // ═══════════════════════════════════════════════════════════
-  function abrirModalRetiro(){ document.getElementById('modal-retiro').classList.add('open'); }
-  function cerrarModalRetiro(){ document.getElementById('modal-retiro').classList.remove('open'); }
-  function enviarSolicitudRetiro(){
-    alert('Solicitud enviada (simulación).');
-    cerrarModalRetiro();
+<script type="module">
+// ═══════════════════════════════════════════════════════════════
+//  LÓGICA DEL PANEL — Firebase + render
+// ═══════════════════════════════════════════════════════════════
+
+var currentUser   = null;
+var esVip         = false;
+var walletData    = { wallet:0, puntos:0, referralCode:'', celdas:[], premiosGanados:[] };
+var sorteoCfg     = null;
+var puntosCfg     = null;
+var unsubWallet   = null;
+var unsubSorteo   = null;
+
+function escH(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); }
+
+// ── Cargar zones.json desde GitHub (igual que index) ──────────
+async function loadZones(){
+  var all=[], repos=window.CFG?.GH_REPOS||[];
+  for(var repo of repos){
+    try{
+      var r=await fetch(`https://cdn.jsdelivr.net/gh/${repo}@main/zones.json?t=${Date.now()}`);
+      if(r.ok){ var d=await r.json(); if(Array.isArray(d)) all=all.concat(d); }
+    }catch(e){}
   }
-  document.getElementById('modal-retiro').addEventListener('click', e => { if(e.target.classList.contains('modal-overlay')) cerrarModalRetiro(); });
+  return all;
+}
 
-  // ═══════════════════════════════════════════════════════════
-  // RENDERIZADO
-  // ═══════════════════════════════════════════════════════════
-  function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]); }
+// ── Renderizar sección PUNTOS ──────────────────────────────────
+function renderPuntos(){
+  var sec=document.getElementById('puntos-section'); if(!sec) return;
+  if(!currentUser||!esVip){
+    sec.innerHTML=`<div class="puntos-inactivo"><i class="fas fa-star" style="font-size:1.6rem;color:var(--gold);margin-bottom:10px"></i><div class="aff-no-vip-title">Solo para miembros VIP</div><div class="aff-no-vip-sub">Los puntos se acumulan interactuando con la plataforma durante la temporada activa.</div></div>`;
+    return;
+  }
+  if(!puntosCfg||!puntosCfg.activo){
+    sec.innerHTML=`<div class="puntos-inactivo"><i class="fas fa-clock" style="font-size:1.6rem;color:var(--muted2);margin-bottom:10px"></i><div class="aff-no-vip-title" style="color:var(--muted2)">Sin temporada activa</div><div class="aff-no-vip-sub">Cuando empiece una temporada de premios aparecerán aquí tus puntos.</div></div>`;
+    return;
+  }
+  var pts = walletData.puntos||0;
+  var fechaFin='';
+  if(puntosCfg.fechaFin){ try{ fechaFin=puntosCfg.fechaFin.toDate().toLocaleDateString('es-ES',{day:'2-digit',month:'long'}); }catch(e){} }
+  sec.innerHTML=`
+    <div class="puntos-card">
+      <div class="puntos-left">
+        <div class="puntos-icon-wrap"><i class="fas fa-star"></i></div>
+        <div>
+          <div class="puntos-value">${pts.toLocaleString()}</div>
+          <div class="puntos-label">Puntos VIP acumulados</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="temporada-badge"><i class="fas fa-fire" style="font-size:.65rem"></i>&nbsp; ${escH(puntosCfg.nombre||'Temporada activa')}</div>
+        ${fechaFin?`<div style="font-family:var(--fc);font-size:.55rem;color:var(--muted2);margin-top:8px;letter-spacing:.06em">Finaliza: ${fechaFin}</div>`:''}
+        ${puntosCfg.descripcion?`<div style="font-family:var(--fc);font-size:.6rem;color:var(--muted2);margin-top:6px;max-width:220px;line-height:1.5">${escH(puntosCfg.descripcion)}</div>`:''}
+      </div>
+    </div>`;
+}
 
-  async function loadZones(){
-    let zones=[];
-    for(let repo of CFG.GH_REPOS){
+// ── Renderizar AFILIADOS / REFERIDOS ──────────────────────────
+function renderAfiliados(){
+  var sec=document.getElementById('aff-section'); if(!sec) return;
+  if(!currentUser||!esVip){
+    sec.innerHTML=`
+      <div class="aff-no-vip">
+        <i class="fas fa-lock" style="font-size:1.8rem;color:var(--gold);margin-bottom:12px"></i>
+        <div class="aff-no-vip-title">Sección exclusiva VIP</div>
+        <div class="aff-no-vip-sub">Compra una zona en el mosaico para acceder al programa de referidos y obtener comisiones.</div>
+        <a href="index.html" class="aff-no-vip-link"><i class="fas fa-bolt"></i>&nbsp; Hazte VIP</a>
+      </div>`;
+    return;
+  }
+  var refCode = walletData.referralCode || generarRefCode(currentUser.email);
+  var refLink = (window.CFG?.SITE_URL||'https://zonavip.com') + '/?ref=' + refCode;
+  var referidos = walletData.referidos||[];
+  var listHtml = referidos.length
+    ? referidos.map(r=>`<div class="aff-afiliado-row"><span style="flex:1">${escH(r.nombre||r.email||'—')}</span><span style="color:var(--gold)">${r.celdas||0} celdas</span></div>`).join('')
+    : '<div style="padding:12px;color:var(--muted);font-family:var(--fc);font-size:.65rem">Aún no tienes referidos.</div>';
+
+  sec.innerHTML=`
+    <div class="aff-card">
+      <div class="aff-link-row">
+        <span class="aff-link-url">${escH(refLink)}</span>
+        <button class="btn-copy" onclick="copiarLink('${escH(refLink)}')"><i class="fas fa-copy"></i>&nbsp; Copiar</button>
+      </div>
+      <div class="aff-commission">
+        <span class="pct">20%</span> de comisión por cada venta generada con tu link.
+      </div>
+      <div style="font-family:var(--fc);font-size:.65rem;letter-spacing:.1em;color:var(--muted2);margin-bottom:10px">
+        Referidos (${referidos.length})
+      </div>
+      <div class="aff-afiliados-list">${listHtml}</div>
+    </div>`;
+}
+
+function generarRefCode(email){
+  // Genera un código simple y reproducible a partir del email
+  var hash=0, s=email||'vip';
+  for(var i=0;i<s.length;i++){ hash=(hash*31+s.charCodeAt(i))&0xFFFFFF; }
+  return hash.toString(36).toUpperCase().padStart(6,'0');
+}
+
+window.copiarLink = function(link){
+  navigator.clipboard?.writeText(link).then(()=>showHint('Link copiado','ok')).catch(()=>showHint('No se pudo copiar','err'));
+};
+
+// ── Renderizar RESUMEN TARJETAS ────────────────────────────────
+function renderResumen(premiosTotal, gananciasAff){
+  var sec=document.getElementById('resumen-cards'); if(!sec) return;
+  var celdas=walletData.celdas||[];
+  var referidos=walletData.referidos||[];
+  sec.innerHTML=`
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><i class="fas fa-users"></i></div>
+      <div class="sc-lbl">Referidos</div>
+      <div class="sc-val">${referidos.length}</div>
+      <div class="sc-sub">personas referidas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><i class="fas fa-hand-holding-usd"></i></div>
+      <div class="sc-lbl">Ganancias</div>
+      <div class="sc-val">${(gananciasAff||0).toLocaleString()} €</div>
+      <div class="sc-sub">20% comisión</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><i class="fas fa-ticket-alt"></i></div>
+      <div class="sc-lbl">Celdas</div>
+      <div class="sc-val">${celdas.length}</div>
+      <div class="sc-sub">participaciones</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon-wrap"><i class="fas fa-trophy"></i></div>
+      <div class="sc-lbl">Premios</div>
+      <div class="sc-val">${(premiosTotal||0).toLocaleString()} €</div>
+      <div class="sc-sub">${(walletData.premiosGanados||[]).length} premio(s)</div>
+    </div>`;
+}
+
+// ── Renderizar WALLET / SALDO ──────────────────────────────────
+function renderSaldo(saldo){
+  var sec=document.getElementById('saldo-bar'); if(!sec) return;
+  sec.innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px">
+      <i class="fas fa-wallet" style="font-size:1.4rem;color:var(--gold)"></i>
+      <div>
+        <div class="sc-lbl">Saldo disponible</div>
+        <div class="sc-val" style="font-size:2rem">${(saldo||0).toLocaleString()} €</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end">
+      <button class="btn-retiro-card" onclick="abrirModalRetiro()" ${(saldo||0)<20?'disabled':''}><i class="fas fa-money-bill-wave"></i>&nbsp; Solicitar retiro</button>
+      <div class="retiro-min-note">Mínimo 20 €</div>
+    </div>`;
+}
+
+// ── Renderizar CELDAS ──────────────────────────────────────────
+function renderCeldas(){
+  var sec=document.getElementById('celdas-section'); if(!sec) return;
+  var celdas=walletData.celdas||[];
+  var badges=celdas.map(c=>`<span class="celda-badge">#${c}</span>`).join('');
+  sec.innerHTML=`
+    <div class="celdas-header">
+      <div><div class="celdas-count">${celdas.length}</div><div class="sc-lbl">celdas compradas</div></div>
+    </div>
+    <div class="celdas-grid">${badges||'<div class="celdas-empty">Sin celdas registradas.</div>'}</div>`;
+}
+
+// ── Renderizar MIS PREMIOS ─────────────────────────────────────
+function renderMisPremios(premios){
+  var sec=document.getElementById('mis-premios-section'); if(!sec) return;
+  if(!premios||premios.length===0){
+    sec.innerHTML='<div class="aff-no-vip" style="padding:24px"><i class="fas fa-trophy" style="font-size:1.6rem;color:var(--muted);margin-bottom:10px"></i><div class="aff-no-vip-title" style="color:var(--muted2)">Aún no has ganado premios</div></div>';
+    return;
+  }
+  sec.innerHTML=premios.map(p=>`
+    <div class="mi-premio-row">
+      <div class="mi-premio-icon"><i class="fas fa-trophy"></i></div>
+      <div style="flex:1">
+        <div class="mi-premio-val">${escH(String(p.valor))}</div>
+        <div class="mi-premio-fecha">${escH(p.fecha||'—')}</div>
+      </div>
+      <span class="mi-premio-estado ${p.estado||'pendiente'}">${escH(p.estado||'pendiente')}</span>
+    </div>`).join('');
+}
+
+// ── Renderizar PROBABILIDAD ────────────────────────────────────
+function renderProbabilidad(zones, sorteoCfg){
+  var sec=document.getElementById('prob-section'); if(!sec) return;
+  var vendidas = zones.reduce((a,z)=>a+(z.n||0),0);
+  var libres   = Math.max(0,(window.CFG?.TOTAL||13040)-vendidas);
+  var premiosTotal   = (sorteoCfg?.premios||[]).reduce((a,p)=>a+(p.cantidad||0),0);
+  var premiosEntregados = (sorteoCfg?.premiados||[]).length;
+  var premiosRest    = Math.max(0, premiosTotal - premiosEntregados);
+  var probPct = libres>0&&premiosRest>0 ? ((premiosRest/libres)*100).toFixed(2) : '0.00';
+  sec.innerHTML=`
+    <div class="prob-grid">
+      <div class="prob-mini"><div class="prob-mini-lbl">Premios restantes</div><div class="prob-mini-val">${premiosRest}</div><div class="sc-sub">de ${premiosTotal}</div></div>
+      <div class="prob-mini"><div class="prob-mini-lbl">Probabilidad / celda</div><div class="prob-mini-val">${probPct}%</div><div class="sc-sub">en tiempo real</div></div>
+      <div class="prob-mini"><div class="prob-mini-lbl">Celdas libres</div><div class="prob-mini-val">${libres.toLocaleString()}</div><div class="sc-sub">disponibles</div></div>
+    </div>`;
+}
+
+// ── Renderizar SISTEMA DE PREMIOS (tabla dinámica de Firebase) ─
+function renderSistemaPremios(sorteoCfg){
+  var sec=document.getElementById('premios-categorias'); if(!sec) return;
+  var premios = sorteoCfg?.premios||[];
+  if(!premios.length){ sec.innerHTML='<div style="color:var(--muted);font-family:var(--fc);font-size:.7rem;padding:16px">Sin datos de premios.</div>'; return; }
+  var premiados = sorteoCfg?.premiados||[];
+  var entregadosPorValor={};
+  premiados.forEach(p=>{ var v=p.premio||p.valor||''; entregadosPorValor[v]=(entregadosPorValor[v]||0)+1; });
+
+  sec.innerHTML=[...premios].sort((a,b)=>b.valor-a.valor).map(p=>{
+    var entregados = entregadosPorValor[p.valor]||0;
+    var rest = Math.max(0,(p.cantidad||0)-entregados);
+    return `
+      <div class="premio-categoria-row">
+        <div class="premio-cat-val">${(p.valor||0).toLocaleString()} €</div>
+        <div class="premio-cat-info">${p.cantidad||0} totales</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill entregados">${entregados} entregados</span>
+          ${rest===0?'<span class="pill agotado">Agotado</span>':'<span class="pill pendientes">'+rest+' pendientes</span>'}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Renderizar PREMIADOS ───────────────────────────────────────
+function renderPremiados(sorteoCfg){
+  var sec=document.getElementById('premiados-list'); if(!sec) return;
+  var premiados=sorteoCfg?.premiados||[];
+  if(!premiados.length){ sec.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-family:var(--fc);font-size:.7rem">Sin premiados aún</div>'; return; }
+  sec.innerHTML=premiados.map(p=>`
+    <div class="historial-item">
+      <div style="width:38px;height:38px;background:rgba(191,155,90,0.2);display:flex;align-items:center;justify-content:center;border-radius:2px;font-family:var(--fh);color:var(--gold)">${escH(p.avatar||'?')}</div>
+      <div style="flex:1"><div style="font-weight:500;font-family:var(--fc)">${escH(p.nombre||p.email||'—')}</div><div class="mi-premio-fecha">${escH(p.fecha||'—')}</div></div>
+      <span style="color:var(--gold);font-family:var(--fc);font-size:.7rem">${escH(String(p.premio||p.valor||'—'))}</span>
+    </div>`).join('');
+}
+
+// ── Renderizar TOP COMPRADORES ─────────────────────────────────
+function renderTop(top){
+  var sec=document.getElementById('top-section'); if(!sec) return;
+  var html=(top||[]).map((e,i)=>`
+    <div class="part-row">
+      <div class="part-num">${i+1}</div>
+      <span style="flex:1;font-family:var(--fc);font-size:.7rem">${escH(e[0].split('@')[0])}</span>
+      <span style="color:var(--gold);font-family:var(--fc);font-size:.7rem">${e[1]} celdas</span>
+    </div>`).join('');
+  sec.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);padding:16px;border-radius:2px">${html||'<div style="color:var(--muted);padding:12px;font-family:var(--fc)">Sin datos</div>'}</div>`;
+}
+
+// ── Función principal de render ────────────────────────────────
+async function renderPanel(){
+  var zones=[];
+  try{ zones=await loadZones(); }catch(e){}
+
+  // Calcular ganancias aff y premios desde walletData
+  var referidos   = walletData.referidos||[];
+  var gananciasAff= referidos.reduce((a,r)=>a+(r.ganancia||0),0);
+  var premiosGanados = walletData.premiosGanados||[];
+  var premiosTotal = premiosGanados.reduce((a,p)=>a+(parseFloat(p.valor)||0),0);
+  var saldo = walletData.wallet||0;
+
+  renderPuntos();
+  renderAfiliados();
+  renderResumen(premiosTotal, gananciasAff);
+  renderSaldo(saldo);
+  renderCeldas();
+  renderMisPremios(premiosGanados);
+  renderProbabilidad(zones, sorteoCfg);
+  renderSistemaPremios(sorteoCfg);
+  renderPremiados(sorteoCfg);
+
+  // Top compradores desde Firebase
+  try{
+    if(window._fbGetTopCompradores){
+      var top=await window._fbGetTopCompradores();
+      renderTop(top);
+    } else { renderTop([]); }
+  }catch(e){ renderTop([]); }
+
+  document.getElementById('last-update').textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Arranque tras Firebase Auth ────────────────────────────────
+window._onPanelAuthChange = async function(user){
+  currentUser=user;
+
+  // Limpiar listeners anteriores
+  if(unsubWallet){ unsubWallet(); unsubWallet=null; }
+  if(unsubSorteo){ unsubSorteo(); unsubSorteo=null; }
+
+  // Mostrar panel (aunque sea sin sesión, el panel es visible)
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('panel-content').style.display='block';
+
+  if(user){
+    // Verificar VIP
+    try{ esVip = await window._fbCheckVip(user.email); }catch(e){ esVip=false; }
+
+    // Suscribir wallet en tiempo real
+    if(window._fbWalletListener){
+      unsubWallet=window._fbWalletListener(user.uid, data=>{
+        walletData={...walletData,...data};
+        renderPanel();
+      });
+    } else {
+      // Fallback: una sola lectura
       try{
-        let r=await fetch(`https://cdn.jsdelivr.net/gh/${repo}@main/zones.json?t=${Date.now()}`);
-        if(r.ok){ let d=await r.json(); if(Array.isArray(d)) zones=zones.concat(d); }
+        var profile=await window._fbGetUserProfile(user.uid);
+        if(profile) walletData={...walletData,...profile};
       }catch(e){}
     }
-    return zones;
-  }
 
-  function renderTodo(zones){
-    // Afiliados
-    let affHtml='';
-    if(!USER_DATA.esVip){
-      affHtml=`<div class="aff-no-vip"><i class="fas fa-lock" style="font-size:1.8rem;color:var(--gold);margin-bottom:12px"></i><div style="font-family:var(--fh);font-size:1.2rem;">Sección exclusiva VIP</div><div style="font-family:var(--fc);color:var(--muted2);">Compra una zona para acceder al programa de afiliados.</div></div>`;
-    } else {
-      let listHtml='';
-      USER_DATA.afiliados.forEach((a,i)=>{
-        listHtml+=`<div class="aff-afiliado-row"><span style="flex:1">${escapeHtml(a.nombre)}</span><span style="color:var(--gold)">${a.celdas} celdas</span></div>`;
-      });
-      affHtml=`
-        <div class="aff-card">
-          <div class="aff-link-row">
-            <span class="aff-link-url">${escapeHtml(USER_DATA.linkAfiliado)}</span>
-            <button class="btn-copy" onclick="navigator.clipboard?.writeText('${USER_DATA.linkAfiliado}')">Copiar</button>
-          </div>
-          <div class="aff-commission"><span class="pct">20%</span> de comisión por cada venta generada.</div>
-          <div style="font-family:var(--fc);font-size:.65rem;letter-spacing:.1em;color:var(--muted2);margin-bottom:10px">Afiliados (${USER_DATA.afiliados.length})</div>
-          <div class="aff-afiliados-list">${listHtml||'<div style="padding:12px;color:var(--muted)">Aún no tienes afiliados.</div>'}</div>
-        </div>`;
-    }
-    document.getElementById('aff-section').innerHTML=affHtml;
-
-    // Resumen tarjetas
-    let premiosTotal=USER_DATA.misPremios.reduce((acc,p)=>acc+(parseFloat(p.valor)||0),0);
-    let saldoTotal=USER_DATA.gananciasAff+premiosTotal;
-    document.getElementById('resumen-cards').innerHTML=`
-      <div class="stat-card"><div class="stat-icon-wrap"><i class="fas fa-users"></i></div><div class="sc-lbl">Afiliados</div><div class="sc-val">${USER_DATA.afiliados.length}</div><div class="sc-sub">personas referidas</div></div>
-      <div class="stat-card"><div class="stat-icon-wrap"><i class="fas fa-hand-holding-usd"></i></div><div class="sc-lbl">Ganancias afiliación</div><div class="sc-val">${USER_DATA.gananciasAff.toLocaleString()} €</div><div class="sc-sub">20% comisión</div></div>
-      <div class="stat-card"><div class="stat-icon-wrap"><i class="fas fa-ticket-alt"></i></div><div class="sc-lbl">Celdas</div><div class="sc-val">${USER_DATA.misCeldas.length}</div><div class="sc-sub">participaciones</div></div>
-      <div class="stat-card"><div class="stat-icon-wrap"><i class="fas fa-trophy"></i></div><div class="sc-lbl">Premios</div><div class="sc-val">${premiosTotal.toLocaleString()} €</div><div class="sc-sub">${USER_DATA.misPremios.length} premio(s)</div></div>
-    `;
-
-    document.getElementById('saldo-bar').innerHTML=`
-      <div style="display:flex;align-items:center;gap:16px"><i class="fas fa-wallet" style="font-size:1.4rem;color:var(--gold)"></i><div><div class="sc-lbl">Saldo disponible</div><div class="sc-val" style="font-size:2rem">${saldoTotal.toLocaleString()} €</div></div></div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end"><button class="btn-retiro-card" onclick="abrirModalRetiro()" ${saldoTotal<20?'disabled':''}><i class="fas fa-money-bill-wave"></i> Solicitar retiro</button><div class="retiro-min-note">Mínimo 20 €</div></div>
-    `;
-
-    // Celdas
-    let celdasHtml=USER_DATA.misCeldas.map(c=>`<span class="celda-badge">#${c}</span>`).join('');
-    document.getElementById('celdas-section').innerHTML=`
-      <div class="celdas-header"><div><div class="celdas-count">${USER_DATA.misCeldas.length}</div><div class="sc-lbl">celdas compradas</div></div></div>
-      <div class="celdas-grid">${celdasHtml||'<div class="celdas-empty">Sin celdas</div>'}</div>
-    `;
-
-    // Mis premios
-    let premiosHtml='';
-    USER_DATA.misPremios.forEach(p=>{
-      premiosHtml+=`<div class="mi-premio-row"><div class="mi-premio-icon"><i class="fas fa-trophy"></i></div><div style="flex:1"><div class="mi-premio-val">${p.valor}</div><div class="mi-premio-fecha">${p.fecha}</div></div><span class="mi-premio-estado ${p.estado}">${p.estado}</span></div>`;
-    });
-    document.getElementById('mis-premios-section').innerHTML=premiosHtml||'<div class="aff-no-vip" style="padding:24px">Aún no has ganado premios.</div>';
-
-    // Probabilidad (simulada)
-    let vendidas=zones.reduce((a,z)=>a+(z.n||0),0);
-    let libres=CFG.TOTAL-vendidas;
-    let premiosRest=Math.max(0,CFG.TOTAL_PREMIOS-CFG.PREMIADOS.length);
-    let probPct=libres>0&&premiosRest>0?((premiosRest/libres)*100).toFixed(2):'0.00';
-    document.getElementById('prob-section').innerHTML=`
-      <div class="prob-grid">
-        <div class="prob-mini"><div class="prob-mini-lbl">Premios restantes</div><div class="prob-mini-val">${premiosRest}</div><div class="sc-sub">de ${CFG.TOTAL_PREMIOS}</div></div>
-        <div class="prob-mini"><div class="prob-mini-lbl">Probabilidad</div><div class="prob-mini-val">${probPct}%</div><div class="sc-sub">por celda</div></div>
-        <div class="prob-mini"><div class="prob-mini-lbl">Celdas libres</div><div class="prob-mini-val">${libres.toLocaleString()}</div></div>
-      </div>
-    `;
-
-    // Sistema premios
-    let stock={};
-    SORTEO_CFG.PREMIOS.forEach(p=>stock[p.valor]=p.cantidad);
-    let catHtml='';
-    SORTEO_CFG.PREMIOS.sort((a,b)=>b.valor-a.valor).forEach(p=>{
-      let rest=stock[p.valor]||0, entregados=p.cantidad-rest;
-      catHtml+=`<div class="premio-categoria-row"><div class="premio-cat-val">${p.valor} €</div><div class="premio-cat-info">${p.cantidad} totales</div><div style="display:flex;gap:6px"><span class="pill entregados">${entregados} entregados</span>${rest===0?'<span class="pill agotado">Agotado</span>':'<span class="pill pendientes">'+rest+' pendientes</span>'}</div></div>`;
-    });
-    document.getElementById('premios-categorias').innerHTML=catHtml;
-
-    // Premiados
-    let premList=CFG.PREMIADOS.map(p=>`<div class="historial-item"><div style="width:38px;height:38px;background:rgba(191,155,90,0.2);display:flex;align-items:center;justify-content:center;border-radius:2px">${p.avatar||'?'}</div><div style="flex:1"><div style="font-weight:500">${p.nombre}</div><div class="mi-premio-fecha">${p.fecha}</div></div><span style="color:var(--gold)">${p.premio}</span></div>`).join('');
-    document.getElementById('premiados-list').innerHTML=premList||'<div style="padding:20px;text-align:center;color:var(--muted)">Sin premiados aún</div>';
-
-    // Top compradores
-    let map={}; zones.forEach(z=>{ let k=z.email||'anon'; map[k]=(map[k]||0)+(z.n||0); });
-    let top=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,10);
-    let topHtml=top.map((e,i)=>`<div class="part-row"><div class="part-num">${i+1}</div><span style="flex:1">${e[0].split('@')[0]}</span><span style="color:var(--gold)">${e[1]} celdas</span></div>`).join('');
-    document.getElementById('top-section').innerHTML=`<div style="background:var(--card);border:1px solid var(--border);padding:16px;border-radius:2px">${topHtml||'Sin datos'}</div>`;
-
-    document.getElementById('last-update').textContent=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
-  }
-
-  (async function(){
+    // Cargar premios propios
     try{
-      let zones=await loadZones();
-      document.getElementById('loading-state').style.display='none';
-      document.getElementById('panel-content').style.display='block';
-      renderTodo(zones);
-    }catch(e){
-      document.getElementById('loading-state').style.display='none';
-      document.getElementById('error-state').style.display='block';
-      document.getElementById('error-state').innerHTML='<b>Error</b> — usando datos de demostración.';
-      document.getElementById('panel-content').style.display='block';
-      renderTodo([]);
-    }
-    setInterval(async ()=>{
-      try{ let zones=await loadZones(); renderTodo(zones); }catch(e){}
-    },60000);
-  })();
+      if(window._fbGetMisPremios){
+        walletData.premiosGanados=await window._fbGetMisPremios(user.uid);
+      }
+    }catch(e){}
+  } else {
+    esVip=false;
+    walletData={ wallet:0, puntos:0, referralCode:'', celdas:[], premiosGanados:[], referidos:[] };
+  }
 
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ cerrarMenu(); cerrarModalRetiro(); } });
+  // Config sorteo en tiempo real
+  if(window._fbSorteoListener){
+    unsubSorteo=window._fbSorteoListener(data=>{
+      sorteoCfg=data;
+      renderPanel();
+    });
+  } else {
+    try{ if(window._fbGetSorteoCfg) sorteoCfg=await window._fbGetSorteoCfg(); }catch(e){}
+  }
+
+  // Config puntos
+  try{ if(window._fbGetPuntosCfg) puntosCfg=await window._fbGetPuntosCfg(); }catch(e){}
+
+  // Render inicial (aunque el listener llegue luego)
+  await renderPanel();
+
+  // Auto-refresco zonas cada 60s
+  setInterval(async()=>{ try{ await renderPanel(); }catch(e){} }, 60000);
+};
+
+// Fallback si Firebase ya disparó antes
+if(window.vipUser!==undefined && !window._panelInitDone){
+  window._panelInitDone=true;
+  window._onPanelAuthChange(window.vipUser);
+}
 </script>
 </body>
-</html>
+  </html>
