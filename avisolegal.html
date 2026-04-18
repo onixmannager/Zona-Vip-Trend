@@ -1,272 +1,549 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Aviso Legal – ZonaVIP Trends</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet"/>
-<style>
-  :root {
-    --bg:       #06080F;
-    --bg2:      #090C18;
-    --gold:     #C9A84C;
-    --gold-lt:  #EDD780;
-    --gold-dk:  #7A6020;
-    --cyan:     #00E5FF;
-    --white:    #EEF2FF;
-    --muted:    #4A5878;
-    --muted2:   #8A99BB;
-    --card:     rgba(9,14,32,0.75);
-    --bord:     rgba(201,168,76,0.15);
-    --bord-c:   rgba(0,229,255,0.12);
-    --fh:       'Bebas Neue', sans-serif;
-    --fb:       'DM Sans', sans-serif;
-    --fm:       'DM Mono', monospace;
-    --ease:     cubic-bezier(.16,1,.3,1);
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Aviso Legal · ZonaVip Trends</title>
+  
+  <!-- Fonts (identical to selector.html) -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  
+  <style>
+    /* ----- RESET & VARIABLES (selector-inspired) ----- */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: var(--fb);
-    background: var(--bg);
-    color: var(--white);
-    overflow-x: hidden;
-  }
+    :root {
+      --gold: #BF9B5A;
+      --gold-light: #D4B578;
+      --gold-dim: rgba(191, 155, 90, 0.45);
+      --gold-soft: rgba(191, 155, 90, 0.12);
+      --cream: #EDE8E0;
+      --cream-muted: rgba(237, 232, 224, 0.7);
+      --cream-dim: rgba(237, 232, 224, 0.3);
+      --bg-deep: #08090F;
+      --bg-card: rgba(12, 14, 22, 0.75);
+      --border-light: rgba(191, 155, 90, 0.18);
+      --border-cyan: rgba(191, 155, 90, 0.2); /* keep gold consistency */
+      --transition: 380ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-  #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-  .vignette {
-    position: fixed; inset: 0; z-index: 1; pointer-events: none;
-    background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 30%, rgba(6,8,15,0.92) 100%);
-  }
-  .content { position: relative; z-index: 5; }
+    html, body {
+      width: 100%;
+      background: var(--bg-deep);
+      color: var(--cream);
+      font-family: 'Barlow', sans-serif;
+      scroll-behavior: smooth;
+    }
 
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-    padding: 0 40px; height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
-    backdrop-filter: blur(24px);
-    background: rgba(6,8,15,0.8);
-    border-bottom: 1px solid var(--bord);
-  }
-  .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .nav-logo-main {
-    font-family: var(--fh); font-size: 1.7rem; letter-spacing: .06em;
-    background: linear-gradient(135deg, var(--gold-lt), var(--gold));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .nav-tag {
-    font-family: var(--fm); font-size: .6rem; letter-spacing: .18em;
-    color: var(--cyan); border: 1px solid var(--bord-c);
-    padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
-  }
-  .nav-back {
-    font-family: var(--fb); font-size: .82rem; font-weight: 500;
-    color: var(--muted2); text-decoration: none; display: flex; align-items: center; gap: 8px;
-    transition: color .2s;
-  }
-  .nav-back:hover { color: var(--white); }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
 
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    /* ----- SUBTLE AMBIENT BACKGROUND (elegant grid + radial glow) ----- */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 70% 50% at 30% 20%, rgba(191, 155, 90, 0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(191, 155, 90, 0.03) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* ── PAGE HERO ── */
-  .page-hero {
-    padding: 120px 24px 60px;
-    text-align: center;
-    max-width: 900px;
-    margin: 0 auto;
-  }
-  .page-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    font-family: var(--fm); font-size: .68rem;
-    letter-spacing: .25em; text-transform: uppercase; color: var(--gold);
-    border: 1px solid var(--bord); background: rgba(201,168,76,0.04);
-    padding: 7px 18px; border-radius: 99px; margin-bottom: 28px;
-    opacity: 0; animation: fadeUp .6s .1s forwards;
-  }
-  .page-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); animation: blink 1.8s infinite; }
-  .page-title {
-    font-family: var(--fh);
-    font-size: clamp(3rem, 8vw, 6rem);
-    line-height: .92; letter-spacing: .03em; margin-bottom: 20px;
-    opacity: 0; animation: fadeUp .7s .25s forwards;
-  }
-  .page-title .gold {
-    background: linear-gradient(135deg, var(--gold-lt) 10%, var(--gold) 60%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    filter: drop-shadow(0 0 30px rgba(201,168,76,0.3));
-  }
-  .page-subtitle {
-    font-size: clamp(.9rem,2vw,1.05rem); color: var(--muted2); line-height: 1.8;
-    max-width: 600px; margin: 0 auto;
-    opacity: 0; animation: fadeUp .7s .4s forwards;
-  }
-  .page-meta {
-    display: inline-flex; align-items: center; gap: 8px; margin-top: 24px;
-    font-family: var(--fm); font-size: .62rem; letter-spacing: .18em; text-transform: uppercase;
-    color: var(--gold-lt); border: 1px solid var(--bord); background: rgba(201,168,76,0.05);
-    padding: 7px 16px; border-radius: 99px;
-    opacity: 0; animation: fadeUp .6s .55s forwards;
-  }
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(237, 232, 224, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(237, 232, 224, 0.018) 1px, transparent 1px);
+      background-size: 64px 64px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  /* ── DOCUMENT BODY ── */
-  .doc-wrap {
-    max-width: 860px; margin: 0 auto; padding: 0 24px 100px;
-  }
+    /* ----- MAIN WRAPPER (relative, above bg) ----- */
+    .page-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
 
-  .doc-section {
-    margin-bottom: 48px;
-    background: var(--card); backdrop-filter: blur(16px);
-    border: 1px solid var(--bord); border-radius: 16px;
-    padding: 36px 40px;
-    opacity: 0; animation: fadeUp .6s forwards;
-    animation-fill-mode: both;
-    box-shadow: inset 0 1px 0 rgba(201,168,76,0.06);
-  }
-  .doc-section:nth-child(1) { animation-delay: .1s; }
-  .doc-section:nth-child(2) { animation-delay: .18s; }
-  .doc-section:nth-child(3) { animation-delay: .26s; }
-  .doc-section:nth-child(4) { animation-delay: .34s; }
-  .doc-section:nth-child(5) { animation-delay: .42s; }
-  .doc-section:nth-child(6) { animation-delay: .50s; }
-  .doc-section:nth-child(7) { animation-delay: .58s; }
-  .doc-section:nth-child(8) { animation-delay: .66s; }
-  .doc-section:nth-child(9) { animation-delay: .74s; }
-  .doc-section:nth-child(10) { animation-delay: .82s; }
+    /* ----- HEADER (exactly like selector) ----- */
+    .hdr {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 52px;
+      background: linear-gradient(to bottom, rgba(8, 9, 15, 0.96) 0%, rgba(8, 9, 15, 0.7) 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      animation: fadeDown 600ms 200ms both;
+    }
 
-  .section-num {
-    font-family: var(--fm); font-size: .6rem; letter-spacing: .2em; color: var(--gold);
-    text-transform: uppercase; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .section-num::after { content: ''; flex: 0 0 40px; height: 1px; background: rgba(201,168,76,0.3); }
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-  .doc-section h2 {
-    font-family: var(--fh); font-size: 1.8rem; letter-spacing: .04em;
-    color: var(--white); margin-bottom: 18px; line-height: 1;
-  }
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cream);
+      text-decoration: none;
+    }
+    .logo-vip { color: var(--gold); }
+    .logo-trends {
+      opacity: 0.55;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+    }
 
-  .doc-section p {
-    font-size: .92rem; line-height: 1.85; color: var(--muted2); margin-bottom: 14px;
-  }
-  .doc-section p:last-child { margin-bottom: 0; }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
 
-  .doc-section ul {
-    list-style: none; padding: 0; margin: 14px 0;
-  }
-  .doc-section ul li {
-    font-size: .9rem; line-height: 1.75; color: var(--muted2);
-    padding: 8px 0 8px 22px; position: relative;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-  }
-  .doc-section ul li:last-child { border-bottom: none; }
-  .doc-section ul li::before {
-    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
-    box-shadow: 0 0 8px rgba(201,168,76,0.4);
-  }
+    .nav-link {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--cream-muted);
+      text-decoration: none;
+      transition: color 200ms;
+      border-bottom: 1px solid transparent;
+      padding-bottom: 4px;
+    }
 
-  .doc-section strong { color: var(--white); font-weight: 600; }
+    .nav-link:hover {
+      color: var(--cream);
+    }
 
-  .highlight-box {
-    background: rgba(201,168,76,0.06); border: 1px solid rgba(201,168,76,0.2);
-    border-radius: 10px; padding: 18px 22px; margin: 18px 0;
-    font-size: .88rem; color: var(--muted2); line-height: 1.75;
-  }
-  .highlight-box strong { color: var(--gold); }
+    .nav-link.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold-dim);
+    }
 
-  .warn-box {
-    background: rgba(0,229,255,0.04); border: 1px solid rgba(0,229,255,0.15);
-    border-radius: 10px; padding: 18px 22px; margin: 18px 0;
-    font-size: .88rem; color: var(--muted2); line-height: 1.75;
-    display: flex; gap: 14px; align-items: flex-start;
-  }
-  .warn-box i { color: var(--cyan); margin-top: 2px; flex-shrink: 0; }
+    /* ----- HERO SECTION (clean, aligned with selector minimalism) ----- */
+    .legal-hero {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 80px 32px 40px;
+      text-align: center;
+      animation: fadeUp 700ms 300ms both;
+    }
 
-  .contact-box {
-    background: rgba(0,229,255,0.04); border: 1px solid var(--bord-c);
-    border-radius: 10px; padding: 20px 24px; margin-top: 18px;
-    font-family: var(--fm); font-size: .78rem; letter-spacing: .04em; color: var(--cyan);
-    line-height: 1.9;
-  }
-  .contact-box a { color: var(--gold-lt); text-decoration: none; }
-  .contact-box a:hover { text-decoration: underline; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-  /* ── FOOTER ── */
-  footer {
-    position: relative; z-index: 10;
-    padding: 32px 40px;
-    border-top: 1px solid var(--bord);
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
-    background: rgba(6,8,15,0.8); backdrop-filter: blur(16px);
-  }
-  .footer-logo { font-family: var(--fm); font-size: .7rem; letter-spacing: .14em; color: var(--muted); }
-  .footer-links { display: flex; gap: 24px; }
-  .footer-links a {
-    font-family: var(--fm); font-size: .68rem; letter-spacing: .14em;
-    color: var(--muted2); text-decoration: none; text-transform: uppercase;
-    transition: color .2s;
-  }
-  .footer-links a:hover, .footer-links a.active { color: var(--gold); }
+    .eyebrow {
+      display: inline-block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+      margin-bottom: 20px;
+    }
 
-  @media (max-width: 600px) {
-    .doc-section { padding: 24px 20px; }
-    nav { padding: 0 20px; }
-    .page-hero { padding: 100px 16px 40px; }
-  }
-</style>
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(48px, 8vw, 88px);
+      font-weight: 300;
+      color: var(--cream);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      margin-bottom: 16px;
+    }
+    .hero-title .gold-accent {
+      color: var(--gold);
+      font-weight: 400;
+    }
+
+    .hero-sub {
+      font-family: 'Barlow', sans-serif;
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--cream-muted);
+      max-width: 620px;
+      margin: 0 auto 12px;
+      line-height: 1.7;
+    }
+
+    .meta-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 24px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      background: rgba(191, 155, 90, 0.06);
+      border: 1px solid var(--border-light);
+      padding: 8px 24px;
+      border-radius: 40px;
+    }
+
+    /* ----- DOCUMENT CONTAINER (cards) ----- */
+    .legal-container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 10px 32px 90px;
+    }
+
+    .legal-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      padding: 40px 44px;
+      margin-bottom: 36px;
+      box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(191, 155, 90, 0.06);
+      transition: transform 250ms ease, border-color 250ms;
+      opacity: 0;
+      animation: cardReveal 550ms forwards;
+    }
+
+    .legal-card:nth-child(1) { animation-delay: 100ms; }
+    .legal-card:nth-child(2) { animation-delay: 180ms; }
+    .legal-card:nth-child(3) { animation-delay: 260ms; }
+    .legal-card:nth-child(4) { animation-delay: 340ms; }
+    .legal-card:nth-child(5) { animation-delay: 420ms; }
+    .legal-card:nth-child(6) { animation-delay: 500ms; }
+    .legal-card:nth-child(7) { animation-delay: 580ms; }
+    .legal-card:nth-child(8) { animation-delay: 660ms; }
+    .legal-card:nth-child(9) { animation-delay: 740ms; }
+    .legal-card:nth-child(10) { animation-delay: 820ms; }
+    .legal-card:nth-child(11) { animation-delay: 900ms; }
+
+    @keyframes cardReveal {
+      0% { opacity: 0; transform: translateY(24px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .legal-card:hover {
+      border-color: rgba(191, 155, 90, 0.3);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .card-num {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      opacity: 0.8;
+      text-transform: uppercase;
+      border-right: 1px solid var(--gold-dim);
+      padding-right: 18px;
+    }
+
+    .card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem;
+      font-weight: 350;
+      color: var(--cream);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .legal-card p {
+      font-family: 'Barlow', sans-serif;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      color: var(--cream-muted);
+      margin-bottom: 16px;
+    }
+
+    .legal-card p:last-of-type {
+      margin-bottom: 0;
+    }
+
+    .legal-card ul {
+      list-style: none;
+      margin: 18px 0 8px;
+    }
+
+    .legal-card li {
+      font-size: 0.93rem;
+      line-height: 1.75;
+      color: var(--cream-muted);
+      padding: 8px 0 8px 26px;
+      position: relative;
+      border-bottom: 1px solid rgba(237, 232, 224, 0.04);
+    }
+
+    .legal-card li:last-child {
+      border-bottom: none;
+    }
+
+    .legal-card li::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 18px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0.7;
+      box-shadow: 0 0 6px rgba(191, 155, 90, 0.5);
+    }
+
+    strong {
+      color: var(--cream);
+      font-weight: 500;
+    }
+
+    /* special boxes (highlight, warn, contact) */
+    .highlight-box, .warn-box, .contact-card {
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin: 24px 0 18px;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--cream-muted);
+    }
+
+    .highlight-box {
+      background: rgba(191, 155, 90, 0.05);
+      border: 1px solid rgba(191, 155, 90, 0.22);
+    }
+
+    .warn-box {
+      background: rgba(191, 155, 90, 0.03);
+      border: 1px solid rgba(191, 155, 90, 0.2);
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .warn-box i {
+      color: var(--gold);
+      font-size: 1.2rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .contact-card {
+      background: rgba(191, 155, 90, 0.04);
+      border: 1px solid var(--border-light);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.03em;
+    }
+
+    .contact-card a {
+      color: var(--gold-light);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--gold-dim);
+    }
+
+    .contact-card a:hover {
+      color: var(--cream);
+    }
+
+    .inline-icon {
+      margin-right: 8px;
+      color: var(--gold);
+      width: 18px;
+      text-align: center;
+    }
+
+    /* footer (selector-like minimal) */
+    .footer {
+      position: relative;
+      z-index: 10;
+      padding: 32px 52px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      background: rgba(8, 9, 15, 0.7);
+      backdrop-filter: blur(12px);
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    .footer-copy {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cream-dim);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 32px;
+    }
+
+    .footer-links a {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cream-muted);
+      text-decoration: none;
+      transition: color 200ms;
+    }
+
+    .footer-links a:hover,
+    .footer-links a.active {
+      color: var(--gold);
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+      .hdr {
+        padding: 18px 24px;
+      }
+      .nav {
+        gap: 20px;
+      }
+      .legal-hero {
+        padding: 60px 20px 30px;
+      }
+      .legal-container {
+        padding: 0 20px 70px;
+      }
+      .legal-card {
+        padding: 30px 24px;
+      }
+      .card-title {
+        font-size: 1.8rem;
+      }
+      .footer {
+        padding: 24px 24px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hdr {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+      .logo {
+        font-size: 18px;
+      }
+    }
+
+    /* Link styling */
+    a {
+      transition: opacity 200ms;
+    }
+    a:hover {
+      opacity: 0.8;
+    }
+  </style>
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
-<div class="vignette"></div>
 
-<nav>
-  <a class="nav-logo" href="index.html">
-    <span class="nav-logo-main">ZonaVIP</span>
-    <span class="nav-tag">Trends</span>
-  </a>
-  <a class="nav-back" href="index.html"><i class="fas fa-arrow-left"></i> Volver al inicio</a>
-</nav>
+<!-- subtle grid overlay -->
+<div class="bg-grid"></div>
 
-<div class="content">
-  <div class="page-hero">
-    <div class="page-eyebrow">Documentación legal</div>
-    <h1 class="page-title"><span class="gold">Aviso</span><br/>Legal</h1>
-    <p class="page-subtitle">Información legal sobre el titular de la plataforma ZonaVIP Trends, las condiciones de uso del sitio web y la normativa aplicable.</p>
-    <div class="page-meta"><i class="fas fa-calendar-alt" style="color:var(--gold)"></i> Última actualización: enero de 2026</div>
-  </div>
+<div class="page-wrapper">
+  <!-- HEADER (mirror of selector) -->
+  <header class="hdr">
+    <a href="index.html" class="logo" style="text-decoration:none;">
+      Zona<span class="logo-vip">Vip</span>&nbsp;<span class="logo-trends">Trends</span>
+    </a>
+    <nav class="nav">
+      <a href="index.html" class="nav-link">Expositor</a>
+      <a href="aviso-legal.html" class="nav-link active">Legal</a>
+    </nav>
+  </header>
 
-  <div class="doc-wrap">
+  <!-- HERO -->
+  <section class="legal-hero">
+    <div class="eyebrow">
+      <i class="fas fa-scale-balanced" style="margin-right: 8px;"></i> Documentación oficial
+    </div>
+    <h1 class="hero-title">
+      <span class="gold-accent">Aviso</span> Legal
+    </h1>
+    <p class="hero-sub">
+      Información legal sobre el titular de ZonaVIP Trends, condiciones de uso y normativa aplicable. Plataforma SaaS de monetización para creadores y publicidad para marcas.
+    </p>
+    <div class="meta-chip">
+      <i class="far fa-calendar-alt"></i> Última actualización: enero de 2026
+    </div>
+  </section>
 
-    <div class="doc-section">
-      <div class="section-num">01 / Titular</div>
-      <h2>Datos del Titular</h2>
+  <!-- LEGAL CONTENT (cards) -->
+  <div class="legal-container">
+
+    <!-- 01 Titular -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">01</span>
+        <h2 class="card-title">Datos del Titular</h2>
+      </div>
       <p>En cumplimiento del artículo 10 de la Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSI-CE), se informa de los siguientes datos identificativos del titular de este sitio web:</p>
-      <div class="contact-box">
-        <strong style="color:var(--white)">Denominación social:</strong> ZonaVIP Trends es un producto de TecnologiasOnix (en constitución)<br/>
-        <strong style="color:var(--white)">Nombre comercial:</strong> ZonaVIP Trends<br/>
-        <strong style="color:var(--white)">Actividad:</strong> Plataforma digital de publicidad permanente, red de visibilidad y gestión de comunidades online<br/>
-        <strong style="color:var(--white)">Correo electrónico:</strong> <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a><br/>
-        <strong style="color:var(--white)">Sitio web:</strong> <a href="https://zonaviptrends.com">zonaviptrends.com</a>
+      <div class="contact-card">
+        <i class="fas fa-building inline-icon"></i> <strong style="color:var(--cream);">Denominación social:</strong> ZonaVIP Trends es un producto de TecnologiasOnix (en constitución)<br>
+        <i class="fas fa-tag inline-icon"></i> <strong style="color:var(--cream);">Nombre comercial:</strong> ZonaVIP Trends<br>
+        <i class="fas fa-chart-line inline-icon"></i> <strong style="color:var(--cream);">Actividad:</strong> Plataforma digital de publicidad permanente, red de visibilidad y gestión de comunidades online<br>
+        <i class="far fa-envelope inline-icon"></i> <strong style="color:var(--cream);">Correo electrónico:</strong> <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a><br>
+        <i class="fas fa-globe inline-icon"></i> <strong style="color:var(--cream);">Sitio web:</strong> <a href="https://zonaviptrends.com">zonaviptrends.com</a>
       </div>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">02 / Objeto</div>
-      <h2>Objeto y Ámbito de Aplicación</h2>
+    <!-- 02 Objeto -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">02</span>
+        <h2 class="card-title">Objeto y Ámbito</h2>
+      </div>
       <p>El presente Aviso Legal regula el acceso y uso del sitio web <strong>zonaviptrends.com</strong> y de todas sus páginas, subdominios y servicios asociados (en adelante, "la Plataforma"), de los que ZonaVIP Trends es titular.</p>
       <p>El acceso y uso de la Plataforma implica la aceptación plena y sin reservas de las presentes condiciones. Si no estás de acuerdo con alguna de ellas, debes abstenerte de utilizar la Plataforma.</p>
-      <div class="highlight-box"><strong>Nota:</strong> ZonaVIP Trends se reserva el derecho a modificar en cualquier momento las condiciones del presente Aviso Legal. Las modificaciones serán efectivas desde su publicación en esta página.</div>
+      <div class="highlight-box">
+        <i class="fas fa-pen-fade" style="margin-right: 10px; color: var(--gold);"></i>
+        <strong>Nota:</strong> ZonaVIP Trends se reserva el derecho a modificar en cualquier momento las condiciones del presente Aviso Legal. Las modificaciones serán efectivas desde su publicación en esta página.
+      </div>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">03 / Descripción del servicio</div>
-      <h2>Descripción del Servicio</h2>
+    <!-- 03 Descripción -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">03</span>
+        <h2 class="card-title">Descripción del Servicio</h2>
+      </div>
       <p>ZonaVIP Trends es una plataforma digital que ofrece a usuarios, marcas e influencers la posibilidad de adquirir espacios permanentes (denominados "celdas") en un mosaico interactivo, con las siguientes características principales:</p>
       <ul>
         <li><strong>Espacio publicitario permanente:</strong> cada celda adquirida queda asociada de forma indefinida a la imagen y enlace proporcionados por el comprador, sin cuotas periódicas.</li>
@@ -277,119 +554,144 @@
       </ul>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">04 / Condiciones de uso</div>
-      <h2>Condiciones de Uso de la Plataforma</h2>
+    <!-- 04 Condiciones de uso -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">04</span>
+        <h2 class="card-title">Condiciones de Uso</h2>
+      </div>
       <p>El usuario se compromete a hacer un uso diligente y lícito de la Plataforma, y en particular a:</p>
       <ul>
         <li>No utilizar la Plataforma con fines ilícitos o contrarios a la ley, la moral o el orden público.</li>
         <li>No cargar, publicar o transmitir contenidos que vulneren derechos de terceros, incluidos derechos de propiedad intelectual, honor, intimidad o imagen.</li>
         <li>No difundir contenido pornográfico, violento, discriminatorio, xenófobo, que fomente el odio o que sea ilícito de cualquier otra forma.</li>
-        <li>No realizar acciones que puedan dañar, sobrecargar o deteriorar el funcionamiento de la Plataforma o los sistemas informáticos de ZonaVIP Trends o de terceros.</li>
-        <li>No utilizar robots, scrapers, arañas u otros medios automatizados para acceder o extraer contenidos de la Plataforma sin autorización expresa.</li>
+        <li>No realizar acciones que puedan dañar, sobrecargar o deteriorar el funcionamiento de la Plataforma.</li>
+        <li>No utilizar robots, scrapers, arañas u otros medios automatizados para acceder o extraer contenidos sin autorización expresa.</li>
         <li>Facilitar información veraz y actualizada en el proceso de registro y compra.</li>
       </ul>
       <p>ZonaVIP Trends se reserva el derecho a suspender o cancelar el acceso de cualquier usuario que incumpla las presentes condiciones, sin perjuicio de las acciones legales que pudieran corresponder.</p>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">05 / Contenido del usuario</div>
-      <h2>Contenido Subido por el Usuario</h2>
+    <!-- 05 Contenido del usuario -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">05</span>
+        <h2 class="card-title">Contenido del Usuario</h2>
+      </div>
       <p>Al cargar imágenes, logotipos u otro contenido en la Plataforma, el usuario declara y garantiza que:</p>
       <ul>
-        <li>Es el titular de los derechos sobre dicho contenido o cuenta con las licencias y permisos necesarios para su uso en la Plataforma.</li>
+        <li>Es el titular de los derechos sobre dicho contenido o cuenta con las licencias necesarias.</li>
         <li>El contenido no infringe derechos de propiedad intelectual, industrial, de imagen ni ningún otro derecho de terceros.</li>
         <li>El contenido no es engañoso, fraudulento, obsceno, difamatorio ni contrario a la ley.</li>
       </ul>
       <p>El usuario concede a ZonaVIP Trends una licencia no exclusiva, mundial, libre de regalías y sublicenciable para alojar, mostrar y distribuir dicho contenido dentro de la Plataforma durante el tiempo que la celda esté activa.</p>
-      <p>ZonaVIP Trends se reserva el derecho a retirar cualquier contenido que, a su criterio razonable, vulnere las presentes condiciones o la normativa aplicable, comunicándolo al usuario afectado.</p>
+      <p>ZonaVIP Trends se reserva el derecho a retirar cualquier contenido que vulnere las presentes condiciones o la normativa aplicable.</p>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">06 / Propiedad intelectual</div>
-      <h2>Propiedad Intelectual e Industrial</h2>
-      <p>Todos los elementos de la Plataforma —incluyendo, sin limitación, el diseño, código fuente, textos, gráficos, logos, iconos, imágenes, animaciones, software y estructura de la web— son propiedad de ZonaVIP Trends o de sus licenciantes, y están protegidos por la normativa española e internacional sobre propiedad intelectual e industrial.</p>
-      <p>Queda expresamente prohibido cualquier acto de reproducción, distribución, comunicación pública, transformación o cualquier otra forma de explotación de los contenidos de la Plataforma, total o parcial, sin la autorización previa y escrita de ZonaVIP Trends.</p>
+    <!-- 06 Propiedad intelectual -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">06</span>
+        <h2 class="card-title">Propiedad Intelectual</h2>
+      </div>
+      <p>Todos los elementos de la Plataforma —incluyendo diseño, código fuente, textos, logos, iconos, imágenes, animaciones, software y estructura— son propiedad de ZonaVIP Trends o de sus licenciantes, y están protegidos por la normativa española e internacional.</p>
+      <p>Queda expresamente prohibido cualquier acto de reproducción, distribución, comunicación pública o transformación sin autorización previa y escrita.</p>
       <div class="warn-box">
-        <i class="fas fa-shield-alt"></i>
-        <span>El nombre comercial <strong style="color:var(--white)">ZonaVIP Trends</strong>, sus logotipos y cualquier denominación o signo distintivo utilizado en la Plataforma son marcas protegidas. Su uso no autorizado puede dar lugar a acciones legales.</span>
+        <i class="fas fa-shield-halved"></i>
+        <span>El nombre comercial <strong style="color:var(--cream);">ZonaVIP Trends</strong>, sus logotipos y cualquier signo distintivo utilizado en la Plataforma son marcas protegidas. Su uso no autorizado puede dar lugar a acciones legales.</span>
       </div>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">07 / Responsabilidad</div>
-      <h2>Limitación de Responsabilidad</h2>
+    <!-- 07 Responsabilidad -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">07</span>
+        <h2 class="card-title">Limitación de Responsabilidad</h2>
+      </div>
       <p>ZonaVIP Trends no se hace responsable de:</p>
       <ul>
-        <li>Los daños derivados del uso incorrecto, ilegítimo o fraudulento de la Plataforma por parte del usuario.</li>
-        <li>Las interrupciones, errores técnicos o indisponibilidades del servicio debidas a causas ajenas a su control (fuerza mayor, fallos de terceros, ciberataques, etc.).</li>
-        <li>El contenido de sitios web de terceros enlazados desde la Plataforma. Los enlaces externos se facilitan a título informativo y ZonaVIP Trends no controla ni avala dichos contenidos.</li>
-        <li>Los daños derivados de decisiones tomadas por el usuario basándose en informaciones o previsiones de rendimiento publicadas en la Plataforma. El valor publicitario o comercial de las celdas puede variar.</li>
+        <li>Los daños derivados del uso incorrecto, ilegítimo o fraudulento de la Plataforma.</li>
+        <li>Interrupciones, errores técnicos o indisponibilidades por causas ajenas a su control.</li>
+        <li>El contenido de sitios web de terceros enlazados desde la Plataforma.</li>
+        <li>Decisiones tomadas por el usuario basándose en informaciones o previsiones de rendimiento.</li>
       </ul>
       <p>ZonaVIP Trends realizará esfuerzos razonables para garantizar la disponibilidad y correcto funcionamiento de la Plataforma, pero no garantiza un servicio ininterrumpido o libre de errores.</p>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">08 / Pagos y política comercial</div>
-      <h2>Condiciones Económicas y Política de Compra</h2>
-      <p>El precio de cada celda es de <strong>50 € (IVA incluido)</strong>, salvo que se indique expresamente otro precio en la Plataforma. Los precios pueden modificarse en cualquier momento, si bien las compras ya realizadas mantendrán el precio abonado.</p>
+    <!-- 08 Pagos y política comercial -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">08</span>
+        <h2 class="card-title">Condiciones Económicas</h2>
+      </div>
+      <p>El precio de cada celda es de <strong>50 € (IVA incluido)</strong>, salvo indicación expresa. Los precios pueden modificarse, pero las compras ya realizadas mantendrán el precio abonado.</p>
       <ul>
-        <li><strong>Pago:</strong> los pagos se procesan a través de Stripe. ZonaVIP Trends no almacena datos de tarjetas de crédito o débito.</li>
-        <li><strong>Confirmación:</strong> tras el pago, recibirás una confirmación por correo electrónico y podrás cargar el contenido de tu celda.</li>
-        <li><strong>Carácter permanente:</strong> la compra de una celda otorga un espacio permanente en el mosaico, sin cuotas periódicas. El servicio estará activo mientras la Plataforma esté en funcionamiento.</li>
-        <li><strong>Derecho de desistimiento:</strong> al tratarse de contenido digital de carácter permanente que se activa inmediatamente tras la compra, y conforme al art. 103.a) del Real Decreto Legislativo 1/2007 (TRLGDCU), el usuario reconoce expresamente que renuncia al derecho de desistimiento desde el momento en que el contenido se activa en el mosaico.</li>
-        <li><strong>Facturación:</strong> se emitirá factura electrónica a los datos facilitados en el proceso de compra.</li>
+        <li><strong>Pago:</strong> a través de Stripe. ZonaVIP Trends no almacena datos de tarjetas.</li>
+        <li><strong>Confirmación:</strong> recibirás confirmación por correo y podrás cargar el contenido.</li>
+        <li><strong>Carácter permanente:</strong> la compra otorga un espacio permanente mientras la Plataforma esté operativa.</li>
+        <li><strong>Derecho de desistimiento:</strong> al tratarse de contenido digital de carácter permanente que se activa inmediatamente, el usuario reconoce que renuncia al derecho de desistimiento (art. 103.a TRLGDCU).</li>
+        <li><strong>Facturación:</strong> se emitirá factura electrónica.</li>
       </ul>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">09 / Sistema de premios</div>
-      <h2>Sistema de Premios y Sorteos</h2>
-      <p>La participación en el sistema de premios de ZonaVIP Trends está sujeta a las siguientes condiciones:</p>
+    <!-- 09 Sistema de premios -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">09</span>
+        <h2 class="card-title">Sistema de Premios</h2>
+      </div>
+      <p>La participación en el sistema de premios está sujeta a las siguientes condiciones:</p>
       <ul>
-        <li>Los <strong>793 premios que suman 200.000 €</strong> están financiados íntegramente mediante acuerdos publicitarios y colaboraciones con marcas, sin coste adicional para los compradores de celdas.</li>
+        <li>Los <strong>793 premios que suman 200.000 €</strong> están financiados mediante acuerdos publicitarios.</li>
         <li>Cada celda adquirida participa automáticamente en los sorteos activos.</li>
-        <li>El sistema de asignación de premios es periódico, transparente y auditable por los participantes.</li>
-        <li>Los premios en metálico se abonarán mediante transferencia bancaria a los datos facilitados por el premiado, previa verificación de identidad.</li>
-        <li>ZonaVIP Trends se reserva el derecho a modificar la distribución y calendario de premios, comunicándolo con antelación suficiente a los participantes.</li>
-        <li>La participación en el sorteo de premios no implica ninguna garantía de obtención de los mismos.</li>
+        <li>El sistema de asignación es periódico, transparente y auditable.</li>
+        <li>Los premios en metálico se abonarán mediante transferencia previa verificación.</li>
+        <li>ZonaVIP Trends podrá modificar la distribución de premios comunicándolo con antelación.</li>
       </ul>
-      <div class="highlight-box"><strong>Nota fiscal:</strong> Los premios obtenidos podrán estar sujetos a retención e ingreso a cuenta conforme a la normativa tributaria vigente del IRPF u otras figuras impositivas aplicables. El premiado es responsable de cumplir con sus obligaciones fiscales.</div>
-    </div>
-
-    <div class="doc-section">
-      <div class="section-num">10 / Legislación</div>
-      <h2>Legislación Aplicable y Jurisdicción</h2>
-      <p>El presente Aviso Legal se rige por la legislación española, siendo de aplicación, entre otras, las siguientes normas:</p>
-      <ul>
-        <li>Ley 34/2002, de 11 de julio, de Servicios de la Sociedad de la Información y del Comercio Electrónico (LSSI-CE).</li>
-        <li>Real Decreto Legislativo 1/2007, de 16 de noviembre, que aprueba el Texto Refundido de la Ley General para la Defensa de los Consumidores y Usuarios (TRLGDCU).</li>
-        <li>Ley Orgánica 3/2018, de 5 de diciembre, de Protección de Datos Personales y garantía de los derechos digitales (LOPDGDD).</li>
-        <li>Reglamento (UE) 2016/679, de 27 de abril, relativo a la protección de las personas físicas en lo que respecta al tratamiento de datos personales (RGPD).</li>
-        <li>Real Decreto Legislativo 1/1996, de 12 de abril, que aprueba el Texto Refundido de la Ley de Propiedad Intelectual.</li>
-      </ul>
-      <p>Para la resolución de cualquier controversia derivada del acceso o uso de la Plataforma, las partes se someten a los Juzgados y Tribunales competentes conforme a la normativa aplicable, sin perjuicio de los fueros obligatorios previstos para consumidores.</p>
-      <div class="warn-box">
-        <i class="fas fa-balance-scale"></i>
-        <span>Si eres consumidor, puedes acceder a la plataforma de resolución de litigios en línea de la Unión Europea disponible en: <a href="https://ec.europa.eu/consumers/odr" target="_blank" style="color:var(--gold-lt)">ec.europa.eu/consumers/odr</a></span>
+      <div class="highlight-box">
+        <i class="fas fa-file-invoice"></i> <strong>Nota fiscal:</strong> Los premios podrán estar sujetos a retención conforme a la normativa del IRPF. El premiado es responsable de sus obligaciones fiscales.
       </div>
     </div>
 
-    <div class="doc-section">
-      <div class="section-num">11 / Contacto</div>
-      <h2>Contacto Legal</h2>
-      <p>Para cualquier consulta, reclamación o comunicación de carácter legal, puedes contactar con nosotros a través de los siguientes canales:</p>
-      <div class="contact-box">
-        <i class="fas fa-envelope" style="color:var(--gold);margin-right:8px"></i> <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a><br/>
-        <i class="fas fa-globe" style="color:var(--gold);margin-right:8px"></i> <a href="https://zonaviptrends.com">zonaviptrends.com</a><br/>
-        <i class="fas fa-headset" style="color:var(--gold);margin-right:8px"></i> <a href="soporte.html">Formulario de soporte</a>
+    <!-- 10 Legislación -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">10</span>
+        <h2 class="card-title">Legislación Aplicable</h2>
+      </div>
+      <p>El presente Aviso Legal se rige por la legislación española, siendo de aplicación:</p>
+      <ul>
+        <li>Ley 34/2002 (LSSI-CE).</li>
+        <li>Real Decreto Legislativo 1/2007 (TRLGDCU).</li>
+        <li>Ley Orgánica 3/2018 (LOPDGDD) y RGPD (UE) 2016/679.</li>
+        <li>Real Decreto Legislativo 1/1996 (Propiedad Intelectual).</li>
+      </ul>
+      <p>Para cualquier controversia, las partes se someten a los Juzgados y Tribunales competentes, sin perjuicio de los fueros obligatorios para consumidores.</p>
+      <div class="warn-box">
+        <i class="fas fa-scale-balanced"></i>
+        <span>Si eres consumidor, puedes acceder a la plataforma de resolución de litigios en línea de la UE: <a href="https://ec.europa.eu/consumers/odr" target="_blank" style="color:var(--gold-light);">ec.europa.eu/consumers/odr</a></span>
+      </div>
+    </div>
+
+    <!-- 11 Contacto -->
+    <div class="legal-card">
+      <div class="card-header">
+        <span class="card-num">11</span>
+        <h2 class="card-title">Contacto Legal</h2>
+      </div>
+      <p>Para consultas o reclamaciones de carácter legal:</p>
+      <div class="contact-card" style="margin-top: 12px;">
+        <i class="far fa-envelope"></i> <a href="mailto:info@tecnologiasonix.com">info@tecnologiasonix.com</a><br>
+        <i class="fas fa-globe"></i> <a href="https://zonaviptrends.com">zonaviptrends.com</a><br>
+        <i class="fas fa-headset"></i> <a href="soporte.html">Formulario de soporte</a>
       </div>
     </div>
 
   </div>
 
-  <footer>
-    <div class="footer-logo">© 2026 ZonaVIP Trends · Todos los derechos reservados</div>
+  <!-- FOOTER (minimal, matches selector style) -->
+  <footer class="footer">
+    <div class="footer-copy">© 2026 ZonaVIP Trends · Todos los derechos reservados</div>
     <div class="footer-links">
       <a href="aviso-legal.html" class="active">Aviso Legal</a>
       <a href="privacidad.html">Privacidad</a>
@@ -398,67 +700,11 @@
   </footer>
 </div>
 
+<!-- tiny script to ensure active states (optional) -->
 <script>
   (function() {
-    var c   = document.getElementById('bg-canvas');
-    var ctx = c.getContext('2d');
-    var W, H, particles = [];
-    function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
-    function randomBetween(a, b) { return a + Math.random() * (b - a); }
-    function initParticles() {
-      particles = [];
-      var count = Math.floor((W * H) / 18000);
-      for (var i = 0; i < count; i++) {
-        particles.push({
-          x: randomBetween(0, W), y: randomBetween(0, H),
-          r: randomBetween(0.6, 2.2),
-          vx: randomBetween(-0.12, 0.12), vy: randomBetween(-0.12, 0.12),
-          alpha: randomBetween(0.1, 0.55), gold: Math.random() > 0.72
-        });
-      }
-    }
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      var cellSize = 60;
-      ctx.lineWidth = 0.4;
-      for (var x = 0; x < W; x += cellSize) {
-        ctx.beginPath(); ctx.strokeStyle = 'rgba(201,168,76,0.04)';
-        ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-      for (var y = 0; y < H; y += cellSize) {
-        ctx.beginPath(); ctx.strokeStyle = 'rgba(201,168,76,0.04)';
-        ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
-      for (var i = 0; i < particles.length; i++) {
-        for (var j = i + 1; j < particles.length; j++) {
-          var dx = particles[i].x - particles[j].x;
-          var dy = particles[i].y - particles[j].y;
-          var dist = Math.sqrt(dx*dx + dy*dy);
-          if (dist < 130) {
-            var alpha = (1 - dist / 130) * 0.07;
-            ctx.beginPath();
-            ctx.strokeStyle = particles[i].gold ? 'rgba(201,168,76,' + alpha + ')' : 'rgba(0,229,255,' + alpha * 0.7 + ')';
-            ctx.lineWidth = 0.5;
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-      for (var i = 0; i < particles.length; i++) {
-        var p = particles[i];
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = p.gold ? 'rgba(201,168,76,' + p.alpha + ')' : 'rgba(0,229,255,' + p.alpha * 0.6 + ')';
-        ctx.fill();
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
-        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
-      }
-      requestAnimationFrame(draw);
-    }
-    resize(); initParticles();
-    window.addEventListener('resize', function() { resize(); initParticles(); });
-    draw();
+    // just a clean, professional page — no heavy canvas, pure elegance.
+    console.log('ZonaVIP Trends · Aviso Legal — diseño alineado con selector.');
   })();
 </script>
 </body>
