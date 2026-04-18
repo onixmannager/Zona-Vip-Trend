@@ -80,7 +80,26 @@
       display: flex; align-items: center;
       padding: 0 36px; z-index: 100; gap: 6px;
     }
-    @media (max-width: 600px) { #barra { padding: 0 16px; } }
+    /* Ajustes específicos para móvil (navbar sin solapamientos) */
+    @media (max-width: 420px) {
+      #nav-dropdown { min-width: 200px; }
+      #barra { padding: 0 12px; }
+      #nav-menu-wrap { right: 12px; gap: 2px; }
+      .barra-logo-main {
+        font-size: 1.1rem !important;
+        letter-spacing: 0.1em !important;
+      }
+      #btn-menu {
+        padding: 6px 10px !important;
+        font-size: 0.6rem !important;
+      }
+    }
+    /* Ajustes extra para pantallas muy pequeñas (≤380px) */
+    @media (max-width: 380px) {
+      .barra-logo-main { font-size: 1.0rem !important; }
+      #btn-menu span { display: none; }
+      #barra { padding: 0 8px !important; }
+    }
 
     .barra-logo {
       display: flex; align-items: baseline; gap: 6px;
@@ -101,12 +120,12 @@
     }
 
     #nav-menu-wrap {
-      margin-left: auto;
+      position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
       display: flex; align-items: center; gap: 5px;
     }
     #btn-menu {
       display: flex; align-items: center; gap: 7px;
-      padding: 6px 14px;
+      padding: 8px 16px;
       font-family: var(--fc); font-size: .68rem; font-weight: 600;
       letter-spacing: 0.22em; text-transform: uppercase;
       color: var(--muted2); background: transparent;
@@ -114,9 +133,11 @@
       cursor: pointer; white-space: nowrap; user-select: none;
       transition: color .18s, border-color .18s, background .18s;
     }
-    #btn-menu:hover { color: var(--cream); border-color: rgba(237,232,224,0.28); }
+    @media (hover:hover) and (pointer:fine) {
+      #btn-menu:hover { color: var(--cream); border-color: rgba(237,232,224,0.28); }
+    }
     #btn-menu.open { color: var(--gold); border-color: var(--gold-dim); background: rgba(191,155,90,0.06); }
-    #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s; }
+    #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
     #btn-menu.open .menu-chevron { transform: rotate(180deg); }
 
     #nav-dropdown {
@@ -126,12 +147,15 @@
       border: 1px solid var(--border);
       border-radius: 2px;
       backdrop-filter: blur(32px);
-      box-shadow: 0 24px 64px rgba(0,0,0,0.75);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.75),
+                  0 0 0 1px rgba(191,155,90,0.06),
+                  inset 0 1px 0 rgba(237,232,224,0.03);
       z-index: 600; overflow: hidden;
       opacity: 0; pointer-events: none;
       transform: translateY(-8px) scale(0.97);
       transform-origin: top right;
-      transition: opacity .2s, transform .2s;
+      transition: opacity .2s cubic-bezier(.4,0,.2,1),
+                  transform .2s cubic-bezier(.4,0,.2,1);
     }
     #nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
     .nav-header {
@@ -443,7 +467,7 @@
     .modal-link-btn.no-link:hover { background: transparent; }
 
     /* VIP modal */
-    #modal-vip .modal-panel { max-width: 420px; }
+    #modal-vip .modal-panel { max-width: 400px; }
     .vip-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
     .vip-tab {
       flex: 1; padding: 10px; text-align: center;
@@ -453,6 +477,7 @@
       border-bottom: 1px solid transparent; transition: all .2s;
     }
     .vip-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .vip-tab:hover:not(.active) { color: var(--cream); }
     .campo-label {
       font-family: var(--fc); font-size: .6rem; font-weight: 600;
       letter-spacing: .22em; text-transform: uppercase;
@@ -463,23 +488,101 @@
       border: 1px solid rgba(237,232,224,0.1);
       border-radius: 1px; padding: 10px 14px;
       color: var(--cream); font-family: var(--fb); font-size: .84rem;
-      margin-bottom: 16px; outline: none;
+      margin-bottom: 16px; outline: none; transition: border-color .2s;
     }
     .campo:focus { border-color: var(--gold); }
+    .campo::placeholder { color: var(--muted); }
+    .modal-title {
+      font-family: var(--fh); font-size: 1.55rem; font-weight: 300;
+      letter-spacing: 0.02em; color: var(--cream);
+      margin-bottom: 5px; line-height: 1.1;
+    }
+    .modal-sub {
+      font-family: var(--fb); font-size: .73rem; font-weight: 300;
+      color: var(--muted2); margin-bottom: 22px; line-height: 1.65;
+    }
+    .modal-eyebrow {
+      font-family: var(--fc); font-size: .58rem; font-weight: 600;
+      letter-spacing: .34em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 6px; display: block;
+    }
+    .modal-rule {
+      width: 32px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      opacity: 0.5; margin-bottom: 20px;
+    }
     .btn-primary {
       width: 100%; padding: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;
       background: transparent; border: 1px solid var(--gold-dim);
       border-radius: 1px;
       font-family: var(--fc); font-size: .68rem; font-weight: 600;
       letter-spacing: .28em; text-transform: uppercase; color: var(--gold);
-      cursor: pointer; transition: all .2s;
+      cursor: pointer; transition: background .2s, border-color .2s, box-shadow .2s;
     }
-    .btn-primary:hover { background: rgba(191,155,90,0.1); border-color: var(--gold); }
+    .btn-primary:hover:not(:disabled) {
+      background: rgba(191,155,90,0.1); border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(191,155,90,0.15);
+    }
+    .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 10px; margin-top: 8px;
+      background: transparent; border: 1px solid rgba(237,232,224,0.1);
+      border-radius: 1px;
+      font-family: var(--fc); font-size: .6rem; font-weight: 500;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted2); cursor: pointer; transition: all .2s;
+    }
+    .btn-secondary:hover { color: var(--cream); border-color: rgba(237,232,224,0.25); }
     .status {
-      font-family: var(--fb); font-size: .73rem; padding: 9px 13px; border-radius: 1px; margin-bottom: 14px; display: none;
+      font-family: var(--fb); font-size: .73rem; font-weight: 300;
+      padding: 9px 13px; border-radius: 1px; margin-bottom: 12px; display: none;
     }
     .status.error { background: rgba(255,90,90,0.08); color: #ff9090; border: 1px solid rgba(255,90,90,0.18); }
     .status.ok    { background: rgba(191,155,90,0.08); color: var(--gold-light); border: 1px solid var(--gold-dim); }
+    .status.info  { background: rgba(191,155,90,0.06); color: var(--gold); border: 1px solid var(--border); }
+    .vip-user-card {
+      background: rgba(191,155,90,0.05); border: 1px solid var(--border);
+      border-radius: 1px; padding: 18px; text-align: center; margin-bottom: 20px;
+    }
+    .vip-user-icon {
+      width: 50px; height: 50px; border-radius: 50%;
+      border: 1px solid var(--gold-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fh); font-size: 1.4rem; font-weight: 300; color: var(--gold);
+      margin: 0 auto 12px;
+    }
+    .vip-user-email {
+      font-family: var(--fc); font-size: .72rem; font-weight: 500; letter-spacing: .06em;
+      color: var(--cream); margin-bottom: 6px; word-break: break-all;
+    }
+    .vip-user-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(191,155,90,0.1); border: 1px solid rgba(191,155,90,0.28);
+      border-radius: 20px; padding: 3px 12px;
+      font-family: var(--fc); font-size: .58rem; font-weight: 600;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--gold);
+    }
+    .vip-nav-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+    .vip-nav-link {
+      display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px;
+      background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.08);
+      border-radius: 1px; text-decoration: none;
+      font-family: var(--fc); font-size: .62rem; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--muted2);
+      transition: all .2s;
+    }
+    .vip-nav-link:hover { background: rgba(191,155,90,0.07); border-color: rgba(191,155,90,0.28); color: var(--cream); }
+    .vip-nav-link i { font-size: 1rem; color: var(--gold); }
+    /* Hint */
+    #hint-feed {
+      display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      z-index: 400; font-family: var(--fc); font-size: .6rem; font-weight: 600;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--muted2);
+      background: rgba(8,9,15,0.92); backdrop-filter: blur(14px);
+      border: 1px solid var(--border); padding: 8px 18px; border-radius: 99px;
+      white-space: nowrap; animation: hintFade 3s ease forwards;
+    }
+    @keyframes hintFade { 0%,70%{opacity:1} 100%{opacity:0} }
   </style>
 </head>
 <body>
@@ -506,7 +609,7 @@
       <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <div class="nav-divider"></div>
-      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;">
+      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
         <span class="nav-icon"><i class="fas fa-crown"></i></span>
         <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
         <i class="fas fa-chevron-right nav-item-arrow"></i>
@@ -557,7 +660,7 @@
 <!-- MODAL DETALLE -->
 <div class="modal-bg" id="modal-bg" onclick="onBgClick(event)">
   <div class="modal-panel">
-    <button class="modal-close" onclick="cerrarModal()"><i class="fas fa-times"></i></button>
+    <button class="modal-close" onclick="cerrarModalFeed()"><i class="fas fa-times"></i></button>
     <div class="modal-img-wrap">
       <img id="modal-img" src="" alt="">
       <button class="modal-nav" id="modal-prev" onclick="navModal(-1)"><i class="fas fa-chevron-left"></i></button>
@@ -598,42 +701,76 @@
 <!-- MODAL VIP -->
 <div class="modal-bg" id="modal-vip">
   <div class="modal-panel">
-    <button class="modal-close" onclick="cerrarModal('modal-vip')"><i class="fas fa-times"></i></button>
+    <button class="modal-close" onclick="cerrarModalVip()"><i class="fas fa-times"></i></button>
+
+    <!-- Sin sesión -->
     <div id="vip-panel-login">
-      <span class="modal-eyebrow" style="font-family:var(--fc);font-size:.6rem;letter-spacing:.2em;color:var(--gold);"><i class="fas fa-crown" style="margin-right:5px"></i>Área VIP</span>
-      <div class="modal-title" style="font-family:var(--fh);font-size:1.5rem;margin:5px 0 15px;">Acceso VIP</div>
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Área VIP</span>
+      <div class="modal-title">Acceso VIP</div>
+      <div class="modal-rule"></div>
+      <div class="modal-sub">Inicia sesión con el email que usaste al pagar tu zona.</div>
+
       <div class="vip-tabs">
         <div class="vip-tab active" id="tab-login" onclick="cambiarTabVip('login')">Iniciar sesión</div>
         <div class="vip-tab" id="tab-reset" onclick="cambiarTabVip('reset')">Recuperar acceso</div>
       </div>
+
       <div id="vip-form-login">
         <label class="campo-label" for="vip-email">Email VIP</label>
         <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email">
         <label class="campo-label" for="vip-pass">Contraseña</label>
-        <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginVip()">
+        <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')loginVip()">
         <div class="status" id="st-vip-login"></div>
-        <button class="btn-primary" onclick="loginVip()"><i class="fas fa-sign-in-alt"></i>&nbsp; Entrar</button>
+        <button class="btn-primary" id="btn-login-vip" onclick="loginVip()">
+          <i class="fas fa-sign-in-alt"></i>&nbsp; Entrar
+        </button>
+        <p style="font-family:var(--fc);font-size:.6rem;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7">
+          ¿Primera vez? Tu cuenta se creó al reservar una zona.<br>
+          Usa "Recuperar acceso" para establecer tu contraseña.
+        </p>
       </div>
+
       <div id="vip-form-reset" style="display:none">
-        <p style="font-family:var(--fb);font-size:.75rem;color:var(--muted2);margin-bottom:16px;">Introduce tu email y te enviaremos un enlace.</p>
+        <div class="modal-sub" style="margin-bottom:16px">Introduce el email con el que pagaste y te enviaremos un enlace para crear tu contraseña.</div>
         <label class="campo-label" for="vip-reset-email">Email VIP</label>
-        <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com">
+        <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')resetVip()">
         <div class="status" id="st-vip-reset"></div>
-        <button class="btn-primary" onclick="resetVip()"><i class="fas fa-paper-plane"></i>&nbsp; Enviar</button>
-        <button class="btn-secondary" style="margin-top:10px;background:transparent;border:1px solid var(--border);padding:8px;" onclick="cambiarTabVip('login')">← Volver</button>
+        <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()">
+          <i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace
+        </button>
+        <button class="btn-secondary" onclick="cambiarTabVip('login')">← Volver al login</button>
       </div>
     </div>
+
+    <!-- Con sesión activa -->
     <div id="vip-panel-sesion" style="display:none">
-      <span class="modal-eyebrow"><i class="fas fa-crown"></i> Mi cuenta</span>
-      <div class="modal-title" style="margin-bottom:20px;">Mi cuenta VIP</div>
-      <div style="text-align:center; margin-bottom:20px;">
-        <div id="vip-sesion-icon" style="font-size:2rem;color:var(--gold);">V</div>
-        <div id="vip-sesion-email" style="font-family:var(--fc);">—</div>
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Mi cuenta</span>
+      <div class="modal-title">Mi cuenta VIP</div>
+      <div class="modal-rule"></div>
+      <div class="vip-user-card">
+        <div class="vip-user-icon" id="vip-sesion-icon">V</div>
+        <div class="vip-user-email" id="vip-sesion-email">—</div>
+        <div class="vip-user-badge"><i class="fas fa-crown"></i>&nbsp; Miembro VIP</div>
       </div>
-      <button class="btn-secondary" onclick="logoutVip()"><i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión</button>
+      <div class="vip-nav-links">
+        <a class="vip-nav-link" href="paneldecontrol.html">
+          <i class="fas fa-sliders-h"></i>Panel de control
+        </a>
+        <a class="vip-nav-link" href="comunidad.html">
+          <i class="fab fa-discord"></i>Comunidad
+        </a>
+      </div>
+      <div class="status" id="st-vip-sesion"></div>
+      <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px">
+        <i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión
+      </button>
     </div>
   </div>
 </div>
+
+<div id="hint-feed"></div>
 
 <script>
   // (El script JavaScript es el mismo que proporcionaste, no se modifica)
@@ -738,11 +875,7 @@
     document.getElementById('modal-bg').classList.add('open');
     document.body.style.overflow='hidden';
   }
-  function cerrarModal(){
-    document.getElementById('modal-bg').classList.remove('open');
-    document.body.style.overflow='';
-  }
-  function onBgClick(e){ if(e.target.classList.contains('modal-bg')) cerrarModal(); }
+  function onBgClick(e){ if(e.target.classList.contains('modal-bg')) cerrarModalFeed(); }
   function navModal(dir){
     modalIdx=(modalIdx+dir+feedZones.length)%feedZones.length;
     rellenarModal();
@@ -780,46 +913,134 @@
     document.getElementById('modal-next').style.display=showNav?'flex':'none';
   }
 
+  // ── UTILIDADES ──────────────────────────────────────────────
+  function setStatus(id,type,msg){
+    var el=document.getElementById(id);
+    if(!msg){el.style.display='none';el.textContent='';return;}
+    el.className='status '+type;el.textContent=msg;el.style.display='block';
+  }
+  function showHint(txt){
+    var el=document.getElementById('hint-feed');
+    el.textContent=txt;el.style.display='block';
+    el.style.animation='none';void el.offsetWidth;
+    el.style.animation='hintFade 3s ease forwards';
+    setTimeout(function(){el.style.display='none';},3200);
+  }
+  function traducirErrorFirebase(code){
+    var msgs={
+      'auth/invalid-email':'Email no válido.',
+      'auth/user-not-found':'No existe cuenta VIP con ese email. ¿Has comprado una zona?',
+      'auth/wrong-password':'Contraseña incorrecta. Usa "Recuperar acceso" si no recuerdas tu clave.',
+      'auth/invalid-credential':'Email o contraseña incorrectos.',
+      'auth/too-many-requests':'Demasiados intentos. Espera unos minutos o recupera tu acceso.',
+      'auth/network-request-failed':'Error de red. Comprueba tu conexión.',
+      'auth/email-already-in-use':'Ya existe una cuenta con ese email.',
+      'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
+      'auth/configuration-not-found':'Firebase no está configurado en este entorno.',
+    };
+    return msgs[code]||'Error de autenticación ('+(code||'desconocido')+').';
+  }
+
+  // ── MODALES ──────────────────────────────────────────────────
+  function cerrarModalFeed(){
+    document.getElementById('modal-bg').classList.remove('open');
+    document.body.style.overflow='';
+  }
+  function cerrarModalVip(){
+    document.getElementById('modal-vip').classList.remove('open');
+  }
+
+  // ── FIREBASE VIP AUTH ────────────────────────────────────────
   var vipUser=null;
+
   window._onAuthReady=function(user){
     vipUser=user;
-    document.getElementById('vip-panel-login').style.display=user?'none':'block';
-    document.getElementById('vip-panel-sesion').style.display=user?'block':'none';
-    if(user){
-      document.getElementById('vip-sesion-email').textContent=user.email||'';
-      document.getElementById('vip-sesion-icon').textContent=(user.email||'V').charAt(0).toUpperCase();
-      document.getElementById('nav-vip-label').textContent='Mi cuenta VIP';
-    }else{
-      document.getElementById('nav-vip-label').textContent='Acceso VIP';
-    }
+    actualizarUIVip(user);
   };
-  function abrirModalVip(){ cerrarMenu(); document.getElementById('modal-vip').classList.add('open'); }
-  function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+
+  function actualizarUIVip(user){
+    var panelSes=document.getElementById('vip-panel-sesion');
+    var panelLog=document.getElementById('vip-panel-login');
+    var navVipLbl=document.getElementById('nav-vip-label');
+    var navVipIcon=document.querySelector('#nav-vip-link .nav-icon i');
+    if(user){
+      var initials=(user.email||'V').charAt(0).toUpperCase();
+      document.getElementById('vip-sesion-icon').textContent=initials;
+      document.getElementById('vip-sesion-email').textContent=user.email||'';
+      panelSes.style.display='block';panelLog.style.display='none';
+      if(navVipLbl)navVipLbl.textContent='Mi cuenta VIP';
+      if(navVipIcon)navVipIcon.className='fas fa-user-circle';
+    }else{
+      panelSes.style.display='none';panelLog.style.display='block';
+      if(navVipLbl)navVipLbl.textContent='Acceso VIP';
+      if(navVipIcon)navVipIcon.className='fas fa-crown';
+    }
+  }
+
+  function abrirModalVip(){
+    cerrarMenu();
+    setStatus('st-vip-login','','');
+    setStatus('st-vip-reset','','');
+    document.getElementById('modal-vip').classList.add('open');
+  }
+
   function cambiarTabVip(tab){
-    document.getElementById('tab-login').classList.toggle('active', tab==='login');
-    document.getElementById('tab-reset').classList.toggle('active', tab==='reset');
+    document.getElementById('tab-login').classList.toggle('active',tab==='login');
+    document.getElementById('tab-reset').classList.toggle('active',tab==='reset');
     document.getElementById('vip-form-login').style.display=tab==='login'?'':'none';
     document.getElementById('vip-form-reset').style.display=tab==='reset'?'':'none';
+    setStatus('st-vip-login','','');
+    setStatus('st-vip-reset','','');
   }
+
   async function loginVip(){
     var email=document.getElementById('vip-email').value.trim();
     var pass=document.getElementById('vip-pass').value;
-    if(!email||!pass) return;
+    if(!email||!pass){setStatus('st-vip-login','error','Rellena email y contraseña.');return;}
+    var btn=document.getElementById('btn-login-vip');
+    btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Entrando...';
+    setStatus('st-vip-login','','');
     try{
+      if(!window._fbSignIn)throw new Error('Firebase no configurado. Edita firebaseConfig en el HTML.');
       await window._fbSignIn(email,pass);
-      cerrarModal('modal-vip');
-    }catch(e){ alert('Error: '+(e.code||'desconocido')); }
-  }
-  async function resetVip(){
-    var email=document.getElementById('vip-reset-email').value.trim();
-    if(!email) return;
-    try{ await window._fbReset(email); alert('Enlace enviado. Revisa tu correo.'); }
-    catch(e){ alert('Error al enviar.'); }
-  }
-  async function logoutVip(){
-    await window._fbSignOut(); cerrarModal('modal-vip');
+      cerrarModalVip();showHint('¡Bienvenido de nuevo, VIP!');
+    }catch(err){
+      var msg=traducirErrorFirebase(err.code);setStatus('st-vip-login','error',msg);
+    }finally{
+      btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i>&nbsp; Entrar';
+    }
   }
 
+  async function resetVip(){
+    var email=document.getElementById('vip-reset-email').value.trim();
+    if(!email){setStatus('st-vip-reset','error','Introduce tu email.');return;}
+    var btn=document.getElementById('btn-reset-vip');
+    btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
+    setStatus('st-vip-reset','','');
+    try{
+      if(!window._fbReset)throw new Error('Firebase no configurado.');
+      await window._fbReset(email);
+      setStatus('st-vip-reset','ok','✓ Enlace enviado. Revisa tu bandeja de entrada (y spam).');
+    }catch(err){
+      setStatus('st-vip-reset','error',traducirErrorFirebase(err.code));
+    }finally{
+      btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace';
+    }
+  }
+
+  async function logoutVip(){
+    var btn=document.querySelector('#vip-panel-sesion .btn-secondary');
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...';}
+    try{
+      if(window._fbSignOut)await window._fbSignOut();
+      cerrarModalVip();showHint('Sesión cerrada.');
+    }catch(e){}
+    finally{
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión';}
+    }
+  }
+
+  // ── ARRANQUE ─────────────────────────────────────────────────
   (async function(){
     try{
       var raw=await loadZones();
@@ -834,7 +1055,7 @@
         localStorage.setItem(VISIT_KEY,'1');
       }
       document.body.classList.toggle('mode-ordenado', isOrdenado);
-      
+
       document.getElementById('loading-state').style.display='none';
       document.getElementById('feed-grid').style.display='grid';
       renderGrid();
@@ -843,14 +1064,26 @@
     }
   })();
 
-  document.addEventListener('keydown', e=>{
-    if(e.key==='Escape'){ cerrarMenu(); cerrarModal(); }
+  // ── EVENTOS GLOBALES ─────────────────────────────────────────
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      cerrarMenu();
+      cerrarModalFeed();
+      cerrarModalVip();
+    }
     if(document.getElementById('modal-bg').classList.contains('open')){
       if(e.key==='ArrowLeft') navModal(-1);
       if(e.key==='ArrowRight') navModal(1);
     }
   });
-  document.querySelectorAll('.modal-bg').forEach(bg=> bg.addEventListener('click', e=>{ if(e.target===bg && bg.id!=='modal-vip') cerrarModal(bg.id); }));
+
+  // Cerrar modales al clicar el fondo
+  document.getElementById('modal-bg').addEventListener('click',function(e){
+    if(e.target===this) cerrarModalFeed();
+  });
+  document.getElementById('modal-vip').addEventListener('click',function(e){
+    if(e.target===this) cerrarModalVip();
+  });
 </script>
 </body>
 </html>
