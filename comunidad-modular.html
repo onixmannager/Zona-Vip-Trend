@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZonaVip Trends · Comunidad VIP</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
+
+  <!-- Firebase SDK + módulo comunidad -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+             sendPasswordResetEmail, onAuthStateChanged, signOut }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, collection, query, orderBy, limit, onSnapshot,
+             addDoc, serverTimestamp, where, getDocs, updateDoc, doc, getDoc,
+             arrayUnion, arrayRemove, increment, Timestamp }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    // ═══════════════════════════════════════════════════════════
+    // CONFIGURACIÓN DE FIREBASE — reemplaza con tus datos reales
+    // ═══════════════════════════════════════════════════════════
+    const firebaseConfig = {
+      apiKey:            "TU_API_KEY",
+      authDomain:        "TU_PROYECTO.firebaseapp.com",
+      projectId:         "TU_PROYECTO",
+      storageBucket:     "TU_PROYECTO.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId:             "TU_APP_ID"
+    };
+
+    // ── Cloudinary config (mismo que compras.js) ───────────────
+    const CLOUDINARY_CONFIG = {
+      cloudName:    'TU_CLOUD_NAME',
+      uploadPreset: 'TU_UPLOAD_PRESET'
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // ── Auth helpers ───────────────────────────────────────────
+    window._fbAuth    = auth;
+    window._fbDb      = db;
+    window._fbSignIn  = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+    window._fbSignUp  = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
+    window._fbReset   = (email)       => sendPasswordResetEmail(auth, email);
+    window._fbSignOut = ()            => signOut(auth);
+    window._fbOnAuth  = (cb)          => onAuthStateChanged(auth, cb);
+
+    // FIX: _fbReady promise — evita race condition con el non-module script
+    window._fbReady = new Promise(function(resolve) {
+      onAuthStateChanged(auth, function(user) {
+        resolve();
+        if (window._onAuthReady) {
+          window._onAuthReady(user);
+        } else {
+          window._pendingAuthUser = user;
+        }
+      });
+    });
+
+    // ── Subida de imagen a Cloudinary (igual que compras.js) ──
+    window._uploadImageCloudinary = async function(file) {
+      if (!file) throw new Error('No hay archivo');
+      if (file.size > 10 * 1024 * 1024) throw new Error('Imagen demasiado grande (máx 10 MB)');
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+      formData.append('folder', 'comunidad');
+      const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`;
+      const res  = await fetch(url, { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || 'Error al subir imagen a Cloudinary');
+      // Devuelve URL optimizada 800px ancho, WebP automático
+      return `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/w_800,f_auto,q_auto/${data.public_id}`;
+    };
+
+    // ── Posts ──────────────────────────────────────────────────
+    window._fbAddPost = async (postData) => {
+      return addDoc(collection(db, 'posts'), {
+        ...postData,
+        createdAt: serverTimestamp(),
+        likes: [],
+        likeCount: 0
+      });
+    };
+
+    window._fbGetPosts = (callback) => {
+      const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(100));
+      return onSnapshot(q, (snapshot) => {
+        callback(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+    };
+
+    // FIX: usar Timestamp.fromDate() en lugar de Date nativo
+    // FIX: solo filtrar por email (evita índice compuesto no creado),
+    //      luego filtrar en cliente por fecha para mayor fiabilidad
+    window._fbCheckUserCanPost = async (email) => {
+      const oneDayAgo = Timestamp.fromDate(new Date(Date.now() - 24 * 60 * 60 * 1000));
+      const q = query(
+        collection(db, 'posts'),
+        where('email', '==', email),
+        where('createdAt', '>=', oneDayAgo),
+        limit(1)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.empty;
+    };
+
+    window._fbCheckVip = async (email) => {
+      const q = query(collection(db, 'zones'), where('email', '==', email), limit(1));
+      const snapshot = await getDocs(q);
+      return !snapshot.empty;
+    };
+
+    // FIX: usar getDoc() en lugar de getDocs con where('__name__')
+    window._fbToggleLike = async (postId, userEmail) => {
+      const postRef = doc(db, 'posts', postId);
+      const snap = await getDoc(postRef);
+      if (!snap.exists()) return false;
+      const likes = snap.data().likes || [];
+      const hasLiked = likes.includes(userEmail);
+      if (hasLiked) {
+        await updateDoc(postRef, { likes: arrayRemove(userEmail), likeCount: increment(-1) });
+      } else {
+        await updateDoc(postRef, { likes: arrayUnion(userEmail), likeCount: increment(1) });
+      }
+      return !hasLiked;
+    };
+  </script>
+
+  <style>
+/* ─── VARIABLES ────────────────────────────────────────────── */
+:root {
+  --gold:        #BF9B5A;
+  --gold-light:  #D4B578;
+  --gold-lt:     #D4B578;
+  --gold-dim:    rgba(191,155,90,0.45);
+  --gold-dk:     rgba(191,155,90,0.2);
+  --cream:       #EDE8E0;
+  --cream-muted: rgba(237,232,224,0.5);
+  --cream-dim:   rgba(237,232,224,0.25);
+  --bg:          #08090F;
+  --card:        rgba(12,13,22,0.97);
+  --border:      rgba(191,155,90,0.18);
+  --sel:         rgba(191,155,90,0.45);
+  --sold:        rgba(191,155,90,0.09);
+  --muted:       rgba(237,232,224,0.28);
+  --muted2:      rgba(237,232,224,0.55);
+  --white:       #EDE8E0;
+  --fh: 'Cormorant Garamond', serif;
+  --fb: 'Barlow', sans-serif;
+  --fc: 'Barlow Condensed', sans-serif;
+  --transition: 430ms cubic-bezier(0.4,0,0.2,1);
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--cream);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+/* ─── HEADER / NAVBAR — IDÉNTICO A INDEX ───────────────────── */
+#barra {
+  position: fixed; top: 0; left: 0; right: 0; height: 58px;
+  background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(24px);
+  display: flex; align-items: center;
+  padding: 0 36px; z-index: 100; gap: 6px;
+  animation: fadeDown 700ms 300ms both;
+}
+@keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+
+/* Logo */
+.barra-logo {
+  display: flex; align-items: baseline; gap: 6px;
+  text-decoration: none; flex-shrink: 0;
+}
+.barra-logo-main {
+  font-family: var(--fh);
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+.barra-logo-vip { color: var(--gold); }
+.barra-logo-main .trends-suffix {
+  font-family: var(--fc);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  margin-left: 6px;
+  color: var(--cream-muted);
+  text-transform: uppercase;
+}
+
+/* Spacer central */
+#barra-spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── MENÚ NAVEGACIÓN ─────────────────────────────────────── */
+#nav-menu-wrap {
+  position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 5px;
+}
+
+#btn-menu {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px;
+  font-family: var(--fc); font-size: .68rem; font-weight: 600;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted2); background: transparent;
+  border: 1px solid rgba(237,232,224,0.12); border-radius: 1px;
+  cursor: pointer; white-space: nowrap; user-select: none;
+  transition: color .18s, border-color .18s, background .18s;
+}
+@media (hover:hover) and (pointer:fine) {
+  #btn-menu:hover { color: var(--cream); border-color: rgba(237,232,224,0.28); }
+}
+#btn-menu.open { color: var(--gold); border-color: var(--gold-dim); background: rgba(191,155,90,0.06); }
+#btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
+#btn-menu.open .menu-chevron { transform: rotate(180deg); }
+
+/* Dropdown */
+#nav-dropdown {
+  position: absolute; top: calc(100% + 12px); right: 0;
+  min-width: 220px;
+  background: rgba(8,9,15,0.98);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  backdrop-filter: blur(32px);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.75),
+              0 0 0 1px rgba(191,155,90,0.06),
+              inset 0 1px 0 rgba(237,232,224,0.03);
+  z-index: 600; overflow: hidden;
+  opacity: 0; pointer-events: none;
+  transform: translateY(-8px) scale(0.97);
+  transform-origin: top right;
+  transition: opacity .2s cubic-bezier(.4,0,.2,1),
+              transform .2s cubic-bezier(.4,0,.2,1);
+}
+#nav-dropdown.open {
+  opacity: 1; pointer-events: all;
+  transform: translateY(0) scale(1);
+}
+
+.nav-header {
+  padding: 13px 18px 9px;
+  font-family: var(--fc); font-size: .6rem; font-weight: 600;
+  letter-spacing: .32em; text-transform: uppercase;
+  color: var(--gold); opacity: 0.7;
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  font-family: var(--fb); font-size: .78rem; font-weight: 300;
+  color: var(--muted2); text-decoration: none;
+  transition: background .15s, color .15s, padding-left .15s;
+  border-bottom: 1px solid rgba(237,232,224,0.03);
+  position: relative;
+}
+.nav-item:last-child { border-bottom: none; }
+.nav-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 1px; background: var(--gold);
+  opacity: 0; transition: opacity .15s;
+}
+.nav-item:hover { background: rgba(191,155,90,0.04); color: var(--cream); padding-left: 22px; }
+.nav-item:hover::before { opacity: 1; }
+.nav-icon {
+  width: 26px; height: 26px; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(237,232,224,0.04);
+  border: 1px solid rgba(237,232,224,0.07);
+  font-size: .68rem; color: var(--muted2); flex-shrink: 0;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.nav-item:hover .nav-icon {
+  background: rgba(191,155,90,0.1);
+  border-color: rgba(191,155,90,0.3);
+  color: var(--gold);
+}
+.nav-item-label { flex: 1; }
+.nav-item-arrow {
+  font-size: .5rem; color: var(--muted);
+  opacity: 0; transition: opacity .15s, transform .15s;
+}
+.nav-item:hover .nav-item-arrow { opacity: 1; transform: translateX(2px); }
+
+.nav-divider { height: 1px; background: var(--border); margin: 4px 0; }
+.nav-item.nav-vip-item .nav-icon {
+  background: rgba(191,155,90,0.1); border-color: rgba(191,155,90,0.25); color: var(--gold);
+}
+
+#nav-overlay {
+  display: none; position: fixed; inset: 0; z-index: 99;
+}
+#nav-overlay.open { display: block; }
+
+/* Ajustes móvil — idénticos a index */
+@media (max-width: 420px) {
+  #barra { padding: 0 12px; }
+  #nav-menu-wrap { right: 12px; gap: 2px; }
+  .barra-logo-main {
+    font-size: 1.2rem !important;
+    letter-spacing: 0.1em !important;
+  }
+  .barra-logo-main .trends-suffix {
+    font-size: 0.7rem;
+    margin-left: 3px;
+  }
+  #btn-menu {
+    padding: 6px 10px !important;
+    font-size: 0.6rem !important;
+  }
+}
+@media (max-width: 380px) {
+  .barra-logo-main { font-size: 1.0rem !important; }
+  #btn-menu span { display: none; }
+  #barra { padding: 0 8px !important; }
+}
+
+/* ─── MODALES — base (copiada de index) ───────────────────── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,9,15,0.88);
+  backdrop-filter: blur(14px);
+  z-index: 900; align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+
+.modal-panel {
+  position: relative; background: var(--card);
+  border: 1px solid var(--border); border-radius: 2px;
+  padding: 36px; width: min(480px, 94vw);
+  max-height: 92vh; overflow-y: auto;
+  animation: modalIn .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes modalIn { from{opacity:0;transform:translateY(16px) scale(.97)} to{opacity:1;transform:none} }
+.modal-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+  background: linear-gradient(to right, transparent, rgba(191,155,90,0.6), transparent);
+}
+
+.modal-title {
+  font-family: var(--fh); font-size: 1.55rem; font-weight: 300;
+  letter-spacing: 0.02em; color: var(--cream);
+  margin-bottom: 5px; line-height: 1.1;
+}
+.modal-sub {
+  font-family: var(--fb); font-size: .73rem; font-weight: 300;
+  color: var(--muted2); margin-bottom: 22px; line-height: 1.65;
+}
+.modal-eyebrow {
+  font-family: var(--fc); font-size: .58rem; font-weight: 600;
+  letter-spacing: .34em; text-transform: uppercase;
+  color: var(--gold); opacity: 0.7; margin-bottom: 6px; display: block;
+}
+.modal-rule {
+  width: 32px; height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  opacity: 0.5; margin-bottom: 20px;
+}
+.modal-close {
+  position: absolute; top: 18px; right: 18px;
+  background: rgba(237,232,224,0.04); border: 1px solid rgba(237,232,224,0.1);
+  border-radius: 1px; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--muted2); font-size: .7rem; transition: all .2s;
+}
+.modal-close:hover { color: var(--cream); background: rgba(237,232,224,0.1); }
+
+/* Campos */
+.campo-label {
+  font-family: var(--fc); font-size: .6rem; font-weight: 600;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--muted2); display: block; margin-bottom: 6px;
+}
+.campo {
+  width: 100%; background: rgba(237,232,224,0.03);
+  border: 1px solid rgba(237,232,224,0.1);
+  border-radius: 1px; padding: 10px 14px;
+  color: var(--cream); font-family: var(--fb); font-size: .84rem; font-weight: 300;
+  margin-bottom: 14px; outline: none; transition: border-color .2s;
+}
+.campo:focus { border-color: var(--gold); }
+.campo::placeholder { color: var(--muted); }
+
+/* Botones */
+.btn-primary {
+  width: 100%; padding: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: transparent; border: 1px solid var(--gold-dim);
+  border-radius: 1px;
+  font-family: var(--fc); font-size: .68rem; font-weight: 600;
+  letter-spacing: .28em; text-transform: uppercase; color: var(--gold);
+  cursor: pointer; transition: background .2s, border-color .2s, box-shadow .2s;
+}
+.btn-primary:hover:not(:disabled) {
+  background: rgba(191,155,90,0.1); border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(191,155,90,0.15);
+}
+.btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+
+.btn-secondary {
+  width: 100%; padding: 10px; margin-top: 8px;
+  background: transparent; border: 1px solid rgba(237,232,224,0.1);
+  border-radius: 1px;
+  font-family: var(--fc); font-size: .6rem; font-weight: 500;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted2); cursor: pointer; transition: all .2s;
+}
+.btn-secondary:hover { color: var(--cream); border-color: rgba(237,232,224,0.25); }
+
+.status {
+  font-family: var(--fb); font-size: .73rem; font-weight: 300;
+  padding: 9px 13px; border-radius: 1px; margin-bottom: 12px; display: none;
+}
+.status.error { background: rgba(255,90,90,0.08); color: #ff9090; border: 1px solid rgba(255,90,90,0.18); }
+.status.ok    { background: rgba(191,155,90,0.08); color: var(--gold-light); border: 1px solid var(--gold-dim); }
+
+/* ─── MODAL VIP — idéntico a index ──────────────────────── */
+#modal-vip .modal-panel { max-width: 400px; }
+.vip-tabs {
+  display: flex; border-bottom: 1px solid var(--border); margin-bottom: 22px;
+}
+.vip-tab {
+  flex: 1; padding: 10px; text-align: center;
+  font-family: var(--fc); font-size: .62rem; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--muted2); cursor: pointer;
+  border-bottom: 1px solid transparent; transition: all .2s;
+}
+.vip-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+.vip-tab:hover:not(.active) { color: var(--cream); }
+
+#vip-panel-sesion { display: none; }
+#vip-panel-login  { display: block; }
+
+.vip-user-card {
+  background: rgba(191,155,90,0.05); border: 1px solid var(--border);
+  border-radius: 1px; padding: 18px; text-align: center; margin-bottom: 20px;
+}
+.vip-user-icon {
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 1px solid var(--gold-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fh); font-size: 1.4rem; font-weight: 300; color: var(--gold);
+  margin: 0 auto 12px;
+}
+.vip-user-email {
+  font-family: var(--fc); font-size: .72rem; font-weight: 500; letter-spacing: .06em;
+  color: var(--cream); margin-bottom: 6px; word-break: break-all;
+}
+.vip-user-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(191,155,90,0.1); border: 1px solid rgba(191,155,90,0.28);
+  border-radius: 20px; padding: 3px 12px;
+  font-family: var(--fc); font-size: .58rem; font-weight: 600;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--gold);
+}
+.vip-nav-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.vip-nav-link {
+  display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px;
+  background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.08);
+  border-radius: 1px; text-decoration: none;
+  font-family: var(--fc); font-size: .62rem; font-weight: 500;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--muted2);
+  transition: all .2s;
+}
+.vip-nav-link:hover { background: rgba(191,155,90,0.07); border-color: rgba(191,155,90,0.28); color: var(--cream); }
+.vip-nav-link i { font-size: 1rem; color: var(--gold); }
+
+/* ─── LAYOUT PRINCIPAL ─────────────────────────────────────── */
+#main {
+  margin-top: 58px;
+  padding: 24px 24px 20px;
+  max-width: 750px;
+  margin-left: auto; margin-right: auto;
+  height: calc(100vh - 58px);
+  display: flex; flex-direction: column;
+}
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; flex-shrink: 0;
+}
+.page-title {
+  font-family: var(--fh); font-size: 2rem; letter-spacing: 0.06em;
+  color: var(--cream);
+}
+
+/* ─── CHAT / FEED ─────────────────────────────────────────── */
+.chat-messages {
+  flex: 1; overflow-y: auto; padding-right: 4px;
+  display: flex; flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.message-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 2px; padding: 14px 16px;
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.msg-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.msg-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--fh); font-size: .8rem; color: #0a0a0a;
+  flex-shrink: 0;
+}
+.msg-author {
+  font-family: var(--fc); font-size: .8rem; color: var(--gold);
+  letter-spacing: .04em;
+}
+.msg-time {
+  font-family: var(--fc); font-size: .55rem; color: var(--muted2);
+  margin-left: auto;
+}
+.msg-content {
+  font-family: var(--fb); font-size: .9rem; line-height: 1.5;
+  color: var(--cream); white-space: pre-wrap; word-break: break-word;
+  margin-bottom: 8px;
+}
+.msg-image {
+  margin: 10px 0; border-radius: 2px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.msg-image img {
+  width: 100%; max-height: 280px; object-fit: cover; display: block;
+  cursor: pointer;
+}
+
+/* Reacciones */
+.msg-actions {
+  display: flex; align-items: center; gap: 16px; margin-top: 8px;
+  border-top: 1px solid rgba(237,232,224,0.05); padding-top: 10px;
+}
+.like-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 2px; padding: 4px 10px;
+  color: var(--muted2); font-family: var(--fc); font-size: .65rem;
+  cursor: pointer; transition: all .15s;
+}
+.like-btn:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); }
+.like-btn.liked {
+  background: rgba(191,155,90,0.1); border-color: var(--gold);
+  color: var(--gold);
+}
+.like-btn:disabled { opacity: .4; cursor: default; }
+.like-btn i { font-size: .7rem; }
+.like-count { font-weight: 600; }
+
+.empty-chat {
+  text-align: center; padding: 40px; color: var(--muted2);
+  font-family: var(--fc); font-size: .8rem; letter-spacing: .08em;
+}
+
+/* ─── FORMULARIO PUBLICACIÓN ───────────────────────────────── */
+.chat-form {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 2px; padding: 16px; flex-shrink: 0;
+}
+.chat-textarea {
+  width: 100%; background: rgba(237,232,224,0.03);
+  border: 1px solid rgba(237,232,224,0.1);
+  border-radius: 2px; padding: 10px 12px;
+  color: var(--cream); font-family: var(--fb); font-size: .85rem;
+  resize: none; min-height: 70px; margin-bottom: 10px;
+  outline: none; transition: border-color .2s;
+}
+.chat-textarea:focus { border-color: var(--gold); }
+.chat-textarea::placeholder { color: var(--muted); }
+.chat-textarea:disabled { opacity: .45; cursor: not-allowed; }
+
+.form-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.attach-label {
+  display: flex; align-items: center; gap: 6px; padding: 7px 12px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 2px; color: var(--muted2);
+  font-family: var(--fc); font-size: .6rem; text-transform: uppercase;
+  letter-spacing: .1em; cursor: pointer; transition: all .15s;
+}
+.attach-label:hover { border-color: var(--gold); color: var(--gold); }
+.attach-label i { font-size: .7rem; }
+
+.send-btn {
+  padding: 7px 18px; background: transparent;
+  border: 1px solid var(--gold-dim); border-radius: 2px;
+  color: var(--gold); font-family: var(--fc); font-size: .65rem;
+  font-weight: 600; text-transform: uppercase; letter-spacing: .1em;
+  cursor: pointer; transition: all .15s;
+  margin-left: auto;
+}
+.send-btn:hover:not(:disabled) {
+  background: rgba(191,155,90,0.1); border-color: var(--gold);
+}
+.send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+.limit-info {
+  font-family: var(--fc); font-size: .55rem; color: var(--muted2);
+  margin-top: 8px; text-align: right;
+}
+
+.preview-image {
+  max-width: 150px; max-height: 100px; border-radius: 2px;
+  border: 1px solid var(--border);
+}
+.remove-preview {
+  margin-left: 8px; color: var(--muted2); cursor: pointer;
+  font-family: var(--fc); font-size: .65rem; transition: color .15s;
+}
+.remove-preview:hover { color: var(--cream); }
+
+/* Panel sin acceso / no VIP */
+.info-panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 2px; padding: 24px; text-align: center;
+  flex-shrink: 0;
+}
+.info-panel .info-title {
+  font-family: var(--fh); font-size: 1.2rem; color: var(--cream);
+  margin: 12px 0 6px;
+}
+.info-panel .info-sub {
+  font-family: var(--fc); font-size: .7rem; letter-spacing: .06em;
+  color: var(--muted2); line-height: 1.6;
+}
+.info-panel .info-link {
+  display: inline-block; margin-top: 16px; padding: 8px 20px;
+  border: 1px solid var(--gold-dim); color: var(--gold);
+  font-family: var(--fc); font-size: .65rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .16em; text-decoration: none;
+  transition: all .2s; border-radius: 1px;
+}
+.info-panel .info-link:hover {
+  background: rgba(191,155,90,0.1); border-color: var(--gold);
+}
+
+/* ─── TOAST ─────────────────────────────────────────────────── */
+#hint-movil {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  z-index: 400; font-family: var(--fc); font-size: .6rem; font-weight: 600;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--muted2);
+  background: rgba(8,9,15,0.92); backdrop-filter: blur(14px);
+  border: 1px solid var(--border); padding: 8px 18px; border-radius: 99px;
+  white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+#hint-movil.show { opacity: 1; }
+#hint-movil.err  { border-color: rgba(255,90,90,0.4); color: #ff9090; }
+#hint-movil.ok   { border-color: rgba(35,165,90,0.4); color: #7fc78b; }
+
+/* ─── LIGHTBOX IMAGEN ──────────────────────────────────────── */
+#lightbox {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,9,15,0.96); backdrop-filter: blur(20px);
+  z-index: 1200; align-items: center; justify-content: center;
+  cursor: zoom-out;
+}
+#lightbox.open { display: flex; }
+#lightbox img {
+  max-width: 92vw; max-height: 88vh; object-fit: contain;
+  border: 1px solid var(--border); border-radius: 2px;
+}
+  </style>
+</head>
+<body>
+
+<!-- ─── HEADER — IDÉNTICO A INDEX ────────────────────────────── -->
+<div id="barra">
+  <a class="barra-logo" href="index.html">
+    <span class="barra-logo-main">
+      Zona<span class="barra-logo-vip">Vip</span>
+      <span class="trends-suffix">Trends</span>
+    </span>
+  </a>
+
+  <div id="barra-spacer"></div>
+
+  <div id="nav-menu-wrap">
+    <button id="btn-menu" onclick="toggleMenu()">
+      <i class="fas fa-bars"></i>
+      <span>Menú</span>
+      <i class="fas fa-chevron-down menu-chevron"></i>
+    </button>
+    <div id="nav-dropdown">
+      <div class="nav-header">Navegación</div>
+      <a class="nav-item" href="index.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Expositor</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="feed.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="#"><span class="nav-icon"><i class="fab fa-discord"></i></span><span class="nav-item-label">Comunidad</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Información</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <div class="nav-divider"></div>
+      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
+        <span class="nav-icon"><i class="fas fa-crown"></i></span>
+        <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
+        <i class="fas fa-chevron-right nav-item-arrow"></i>
+      </a>
+      <a class="nav-item" href="#" onclick="cerrarMenu();logoutVip();return false;" id="nav-logout-link" style="display:none">
+        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="nav-item-label">Cerrar sesión</span>
+        <i class="fas fa-chevron-right nav-item-arrow"></i>
+      </a>
+    </div>
+  </div>
+</div>
+<div id="nav-overlay" onclick="cerrarMenu()"></div>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────── -->
+<div id="main">
+  <div class="page-header">
+    <div class="page-title">Comunidad VIP</div>
+  </div>
+
+  <!-- Feed de mensajes -->
+  <div class="chat-messages" id="chat-messages">
+    <div class="empty-chat"><i class="fas fa-spinner fa-spin"></i>&nbsp; Cargando...</div>
+  </div>
+
+  <!-- Formulario dinámico según estado VIP -->
+  <div id="form-container"></div>
+</div>
+
+<!-- ─── TOAST ─────────────────────────────────────────────────── -->
+<div id="hint-movil"></div>
+
+<!-- ─── LIGHTBOX ─────────────────────────────────────────────── -->
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lightbox-img" src="" alt=""/>
+</div>
+
+<!-- ─── MODAL VIP — IDÉNTICO A INDEX ─────────────────────────── -->
+<div class="modal-bg" id="modal-vip">
+  <div class="modal-panel">
+    <button class="modal-close" onclick="cerrarModal('modal-vip')"><i class="fas fa-times"></i></button>
+
+    <!-- Sin sesión -->
+    <div id="vip-panel-login">
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Área VIP</span>
+      <div class="modal-title">Acceso VIP</div>
+      <div class="modal-rule"></div>
+      <div class="modal-sub">Inicia sesión con el email que usaste al pagar tu zona.</div>
+
+      <div class="vip-tabs">
+        <div class="vip-tab active" id="tab-login" onclick="cambiarTabVip('login')">Iniciar sesión</div>
+        <div class="vip-tab" id="tab-reset" onclick="cambiarTabVip('reset')">Recuperar acceso</div>
+      </div>
+
+      <div id="vip-form-login">
+        <label class="campo-label" for="vip-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email"/>
+        <label class="campo-label" for="vip-pass">Contraseña</label>
+        <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')loginVip()"/>
+        <div class="status" id="st-vip-login"></div>
+        <button class="btn-primary" id="btn-login-vip" onclick="loginVip()">
+          <i class="fas fa-sign-in-alt"></i>&nbsp; Entrar
+        </button>
+        <p style="font-family:var(--fc);font-size:.6rem;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7">
+          ¿Primera vez? Tu cuenta se creó al reservar una zona.<br>
+          Usa "Recuperar acceso" para establecer tu contraseña.
+        </p>
+      </div>
+
+      <div id="vip-form-reset" style="display:none">
+        <div class="modal-sub" style="margin-bottom:16px">Introduce el email con el que pagaste y te enviaremos un enlace para crear tu contraseña.</div>
+        <label class="campo-label" for="vip-reset-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')resetVip()"/>
+        <div class="status" id="st-vip-reset"></div>
+        <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()">
+          <i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace
+        </button>
+        <button class="btn-secondary" onclick="cambiarTabVip('login')">← Volver al login</button>
+      </div>
+    </div>
+
+    <!-- Con sesión activa -->
+    <div id="vip-panel-sesion">
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Mi cuenta</span>
+      <div class="modal-title">Mi cuenta VIP</div>
+      <div class="modal-rule"></div>
+      <div class="vip-user-card">
+        <div class="vip-user-icon" id="vip-sesion-icon">V</div>
+        <div class="vip-user-email" id="vip-sesion-email">—</div>
+        <div class="vip-user-badge"><i class="fas fa-crown"></i>&nbsp; Miembro VIP</div>
+      </div>
+      <div class="vip-nav-links">
+        <a class="vip-nav-link" href="paneldecontrol.html">
+          <i class="fas fa-sliders-h"></i>Panel de control
+        </a>
+        <a class="vip-nav-link" href="#">
+          <i class="fab fa-discord"></i>Comunidad
+        </a>
+      </div>
+      <div class="status" id="st-vip-sesion"></div>
+      <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px">
+        <i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Helpers modal genérico ──────────────────────────────── */
+function abrirModal(id){
+  var el=document.getElementById(id);
+  if(el){ el.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function cerrarModal(id){
+  var el=document.getElementById(id);
+  if(el){ el.classList.remove('open'); document.body.style.overflow=''; }
+}
+/* Cerrar al hacer clic en el fondo */
+document.querySelectorAll('.modal-bg').forEach(function(bg){
+  bg.addEventListener('click',function(e){ if(e.target===bg) cerrarModal(bg.id); });
+});
+
+/* ── Hints / Toast ───────────────────────────────────────── */
+var _hintTimer=null;
+function showHint(msg,type){
+  var el=document.getElementById('hint-movil');
+  el.textContent=msg;
+  el.className='show '+(type||'');
+  clearTimeout(_hintTimer);
+  _hintTimer=setTimeout(function(){ el.className=''; },3200);
+}
+
+/* ── Menú navegación — idéntico a index ─────────────────── */
+function toggleMenu(){
+  var btn=document.getElementById('btn-menu');
+  var dd=document.getElementById('nav-dropdown');
+  var ov=document.getElementById('nav-overlay');
+  var isOpen=dd.classList.contains('open');
+  if(isOpen){ cerrarMenu(); }
+  else{ btn.classList.add('open'); dd.classList.add('open'); ov.classList.add('open'); }
+}
+function cerrarMenu(){
+  var btn=document.getElementById('btn-menu');
+  btn.classList.remove('open');
+  document.getElementById('nav-dropdown').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+  if(document.activeElement===btn) btn.blur();
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ cerrarMenu(); cerrarModal('modal-vip'); }
+});
+
+/* ── UI VIP Auth — idéntica a index ─────────────────────── */
+var vipUser=null;
+
+window._onAuthReady=function(user){
+  vipUser=user;
+  actualizarUIVip(user);
+  // notificar a la lógica del feed/comunidad
+  if(window._onVipAuthChange) window._onVipAuthChange(user);
+};
+// FIX: consumir auth state que llegó antes de que este script estuviera listo
+if(window._pendingAuthUser !== undefined){
+  window._onAuthReady(window._pendingAuthUser);
+  delete window._pendingAuthUser;
+}
+
+function actualizarUIVip(user){
+  var panelSes=document.getElementById('vip-panel-sesion');
+  var panelLog=document.getElementById('vip-panel-login');
+  var navVipLink=document.getElementById('nav-vip-link');
+  var navLogoutLink=document.getElementById('nav-logout-link');
+  if(user){
+    var initials=(user.email||'V').charAt(0).toUpperCase();
+    document.getElementById('vip-sesion-icon').textContent=initials;
+    document.getElementById('vip-sesion-email').textContent=user.email||'';
+    panelSes.style.display='block'; panelLog.style.display='none';
+    // Menú: ocultar "Acceso VIP", mostrar "Cerrar sesión"
+    if(navVipLink) navVipLink.style.display='none';
+    if(navLogoutLink) navLogoutLink.style.display='flex';
+  } else {
+    panelSes.style.display='none'; panelLog.style.display='block';
+    // Menú: mostrar "Acceso VIP", ocultar "Cerrar sesión"
+    if(navVipLink) navVipLink.style.display='';
+    if(navLogoutLink) navLogoutLink.style.display='none';
+  }
+}
+
+function abrirModalVip(){
+  setStatus('st-vip-login','','');
+  setStatus('st-vip-reset','','');
+  abrirModal('modal-vip');
+}
+
+function cambiarTabVip(tab){
+  document.getElementById('tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('tab-reset').classList.toggle('active',tab==='reset');
+  document.getElementById('vip-form-login').style.display=tab==='login'?'':'none';
+  document.getElementById('vip-form-reset').style.display=tab==='reset'?'':'none';
+  setStatus('st-vip-login','','');
+  setStatus('st-vip-reset','','');
+}
+
+async function loginVip(){
+  var email=document.getElementById('vip-email').value.trim();
+  var pass=document.getElementById('vip-pass').value;
+  if(!email||!pass){ setStatus('st-vip-login','error','Rellena email y contraseña.'); return; }
+  var btn=document.getElementById('btn-login-vip');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Entrando...';
+  setStatus('st-vip-login','','');
+  try{
+    if(!window._fbSignIn) throw new Error('Firebase no configurado. Edita firebaseConfig en el HTML.');
+    await window._fbSignIn(email,pass);
+    cerrarModal('modal-vip');
+    showHint('¡Bienvenido de nuevo, VIP!','ok');
+  }catch(err){
+    setStatus('st-vip-login','error',traducirErrorFirebase(err.code));
+  }finally{
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-sign-in-alt"></i>&nbsp; Entrar';
+  }
+}
+
+async function resetVip(){
+  var email=document.getElementById('vip-reset-email').value.trim();
+  if(!email){ setStatus('st-vip-reset','error','Introduce tu email.'); return; }
+  var btn=document.getElementById('btn-reset-vip');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
+  setStatus('st-vip-reset','','');
+  try{
+    if(!window._fbReset) throw new Error('Firebase no configurado.');
+    await window._fbReset(email);
+    setStatus('st-vip-reset','ok','✓ Enlace enviado. Revisa tu bandeja de entrada (y spam).');
+  }catch(err){
+    setStatus('st-vip-reset','error',traducirErrorFirebase(err.code));
+  }finally{
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace';
+  }
+}
+
+async function logoutVip(){
+  // btn puede ser null si se invoca desde el nav (modal cerrado)
+  var btn=document.querySelector('#vip-panel-sesion .btn-secondary');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...'; }
+  try{
+    if(window._fbSignOut) await window._fbSignOut();
+    localStorage.removeItem('vip_cache');
+    cerrarModal('modal-vip');
+    cerrarMenu();
+    showHint('Sesión cerrada.','');
+  }catch(e){
+    console.warn('[logoutVip] Error:', e);
+  }finally{
+    if(btn){ btn.disabled=false; btn.innerHTML='<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión'; }
+  }
+}
+
+function setStatus(id,type,msg){
+  var el=document.getElementById(id);
+  if(!el) return;
+  if(!msg){ el.style.display='none'; el.textContent=''; return; }
+  el.className='status '+(type||'');
+  el.textContent=msg;
+  el.style.display='block';
+}
+
+function traducirErrorFirebase(code){
+  var msgs={
+    'auth/invalid-email':'Email no válido.',
+    'auth/user-not-found':'No existe cuenta VIP con ese email. ¿Has comprado una zona?',
+    'auth/wrong-password':'Contraseña incorrecta. Usa "Recuperar acceso" si no recuerdas tu clave.',
+    'auth/invalid-credential':'Email o contraseña incorrectos.',
+    'auth/too-many-requests':'Demasiados intentos. Espera unos minutos o recupera tu acceso.',
+    'auth/network-request-failed':'Error de red. Comprueba tu conexión.',
+    'auth/email-already-in-use':'Ya existe una cuenta con ese email.',
+    'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
+    'auth/configuration-not-found':'Firebase no está configurado en este entorno.',
+  };
+  return msgs[code]||'Error de autenticación ('+(code||'desconocido')+').';
+}
+
+// ⭐ NUEVO: funciones de cache VIP en localStorage
+function leerCacheVIP() {
+  try {
+    const raw = localStorage.getItem('vip_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function guardarCacheVIP(data) {
+  try {
+    localStorage.setItem('vip_cache', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function cacheExpirado(cache) {
+  const MAX_EDAD_MS = 60 * 60 * 1000; // 1 hora
+  return Date.now() - cache.timestamp > MAX_EDAD_MS;
+}
+
+// ⭐ Función para aplicar UI provisional (antes de verificación real)
+function aplicarUIProvisionalVIP(esVip) {
+  // Si es true, podemos mostrar inmediatamente el formulario VIP
+  // pero sin afectar el estado real hasta confirmar.
+  // En esta implementación simplemente renderizamos el form con isVip=true
+  // para que el usuario vea la UI de VIP de inmediato.
+  // Nota: esto se llamará desde el módulo principal (ver abajo)
+  if (window._applyTempVIP) window._applyTempVIP(esVip);
+}
+</script>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════
+   LÓGICA DEL FEED / COMUNIDAD
+══════════════════════════════════════════════════════════════ */
+
+const chatMessages   = document.getElementById('chat-messages');
+const formContainer  = document.getElementById('form-container');
+
+let currentUser        = null;
+let isVip              = false;
+let canPost            = false;
+let selectedFile       = null;
+let unsubscribePosts   = null;
+let vipCheckPromise    = null;  // Para evitar múltiples verificaciones simultáneas
+
+/* ── Utilidades ─────────────────────────────────────────────── */
+function formatTime(ts){
+  if(!ts) return '';
+  const date = ts.toDate ? ts.toDate() : new Date(ts);
+  const diff = Date.now() - date;
+  const mins  = Math.floor(diff/60000);
+  const hours = Math.floor(diff/3600000);
+  if(mins<1)   return 'ahora';
+  if(mins<60)  return `hace ${mins} min`;
+  if(hours<24) return `hace ${hours} h`;
+  return `hace ${Math.floor(hours/24)} d`;
+}
+
+function escHtml(t){
+  return String(t).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+}
+
+/* ── Subida de imagen a Cloudinary (via window._uploadImageCloudinary) ── */
+async function uploadImage(file){
+  if(!window._uploadImageCloudinary){
+    throw new Error('Cloudinary no está configurado. Edita CLOUDINARY_CONFIG en el módulo Firebase.');
+  }
+  return window._uploadImageCloudinary(file);
+}
+
+/* ── Renderizar mensajes ────────────────────────────────────── */
+function renderMessages(posts){
+  if(!posts||posts.length===0){
+    chatMessages.innerHTML='<div class="empty-chat"><i class="fas fa-comment-alt"></i>&nbsp; No hay publicaciones aún. ¡Sé el primero!</div>';
+    return;
+  }
+
+  // Ordenar ascendente (más antiguo arriba, más reciente abajo)
+  const sorted=[...posts].sort((a,b)=>{
+    const tA=a.createdAt?.toDate?.()??new Date(a.createdAt??0);
+    const tB=b.createdAt?.toDate?.()??new Date(b.createdAt??0);
+    return tA-tB;
+  });
+
+  chatMessages.innerHTML=sorted.map(post=>{
+    const userName   = post.userName||post.email?.split('@')[0]||'VIP';
+    const avatarLtr  = userName.charAt(0).toUpperCase();
+    const time       = post.createdAt ? formatTime(post.createdAt) : '';
+    const content    = post.content||'';
+    const imageUrl   = post.imageUrl||'';
+    const likeCount  = post.likeCount||0;
+    const liked      = currentUser&&(post.likes||[]).includes(currentUser.email);
+    const canLike    = !!currentUser;
+
+    return `
+      <div class="message-card" data-post-id="${escHtml(post.id)}">
+        <div class="msg-header">
+          <div class="msg-avatar">${escHtml(avatarLtr)}</div>
+          <span class="msg-author">@${escHtml(userName)}</span>
+          <span class="msg-time">${time}</span>
+        </div>
+        ${content?`<div class="msg-content">${escHtml(content)}</div>`:''}
+        ${imageUrl?`<div class="msg-image"><img src="${escHtml(imageUrl)}" alt="Imagen" onclick="abrirLightbox(this.src)"></div>`:''}
+        <div class="msg-actions">
+          <button class="like-btn ${liked?'liked':''}" onclick="handleLike('${escHtml(post.id)}')" ${!canLike?'disabled':''}>
+            <i class="${liked?'fas':'far'} fa-heart"></i>
+            <span class="like-count">${likeCount}</span>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Scroll al último mensaje
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+/* ── Like (solo usuarios autenticados, VIP o no) ─────────────── */
+window.handleLike = async function(postId){
+  if(!currentUser){ showHint('Inicia sesión para reaccionar','err'); return; }
+  const btn = document.querySelector(`[data-post-id="${postId}"] .like-btn`);
+  if(btn) btn.disabled = true;
+  try{
+    await window._fbToggleLike(postId, currentUser.email);
+    // El re-render lo hace el listener onSnapshot automáticamente
+  }catch(e){
+    console.error('[handleLike]', e);
+    showHint('Error al reaccionar','err');
+    if(btn) btn.disabled = false;
+  }
+};
+
+/* ── Límite diario ──────────────────────────────────────────── */
+async function checkCanPost(email){
+  try{ canPost = await window._fbCheckUserCanPost(email); }
+  catch(e){ canPost=false; }
+  return canPost;
+}
+
+/* ── Verificar VIP ──────────────────────────────────────────── */
+async function checkVip(email){
+  try{ return await window._fbCheckVip(email); }
+  catch(e){ return false; }
+}
+
+/* ── Renderizar formulario según estado (definitivo) ────────── */
+async function renderFormDefinitivo() {
+  if(!currentUser){
+    formContainer.innerHTML=`
+      <div class="info-panel">
+        <i class="fas fa-lock" style="font-size:1.8rem;color:var(--gold)"></i>
+        <div class="info-title">Acceso VIP requerido</div>
+        <div class="info-sub">Inicia sesión desde el menú para participar en la comunidad.</div>
+        <a href="#" class="info-link" onclick="abrirModalVip();return false;">
+          <i class="fas fa-crown"></i>&nbsp; Iniciar sesión
+        </a>
+      </div>`;
+    return;
+  }
+
+  if(!isVip){
+    formContainer.innerHTML=`
+      <div class="info-panel">
+        <i class="fas fa-crown" style="font-size:1.8rem;color:var(--gold)"></i>
+        <div class="info-title">Solo para VIPs</div>
+        <div class="info-sub">Compra una zona en el mosaico para desbloquear la comunidad.</div>
+        <a href="index.html" class="info-link">
+          <i class="fas fa-bolt"></i>&nbsp; Comprar zona
+        </a>
+      </div>`;
+    return;
+  }
+
+  await checkCanPost(currentUser.email);
+  const limitText = canPost ? 'Puedes publicar hoy (1 publicación por día)' : 'Ya publicaste hoy. Vuelve mañana 🌙';
+  const dis = !canPost;
+
+  formContainer.innerHTML=`
+    <div class="chat-form">
+      <textarea class="chat-textarea" id="message-input"
+        placeholder="¿Qué quieres compartir con la comunidad VIP?" ${dis?'disabled':''}></textarea>
+      <div class="form-row">
+        <label class="attach-label" for="image-upload" ${dis?'style="opacity:.4;pointer-events:none"':''}>
+          <i class="fas fa-image"></i>&nbsp; Añadir imagen
+        </label>
+        <input type="file" id="image-upload" accept="image/*" style="display:none" ${dis?'disabled':''}>
+        <button class="send-btn" id="send-btn" onclick="publishPost()" ${dis?'disabled':''}>
+          <i class="fas fa-paper-plane"></i>&nbsp; Publicar
+        </button>
+      </div>
+      <div id="image-preview-container" style="margin-top:8px"></div>
+      <div class="limit-info">${limitText}</div>
+    </div>`;
+
+  // Listener de archivo
+  const fileInput = document.getElementById('image-upload');
+  const preview   = document.getElementById('image-preview-container');
+
+  fileInput.addEventListener('change', e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    if(file.size>10*1024*1024){ showHint('Imagen demasiado grande (máx 10 MB)','err'); return; }
+    selectedFile=file;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      preview.innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+          <img src="${ev.target.result}" class="preview-image">
+          <span class="remove-preview" onclick="removeImage()"><i class="fas fa-times"></i>&nbsp; Quitar</span>
+        </div>`;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ⭐ Renderizado provisional (se llama antes de confirmar VIP)
+window._applyTempVIP = function(tempVip) {
+  if (!currentUser) return;
+  // Mostramos una versión simplificada mientras se verifica
+  if (tempVip) {
+    formContainer.innerHTML = `
+      <div class="chat-form" style="opacity:0.7; pointer-events:none;">
+        <textarea class="chat-textarea" placeholder="Cargando tu acceso VIP..." disabled></textarea>
+        <div class="form-row">
+          <span class="attach-label" style="opacity:0.5"><i class="fas fa-image"></i>&nbsp; Añadir imagen</span>
+          <button class="send-btn" disabled><i class="fas fa-spinner fa-spin"></i>&nbsp; Verificando</button>
+        </div>
+        <div class="limit-info">Verificando privilegios VIP...</div>
+      </div>`;
+  } else {
+    // Si no es VIP según cache, mostramos el panel público provisional
+    formContainer.innerHTML = `
+      <div class="info-panel" style="opacity:0.8">
+        <i class="fas fa-spinner fa-spin" style="font-size:1.8rem;color:var(--gold)"></i>
+        <div class="info-title">Verificando acceso...</div>
+        <div class="info-sub">Comprobando tu membresía VIP</div>
+      </div>`;
+  }
+};
+
+/* ── Publicar ────────────────────────────────────────────────── */
+window.publishPost = async function(){
+  const input   = document.getElementById('message-input');
+  const content = input?input.value.trim():'';
+
+  if(!content&&!selectedFile){ showHint('Escribe algo o añade una imagen','err'); return; }
+  if(!currentUser){ showHint('Debes iniciar sesión','err'); return; }
+
+  const btn=document.getElementById('send-btn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>'; }
+
+  try{
+    let imageUrl=null;
+    if(selectedFile){
+      showHint('Subiendo imagen...','');
+      imageUrl=await uploadImage(selectedFile);
+    }
+
+    await window._fbAddPost({
+      email:    currentUser.email,
+      userName: currentUser.email.split('@')[0],
+      content:  content,
+      imageUrl: imageUrl
+    });
+
+    if(input) input.value='';
+    removeImage();
+    showHint('¡Publicado!','ok');
+
+    // Actualizar límite tras publicar
+    await checkCanPost(currentUser.email);
+    await renderFormDefinitivo();
+  }catch(e){
+    console.error(e);
+    showHint('Error al publicar. Inténtalo de nuevo.','err');
+    if(btn){ btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i>&nbsp; Publicar'; }
+  }
+};
+
+/* ── Lightbox ────────────────────────────────────────────────── */
+window.abrirLightbox = function(src){
+  document.getElementById('lightbox-img').src=src;
+  document.getElementById('lightbox').classList.add('open');
+};
+
+/* ── Suscripción al feed en tiempo real ─────────────────────── */
+async function suscribirFeed(){
+  if(unsubscribePosts){ unsubscribePosts(); unsubscribePosts=null; }
+  // FIX: esperar a que Firebase esté listo antes de suscribirse
+  if(window._fbReady) await window._fbReady;
+  if(!window._fbGetPosts) return;
+  unsubscribePosts=window._fbGetPosts(function(posts){ renderMessages(posts); });
+}
+
+/* ── Arranque cuando Firebase Auth esté listo ──────────────── */
+window._onVipAuthChange = async function(user){
+  window._pendingAuthFired = true;  // marcar que fue disparado correctamente
+  currentUser=user;
+
+  // ⭐ 1. Intentar usar cache VIP
+  const cache = leerCacheVIP();
+  const usarCache = cache && cache.email === user?.email && !cacheExpirado(cache);
+  if (usarCache && cache.vip) {
+    // Aplicar UI provisional de VIP
+    window._applyTempVIP(true);
+  } else if (usarCache && !cache.vip) {
+    window._applyTempVIP(false);
+  }
+
+  // ⭐ 2. Verificación real con Firestore (siempre)
+  let vipReal = false;
+  if (user) {
+    try {
+      vipReal = await window._fbCheckVip(user.email);
+    } catch(e) {
+      vipReal = false;
+    }
+  }
+  isVip = vipReal;
+
+  // ⭐ 3. Guardar/actualizar cache
+  if (user) {
+    guardarCacheVIP({
+      email: user.email,
+      vip: vipReal,
+      timestamp: Date.now()
+    });
+  }
+
+  // ⭐ 4. Renderizar UI definitiva
+  await renderFormDefinitivo();
+  suscribirFeed();
+};
+
+// FIX: el arranque real se hace desde _onVipAuthChange vía _onAuthReady
+// No hace falta fallback aquí porque _fbReady garantiza el orden correcto.
+// Si por alguna razón _onVipAuthChange no fue llamado, forzamos sin usuario.
+if(!window._pendingAuthFired){
+  window._onVipAuthChange(null);
+}
+</script>
+</body>
+</html>
