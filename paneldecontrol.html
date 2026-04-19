@@ -58,9 +58,6 @@
     };
 
     // ── Obtener perfil del usuario desde Firestore ────────────
-    // Colección: users/{uid}
-    // Campos esperados: wallet (number), puntos (number), referralCode (string),
-    //                   referidos (array), celdas (array), premiosGanados (array)
     window._fbGetUserProfile = async (uid) => {
       const ref  = doc(db,'users',uid);
       const snap = await getDoc(ref);
@@ -74,7 +71,6 @@
     };
 
     // ── Obtener premios ganados por el usuario ────────────────
-    // Colección: prizes/{id}  → campos: uid, email, valor, fecha, estado
     window._fbGetMisPremios = async (uid) => {
       const q = query(collection(db,'prizes'), where('uid','==',uid), orderBy('fecha','desc'));
       const snap = await getDocs(q);
@@ -82,7 +78,6 @@
     };
 
     // ── Registrar solicitud de retiro ─────────────────────────
-    // Colección: withdrawals/{id}
     window._fbAddWithdrawal = async (data) => {
       return addDoc(collection(db,'withdrawals'), {
         ...data,
@@ -92,16 +87,12 @@
     };
 
     // ── Obtener configuración de premios (tabla) ──────────────
-    // Documento: config/sorteo
-    // Campos: premios (array), premiados (array), estado (string: 'activo'|'inactivo')
     window._fbGetSorteoCfg = async () => {
       const snap = await getDoc(doc(db,'config','sorteo'));
       return snap.exists() ? snap.data() : null;
     };
 
     // ── Obtener temporada de puntos activa ────────────────────
-    // Documento: config/puntos
-    // Campos: activo (bool), nombre (string), fechaFin (timestamp), descripcion (string)
     window._fbGetPuntosCfg = async () => {
       const snap = await getDoc(doc(db,'config','puntos'));
       return snap.exists() ? snap.data() : null;
@@ -666,18 +657,7 @@ body {
 .prob-mini-lbl { font-family:var(--fc); font-size:.58rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted2); margin-bottom:6px; }
 .prob-mini-val { font-family:var(--fh); font-size:1.6rem; color:var(--gold-light); }
 
-/* Sistema premios
-   ────────────────────────────────────────────────────────────
-   TABLA DE PREMIOS — PARA MODIFICAR:
-   Los datos se leen en tiempo real de Firestore: config/sorteo
-   Campos del documento:
-     premios: array de { valor: number, cantidad: number, descripcion?: string }
-     premiados: array de { email, nombre, premio, fecha, avatar? }
-     estado: 'activo' | 'inactivo'
-   Para editar la tabla desde Firebase Console:
-     Firestore → config → sorteo → editar campo "premios"
-   ────────────────────────────────────────────────────────────
-*/
+/* Sistema premios */
 .premio-categoria-row {
   display:flex; align-items:center; gap:12px; padding:14px 16px;
   background:var(--card); border:1px solid var(--border);
@@ -915,22 +895,7 @@ body {
     <div class="section-label"><i class="fas fa-dice"></i> Probabilidad en Tiempo Real</div>
     <div class="prob-wrap fade-in" id="prob-section"></div>
 
-    <!--
-    ╔══════════════════════════════════════════════════════════════╗
-    ║  TABLA DE PREMIOS — CÓMO EDITARLA                           ║
-    ║                                                             ║
-    ║  Los datos se cargan en tiempo real desde Firebase.        ║
-    ║  Para modificar premios, abre Firebase Console:            ║
-    ║    Firestore Database → Colección "config" → Documento     ║
-    ║    "sorteo" → Campo "premios" (array de objetos)           ║
-    ║                                                             ║
-    ║  Cada objeto tiene: { valor: number, cantidad: number }    ║
-    ║  Ejemplo: { valor: 500, cantidad: 50 }                     ║
-    ║                                                             ║
-    ║  También puedes editar "premiados" y cambiar "estado"      ║
-    ║  entre "activo" e "inactivo".                              ║
-    ╚══════════════════════════════════════════════════════════════╝
-    -->
+    <!-- Sistema de Premios -->
     <div class="section-label"><i class="fas fa-gift"></i> Sistema de Premios</div>
     <div id="premios-categorias" class="fade-in"></div>
 
@@ -955,25 +920,17 @@ body {
 var CFG = {
   PRECIO:   50,
   TOTAL:    13040,
-  // URL base del sitio para generar el link de referido
   SITE_URL: 'https://zonavip.com',
-  // Repositorios GitHub para leer zones.json (como en index)
   GH_REPOS: ['TU_USUARIO/mosaico-imgs-1']
 };
 
 // ═══════════════════════════════════════════════════════════════
 // CONFIGURACIÓN EMAILJS
-// ─────────────────────────────────────────────────────────────
-// 1. Crea cuenta en https://www.emailjs.com (plan gratuito = 200/mes)
-// 2. Crea un Service y conecta tu proveedor (Gmail, Outlook, etc.)
-// 3. Crea un Template con las variables: to_email, to_name,
-//    amount, method, destination, request_id, date
-// 4. Rellena los valores aquí:
 // ═══════════════════════════════════════════════════════════════
 var EMAILJS_CFG = {
-  PUBLIC_KEY:  'TU_PUBLIC_KEY_EMAILJS',   // Account → API Keys
-  SERVICE_ID:  'TU_SERVICE_ID',           // Email Services → Service ID
-  TEMPLATE_ID: 'TU_TEMPLATE_RETIRO'       // Email Templates → Template ID
+  PUBLIC_KEY:  'TU_PUBLIC_KEY_EMAILJS',
+  SERVICE_ID:  'TU_SERVICE_ID',
+  TEMPLATE_ID: 'TU_TEMPLATE_RETIRO'
 };
 
 // Inicializar EmailJS
@@ -1086,6 +1043,8 @@ async function logoutVip(){
   if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...'; }
   try{
     if(window._fbSignOut) await window._fbSignOut();
+    // ⭐ LIMPIAR CACHE VIP AL CERRAR SESIÓN
+    localStorage.removeItem('vip_cache');
     cerrarModal('modal-vip'); showHint('Sesión cerrada.');
   }catch(e){}
   finally{ if(btn){ btn.disabled=false; btn.innerHTML='<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión'; } }
@@ -1102,6 +1061,40 @@ function traducirErrorFirebase(code){
     'auth/configuration-not-found':'Firebase no está configurado en este entorno.',
   };
   return msgs[code]||'Error ('+(code||'desconocido')+').';
+}
+
+// ⭐ NUEVO: funciones de cache VIP en localStorage
+function leerCacheVIP() {
+  try {
+    const raw = localStorage.getItem('vip_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function guardarCacheVIP(data) {
+  try {
+    localStorage.setItem('vip_cache', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function cacheExpirado(cache) {
+  const MAX_EDAD_MS = 60 * 60 * 1000; // 1 hora
+  return Date.now() - cache.timestamp > MAX_EDAD_MS;
+}
+
+// ⭐ Función para aplicar UI provisional mientras se verifica VIP
+function aplicarUIProvisionalPanel(esVip) {
+  const panel = document.getElementById('panel-content');
+  if (!panel) return;
+  // Mostramos un estado de carga congelado o un mensaje sutil
+  if (!esVip) {
+    // Si no es VIP según cache, podríamos mostrar algo, pero mejor esperar confirmación.
+    // Dejamos el loading state hasta que se confirme.
+  } else {
+    // Si el cache dice que es VIP, podemos ir pintando algunas secciones básicas
+    // pero sin datos reales (se sobreescribirá al confirmar). No es necesario hacer nada,
+    // ya que _onPanelAuthChange llamará a renderPanel() con los datos reales.
+  }
 }
 
 // ── MODAL RETIRO + EMAILJS ─────────────────────────────────────
@@ -1126,7 +1119,6 @@ async function enviarSolicitudRetiro(){
   setStatus('st-retiro','','');
 
   try{
-    // 1. Guardar solicitud en Firestore
     var requestId = 'RET-'+Date.now();
     if(window._fbAddWithdrawal){
       await window._fbAddWithdrawal({
@@ -1139,7 +1131,6 @@ async function enviarSolicitudRetiro(){
       });
     }
 
-    // 2. Enviar email de confirmación al usuario vía EmailJS
     if(window.emailjs){
       await emailjs.send(EMAILJS_CFG.SERVICE_ID, EMAILJS_CFG.TEMPLATE_ID, {
         to_email:    vipUser.email,
@@ -1259,7 +1250,6 @@ function renderAfiliados(){
 }
 
 function generarRefCode(email){
-  // Genera un código simple y reproducible a partir del email
   var hash=0, s=email||'vip';
   for(var i=0;i<s.length;i++){ hash=(hash*31+s.charCodeAt(i))&0xFFFFFF; }
   return hash.toString(36).toUpperCase().padStart(6,'0');
@@ -1419,7 +1409,6 @@ async function renderPanel(){
   var zones=[];
   try{ zones=await loadZones(); }catch(e){}
 
-  // Calcular ganancias aff y premios desde walletData
   var referidos   = walletData.referidos||[];
   var gananciasAff= referidos.reduce((a,r)=>a+(r.ganancia||0),0);
   var premiosGanados = walletData.premiosGanados||[];
@@ -1436,7 +1425,6 @@ async function renderPanel(){
   renderSistemaPremios(sorteoCfg);
   renderPremiados(sorteoCfg);
 
-  // Top compradores desde Firebase
   try{
     if(window._fbGetTopCompradores){
       var top=await window._fbGetTopCompradores();
@@ -1455,14 +1443,43 @@ window._onPanelAuthChange = async function(user){
   if(unsubWallet){ unsubWallet(); unsubWallet=null; }
   if(unsubSorteo){ unsubSorteo(); unsubSorteo=null; }
 
-  // Mostrar panel (aunque sea sin sesión, el panel es visible)
   document.getElementById('loading-state').style.display='none';
   document.getElementById('panel-content').style.display='block';
 
-  if(user){
-    // Verificar VIP
-    try{ esVip = await window._fbCheckVip(user.email); }catch(e){ esVip=false; }
+  // ⭐ 1. Intentar usar cache VIP
+  const cache = leerCacheVIP();
+  const usarCache = cache && cache.email === user?.email && !cacheExpirado(cache);
+  if (usarCache && cache.vip) {
+    // Podríamos mostrar UI provisional, pero en el panel simplemente esperamos
+    // ya que la carga de datos es rápida. Sin embargo, podemos setear esVip temporalmente
+    // para que renderPanel() use ese valor mientras se confirma.
+    esVip = true;
+  } else {
+    esVip = false;
+  }
 
+  // ⭐ 2. Verificación real con Firestore (siempre)
+  if (user) {
+    try {
+      esVip = await window._fbCheckVip(user.email);
+    } catch(e) {
+      esVip = false;
+    }
+  } else {
+    esVip = false;
+  }
+
+  // ⭐ 3. Guardar/actualizar cache
+  if (user) {
+    guardarCacheVIP({
+      email: user.email,
+      vip: esVip,
+      timestamp: Date.now()
+    });
+  }
+
+  // Ahora procedemos con la carga de datos según el estado real
+  if(user){
     // Suscribir wallet en tiempo real
     if(window._fbWalletListener){
       unsubWallet=window._fbWalletListener(user.uid, data=>{
@@ -1470,25 +1487,21 @@ window._onPanelAuthChange = async function(user){
         renderPanel();
       });
     } else {
-      // Fallback: una sola lectura
       try{
         var profile=await window._fbGetUserProfile(user.uid);
         if(profile) walletData={...walletData,...profile};
       }catch(e){}
     }
 
-    // Cargar premios propios
     try{
       if(window._fbGetMisPremios){
         walletData.premiosGanados=await window._fbGetMisPremios(user.uid);
       }
     }catch(e){}
   } else {
-    esVip=false;
     walletData={ wallet:0, puntos:0, referralCode:'', celdas:[], premiosGanados:[], referidos:[] };
   }
 
-  // Config sorteo en tiempo real
   if(window._fbSorteoListener){
     unsubSorteo=window._fbSorteoListener(data=>{
       sorteoCfg=data;
@@ -1498,21 +1511,17 @@ window._onPanelAuthChange = async function(user){
     try{ if(window._fbGetSorteoCfg) sorteoCfg=await window._fbGetSorteoCfg(); }catch(e){}
   }
 
-  // Config puntos
   try{ if(window._fbGetPuntosCfg) puntosCfg=await window._fbGetPuntosCfg(); }catch(e){}
 
-  // Render inicial (aunque el listener llegue luego)
   await renderPanel();
 
-  // Auto-refresco zonas cada 60s
   setInterval(async()=>{ try{ await renderPanel(); }catch(e){} }, 60000);
 };
 
-// Fallback si Firebase ya disparó antes
 if(window.vipUser!==undefined && !window._panelInitDone){
   window._panelInitDone=true;
   window._onPanelAuthChange(window.vipUser);
 }
 </script>
 </body>
-  </html>
+</html>
