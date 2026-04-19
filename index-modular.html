@@ -1282,14 +1282,32 @@ function renderLote(d,h,cb){
 
 async function loadZones(){
   zones=[];
-  for(var ri=0;ri<CFG.GH_REPOS.length;ri++){
-    var repo=CFG.GH_REPOS[ri];
-    var url='https://cdn.jsdelivr.net/gh/'+repo+'@main/zones.json?t='+Date.now();
+
+  // ── PRODUCCIÓN: leer desde Firestore ─────────────────────────
+  if(!isDemoMode && window._fbDb){
     try{
-      var resp=await fetch(url);if(!resp.ok)continue;
-      var data=await resp.json();if(Array.isArray(data))zones=zones.concat(data);
-    }catch(e){}
+      // Import dinámico para no romper el script no-módulo
+      var _fs = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      var snap = await _fs.getDocs(_fs.collection(window._fbDb,'zones'));
+      snap.forEach(function(d){
+        var z=d.data();z.id=d.id;
+        zones.push(z);
+      });
+    }catch(e){
+      console.warn('[loadZones] Error leyendo Firestore:',e);
+    }
+  } else {
+    // ── DEMO: leer desde GitHub/jsDelivr (fallback) ───────────
+    for(var ri=0;ri<CFG.GH_REPOS.length;ri++){
+      var repo=CFG.GH_REPOS[ri];
+      var url='https://cdn.jsdelivr.net/gh/'+repo+'@main/zones.json?t='+Date.now();
+      try{
+        var resp=await fetch(url);if(!resp.ok)continue;
+        var data=await resp.json();if(Array.isArray(data))zones=zones.concat(data);
+      }catch(e){}
+    }
   }
+
   zones.forEach(function(z){
     for(var r=z.r1;r<=z.r2;r++)for(var c=z.c1;c<=z.c2;c++)vendidas.add(r*COLS+c);
   });
@@ -1307,6 +1325,28 @@ async function getActiveRepo(){
   return CFG.GH_REPOS[CFG.GH_REPOS.length-1];
 }
 
+// ── CLOUDINARY URL HELPERS ──────────────────────────────────────────────────
+// Genera URLs optimizadas según el contexto de visualización.
+// Si la imagen no es de Cloudinary (demo/local) devuelve la URL original.
+function _clUrl(publicId, transform){
+  if(!publicId)return null;
+  var cn=window._compras&&window._compras._cloudName?window._compras._cloudName:'TU_CLOUD_NAME';
+  return 'https://res.cloudinary.com/'+cn+'/image/upload/'+transform+'/'+publicId;
+}
+
+// Mosaico: fill exacto al tamaño de la zona, WebP, calidad auto
+function cloudinaryMosaico(zone){
+  if(!zone.imgPublicId)return zone.imgUrl||null;
+  var w=(zone.c2-zone.c1+1)*20;
+  var h=(zone.r2-zone.r1+1)*20;
+  return _clUrl(zone.imgPublicId,'w_'+w+',h_'+h+',c_fit,f_auto,q_auto,b_rgb:08090F');
+}
+
+// Modal de perfil y feed: ancho 1200px, alto automático, WebP, calidad auto
+function cloudinaryModal(zone){
+  if(!zone.imgPublicId)return zone.imgUrlFull||zone.imgUrl||null;
+  return _clUrl(zone.imgPublicId,'w_350,f_auto,q_auto');
+}
 function renderZone(zone,isDemo){
   if(!isDemo)for(var r=zone.r1;r<=zone.r2;r++)for(var c=zone.c1;c<=zone.c2;c++){
     var i=r*COLS+c;if(i<CFG.TOTAL){vendidas.add(i);if(celdas[i])celdas[i].className='celda vendida';}
@@ -1315,7 +1355,7 @@ function renderZone(zone,isDemo){
   var div=document.createElement('div');
   div.className=isDemo?'zona-img demo':'zona-img';
   div.style.cssText='left:'+(zone.c1*20)+'px;top:'+(zone.r1*20)+'px;width:'+((zone.c2-zone.c1+1)*20)+'px;height:'+((zone.r2-zone.r1+1)*20)+'px';
-  var img=document.createElement('img');img.src=zone.imgUrl;img.loading='lazy';img.alt='';div.appendChild(img);
+  var img=document.createElement('img');img.src=cloudinaryMosaico(zone)||zone.imgUrl;img.loading='lazy';img.alt='';div.appendChild(img);
   (function(z,demo){div.addEventListener('click',function(){demo?mostrarInfoCeldaDemo(z):mostrarInfoCelda(z);});})(zone,isDemo);
   overlay.appendChild(div);return div;
 }
@@ -1661,7 +1701,8 @@ function copiarLink(){navigator.clipboard&&navigator.clipboard.writeText(documen
 
 function mostrarInfoCelda(zone){
   if(!zone.imgUrl)return;
-  document.getElementById('mc-img').src=zone.imgUrlFull||zone.imgUrl;
+  // Modal: imagen a 1200px de ancho, WebP automático, sin recorte
+  document.getElementById('mc-img').src=cloudinaryModal(zone);
   var lr=document.getElementById('mc-link-row'),la=document.getElementById('mc-link');
   if(zone.link){la.href=zone.link;la.textContent=zone.link;lr.style.display='flex';}else lr.style.display='none';
   document.getElementById('mc-zone-info').textContent='Filas '+(zone.r1+1)+'–'+(zone.r2+1)+' · Columnas '+(zone.c1+1)+'–'+(zone.c2+1);
@@ -1671,7 +1712,7 @@ function mostrarInfoCelda(zone){
 }
 function mostrarInfoCeldaDemo(zone){
   if(!zone.imgUrl)return;
-  document.getElementById('mc-img').src=zone.imgUrlFull||zone.imgUrl;
+  document.getElementById('mc-img').src=cloudinaryModal(zone);
   document.getElementById('mc-link-row').style.display='none';
   document.getElementById('mc-zone-info').textContent='Filas '+(zone.r1+1)+'–'+(zone.r2+1)+' · Columnas '+(zone.c1+1)+'–'+(zone.c2+1);
   document.getElementById('mc-buy-btn').style.display='flex';
@@ -1854,5 +1895,41 @@ function cerrarMenu(){
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarMenu();});
 </script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SNIPPET PARA FEED.HTML
+     Pega estas funciones en tu feed para generar las URLs
+     correctas de Cloudinary (350px, WebP, calidad auto).
+     Necesitas tener window._fbDb apuntando a Firestore.
+═══════════════════════════════════════════════════════════
+
+async function cargarZonesFeed() {
+  const { getDocs, collection, orderBy, query } =
+    await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+  const q    = query(collection(window._fbDb,'zones'), orderBy('fechaCompra','desc'));
+  const snap = await getDocs(q);
+  const zones = [];
+  snap.forEach(d => { const z = d.data(); z.id = d.id; zones.push(z); });
+  return zones;
+}
+
+// URL modal/feed: 350px ancho, WebP automático
+function cloudinaryFeed(zone) {
+  if (!zone.imgPublicId) return zone.imgUrlFull || zone.imgUrl || null;
+  const cn = 'TU_CLOUD_NAME'; // mismo valor que en compras.js
+  return `https://res.cloudinary.com/${cn}/image/upload/w_350,f_auto,q_auto/${zone.imgPublicId}`;
+}
+
+// Uso típico en el feed:
+// const zones = await cargarZonesFeed();
+// zones.forEach(zone => {
+//   const img = document.createElement('img');
+//   img.src = cloudinaryFeed(zone);
+//   img.alt = zone.link || '';
+//   // ...añadir al DOM
+// });
+
+═══════════════════════════════════════════════════════════ -->
 </body>
 </html>
