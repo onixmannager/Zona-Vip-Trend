@@ -21,7 +21,7 @@
       subirImagenTemporal,
       guardarDatosCompra,
       ejecutarFlujoPostPago,
-      limpiarImagenTemporalSiExiprada
+      limpiarImagenTemporalSiExpirada
     } from './compras.js';
 
     const firebaseConfig = {
@@ -56,11 +56,11 @@
       subirImagenTemporal,
       guardarDatosCompra,
       ejecutarFlujoPostPago,
-      limpiarImagenTemporalSiExiprada
+      limpiarImagenTemporalSiExpirada
     };
 
     // Limpiar imágenes temporales expiradas al cargar la página
-    limpiarImagenTemporalSiExiprada().catch(function(){});
+    limpiarImagenTemporalSiExpirada().catch(function(){});
   </script>
 
   <style>
@@ -1844,4 +1844,4 @@ function cerrarMenu(){
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarMenu();});
 </script>
 </body>
-</html>
+  </html>
