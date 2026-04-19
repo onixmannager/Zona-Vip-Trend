@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>ZonaVip Trends · Feed</title>
+  
+  <!-- Fuentes -->
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+             sendPasswordResetEmail, onAuthStateChanged, signOut }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+    import { getFirestore, collection, query, where, getDocs, orderBy }
+      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey:            "TU_API_KEY",
+      authDomain:        "TU_PROYECTO.firebaseapp.com",
+      projectId:         "TU_PROYECTO",
+      storageBucket:     "TU_PROYECTO.appspot.com",
+      messagingSenderId: "TU_SENDER_ID",
+      appId:             "TU_APP_ID"
+    };
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    window._fbAuth    = auth;
+    window._fbDb      = db;
+    window._fbSignIn  = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+    window._fbSignUp  = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
+    window._fbReset   = (email)       => sendPasswordResetEmail(auth, email);
+    window._fbSignOut = ()            => signOut(auth);
+    window._fbOnAuth  = (cb)          => onAuthStateChanged(auth, cb);
+
+    // Verificar VIP
+    window._fbCheckVip = async (email) => {
+      const zonesRef = collection(db, 'zones');
+      const q = query(zonesRef, where('email', '==', email));
+      const snapshot = await getDocs(q);
+      return !snapshot.empty;
+    };
+
+    // Resolver la promesa de arranque en cuanto Firebase esté listo
+    window._fbReady = new Promise(function(resolve) {
+      onAuthStateChanged(auth, function(user) {
+        resolve();                              // Firebase SDK ya inicializado
+        if (window._onAuthReady) {
+          window._onAuthReady(user);
+        } else {
+          // _onAuthReady aún no definida (non-module script no cargado):
+          // la encola para que se ejecute cuando se defina
+          window._pendingAuthUser = user;
+        }
+      });
+    });
+  </script>
+
+  <style>
+    /* ===== VARIABLES ===== */
+    :root {
+      --gold:        #BF9B5A;
+      --gold-light:  #D4B578;
+      --gold-dim:    rgba(191,155,90,0.45);
+      --gold-dk:     rgba(191,155,90,0.2);
+      --cream:       #EDE8E0;
+      --cream-muted: rgba(237,232,224,0.5);
+      --bg:          #08090F;
+      --card:        rgba(12,13,22,0.97);
+      --border:      rgba(191,155,90,0.18);
+      --muted:       rgba(237,232,224,0.28);
+      --muted2:      rgba(237,232,224,0.55);
+      --fh: 'Cormorant Garamond', serif;
+      --fb: 'Barlow', sans-serif;
+      --fc: 'Barlow Condensed', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--fb);
+      background: var(--bg);
+      color: var(--cream);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ===== HEADER / NAVBAR (IDÉNTICO A COMUNIDAD Y PANEL) ===== */
+    #barra {
+      position: fixed; top: 0; left: 0; right: 0; height: 58px;
+      background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(24px);
+      display: flex; align-items: center;
+      padding: 0 36px; z-index: 100; gap: 6px;
+      animation: fadeDown 700ms 300ms both;
+    }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .barra-logo {
+      display: flex; align-items: baseline; gap: 6px;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .barra-logo-main {
+      font-family: var(--fh);
+      font-size: 1.4rem; font-weight: 400;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--cream);
+    }
+    .barra-logo-vip { color: var(--gold); }
+    .barra-logo-main .trends-suffix {
+      font-family: var(--fc);
+      font-size: 0.9rem; font-weight: 500;
+      letter-spacing: 0.12em; margin-left: 6px;
+      color: var(--cream-muted); text-transform: uppercase;
+    }
+
+    #barra-spacer { flex: 1; min-width: 0; }
+
+    #nav-menu-wrap {
+      position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    #btn-menu {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 16px;
+      font-family: var(--fc); font-size: .68rem; font-weight: 600;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--muted2); background: transparent;
+      border: 1px solid rgba(237,232,224,0.12); border-radius: 1px;
+      cursor: pointer; white-space: nowrap; user-select: none;
+      transition: color .18s, border-color .18s, background .18s;
+    }
+    @media (hover:hover) and (pointer:fine) {
+      #btn-menu:hover { color: var(--cream); border-color: rgba(237,232,224,0.28); }
+    }
+    #btn-menu.open { color: var(--gold); border-color: var(--gold-dim); background: rgba(191,155,90,0.06); }
+    #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
+    #btn-menu.open .menu-chevron { transform: rotate(180deg); }
+
+    #nav-dropdown {
+      position: absolute; top: calc(100% + 12px); right: 0;
+      min-width: 220px;
+      background: rgba(8,9,15,0.98);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      backdrop-filter: blur(32px);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.75),
+                  0 0 0 1px rgba(191,155,90,0.06),
+                  inset 0 1px 0 rgba(237,232,224,0.03);
+      z-index: 600; overflow: hidden;
+      opacity: 0; pointer-events: none;
+      transform: translateY(-8px) scale(0.97);
+      transform-origin: top right;
+      transition: opacity .2s cubic-bezier(.4,0,.2,1),
+                  transform .2s cubic-bezier(.4,0,.2,1);
+    }
+    #nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
+
+    .nav-header {
+      padding: 13px 18px 9px;
+      font-family: var(--fc); font-size: .6rem; font-weight: 600;
+      letter-spacing: .32em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px;
+      font-family: var(--fb); font-size: .78rem; font-weight: 300;
+      color: var(--muted2); text-decoration: none;
+      transition: background .15s, color .15s, padding-left .15s;
+      border-bottom: 1px solid rgba(237,232,224,0.03);
+      position: relative;
+    }
+    .nav-item:last-child { border-bottom: none; }
+    .nav-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+      width: 1px; background: var(--gold);
+      opacity: 0; transition: opacity .15s;
+    }
+    .nav-item:hover { background: rgba(191,155,90,0.04); color: var(--cream); padding-left: 22px; }
+    .nav-item:hover::before { opacity: 1; }
+    .nav-icon {
+      width: 26px; height: 26px; border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(237,232,224,0.04);
+      border: 1px solid rgba(237,232,224,0.07);
+      font-size: .68rem; color: var(--muted2); flex-shrink: 0;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .nav-item:hover .nav-icon {
+      background: rgba(191,155,90,0.1);
+      border-color: rgba(191,155,90,0.3);
+      color: var(--gold);
+    }
+    .nav-item-label { flex: 1; }
+    .nav-item-arrow {
+      font-size: .5rem; color: var(--muted);
+      opacity: 0; transition: opacity .15s, transform .15s;
+    }
+    .nav-item:hover .nav-item-arrow { opacity: 1; transform: translateX(2px); }
+
+    .nav-divider { height: 1px; background: var(--border); margin: 4px 0; }
+    .nav-item.nav-vip-item .nav-icon {
+      background: rgba(191,155,90,0.1); border-color: rgba(191,155,90,0.25); color: var(--gold);
+    }
+
+    #nav-overlay { display: none; position: fixed; inset: 0; z-index: 99; }
+    #nav-overlay.open { display: block; }
+
+    /* Móvil — IDÉNTICO A OTRAS PÁGINAS */
+    @media (max-width: 420px) {
+      #barra { padding: 0 12px; }
+      #nav-menu-wrap { right: 12px; gap: 2px; }
+      .barra-logo-main {
+        font-size: 1.2rem !important;
+        letter-spacing: 0.1em !important;
+      }
+      .barra-logo-main .trends-suffix {
+        font-size: 0.7rem;
+        margin-left: 3px;
+      }
+      #btn-menu {
+        padding: 6px 10px !important;
+        font-size: 0.6rem !important;
+      }
+    }
+    @media (max-width: 380px) {
+      .barra-logo-main { font-size: 1.0rem !important; }
+      #btn-menu span { display: none; }
+      #barra { padding: 0 8px !important; }
+    }
+
+    /* ===== CABECERA FEED ===== */
+    #feed-header {
+      margin-top: 74px;
+      padding: 20px 24px 8px;
+      max-width: 1400px;
+      margin-left: auto; margin-right: auto;
+      animation: fadeUp 0.5s ease forwards;
+    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .fh-top {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .fh-left {
+      display: flex; align-items: center; gap: 16px;
+    }
+    .fh-logo-img {
+      width: 48px; height: 48px;
+      object-fit: contain;
+      display: block;
+      border: none;
+      background: transparent;
+    }
+    .fh-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .fh-name {
+      font-family: var(--fh); font-size: 1.6rem; letter-spacing: 0.06em;
+      color: var(--cream); line-height: 1.1;
+    }
+    .fh-sub {
+      font-family: var(--fc); font-size: .6rem; letter-spacing: .15em;
+      text-transform: uppercase; color: var(--muted2); margin-top: 4px;
+    }
+
+    /* Orden toggle */
+    .orden-row {
+      display: flex; align-items: center; justify-content: center;
+      flex-wrap: wrap; gap: 8px;
+      margin: 12px 0 20px;
+    }
+    @media (min-width: 480px) {
+      .orden-row { justify-content: flex-end; flex-wrap: nowrap; }
+    }
+    .orden-badge {
+      font-family: var(--fc); font-size: .6rem; letter-spacing: .12em;
+      text-transform: uppercase; padding: 6px 14px; border-radius: 2px;
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--border);
+      background: rgba(191,155,90,0.04);
+    }
+    .orden-badge.ordenado { color: var(--gold); border-color: rgba(191,155,90,0.3); }
+    .orden-badge.mezclado { color: var(--cream-muted); border-color: rgba(237,232,224,0.15); }
+    .btn-reordenar {
+      font-family: var(--fc); font-size: .6rem; letter-spacing: .12em;
+      color: var(--muted2); background: transparent;
+      border: 1px solid rgba(237,232,224,0.15);
+      padding: 6px 14px; border-radius: 2px; cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all .18s; white-space: nowrap;
+    }
+    .btn-reordenar:hover { color: var(--cream); border-color: rgba(237,232,224,0.3); }
+
+    /* ===== GRID FEED ===== */
+    #feed-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 24px 60px;
+    }
+    #feed-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px;
+    }
+    @media (min-width: 480px)  { #feed-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px)  { #feed-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 1024px) { #feed-grid { grid-template-columns: repeat(5, 1fr); } }
+    @media (min-width: 1300px) { #feed-grid { grid-template-columns: repeat(6, 1fr); } }
+
+    .feed-item {
+      position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+      cursor: pointer; background: #0b0e17;
+      border: 1px solid rgba(191,155,90,0.08);
+      transition: border .2s;
+      opacity: 0; animation: itemIn .3s ease forwards;
+    }
+    @keyframes itemIn { to { opacity: 1; } }
+    .feed-item:hover { border-color: rgba(191,155,90,0.4); }
+    .feed-item img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform .4s cubic-bezier(.2,0,.2,1);
+    }
+    .feed-item:hover img { transform: scale(1.06); }
+
+    .feed-item-overlay {
+      position: absolute; inset: 0;
+      background: rgba(8,9,15,0.65);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+      opacity: 0; transition: opacity .25s;
+      backdrop-filter: blur(2px);
+    }
+    .feed-item:hover .feed-item-overlay { opacity: 1; }
+    .fo-zona {
+      font-family: var(--fc); font-size: .55rem; letter-spacing: .1em;
+      color: var(--cream); text-transform: uppercase;
+    }
+    .fo-link {
+      font-family: var(--fc); font-size: .6rem; color: var(--gold);
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .link-dot {
+      position: absolute; top: 6px; right: 6px; width: 7px; height: 7px;
+      border-radius: 50%; background: var(--gold); box-shadow: 0 0 6px var(--gold);
+      pointer-events: none;
+    }
+    .pos-num {
+      position: absolute; bottom: 5px; left: 6px;
+      font-family: var(--fc); font-size: .5rem; color: rgba(237,232,224,0.25);
+      pointer-events: none; display: none;
+    }
+    body.mode-ordenado .pos-num { display: block; }
+
+    /* Loading / empty */
+    #loading-state, #empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 70px 20px; gap: 18px;
+    }
+    .spinner {
+      width: 26px; height: 26px; border: 2px solid rgba(191,155,90,0.2);
+      border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-icon { font-size: 2.6rem; color: var(--muted); }
+    .empty-title {
+      font-family: var(--fh); font-size: 1.3rem; letter-spacing: .06em;
+      color: var(--muted2);
+    }
+    .empty-sub {
+      font-family: var(--fc); font-size: .65rem; color: var(--muted);
+      max-width: 280px; text-align: center; line-height: 1.6;
+    }
+
+    /* ===== MODAL ===== */
+    .modal-bg {
+      position: fixed; inset: 0;
+      background: rgba(8,9,15,0.86);
+      backdrop-filter: blur(14px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 500; opacity: 0; pointer-events: none;
+      transition: opacity .28s; padding: 16px;
+    }
+    .modal-bg.open { opacity: 1; pointer-events: all; }
+    .modal-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px; padding: 28px 24px;
+      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+      position: relative;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+    }
+    .modal-panel::before {
+      content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(191,155,90,0.6), transparent);
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: rgba(237,232,224,0.04); border: 1px solid rgba(237,232,224,0.1);
+      border-radius: 1px; width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted2); font-size: .75rem;
+      transition: all .2s; z-index: 5;
+    }
+    .modal-close:hover { color: var(--cream); background: rgba(237,232,224,0.1); }
+
+    .modal-img-wrap {
+      position: relative; width: 100%; aspect-ratio: 1 / 1;
+      overflow: hidden; border-radius: 2px; background: #0b0e17;
+      margin-bottom: 18px;
+    }
+    .modal-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .modal-img-wrap::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(to top, rgba(12,13,22,0.9), transparent);
+      pointer-events: none;
+    }
+    .modal-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(8,9,15,0.7); border: 1px solid rgba(237,232,224,0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--muted2); transition: all .15s;
+      z-index: 3;
+    }
+    .modal-nav:hover { background: rgba(191,155,90,0.15); border-color: var(--gold); color: var(--gold); }
+    #modal-prev { left: 10px; }
+    #modal-next { right: 10px; }
+    .modal-zona-badge {
+      position: absolute; bottom: 12px; left: 12px; z-index: 3;
+      font-family: var(--fc); font-size: .55rem; letter-spacing: .1em;
+      color: var(--cream); text-transform: uppercase;
+      background: rgba(8,9,15,0.6); padding: 4px 10px; border-radius: 2px;
+    }
+    .modal-counter {
+      position: absolute; bottom: 12px; right: 12px; z-index: 3;
+      font-family: var(--fc); font-size: .6rem; color: var(--muted2);
+    }
+
+    .modal-user-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    }
+    .modal-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fh); font-size: 1rem; color: #0a0a0a;
+      border: 1.5px solid rgba(191,155,90,0.4);
+    }
+    .modal-user-info { flex: 1; }
+    .modal-username {
+      font-family: var(--fc); font-size: .75rem; color: var(--cream);
+      letter-spacing: .04em;
+    }
+    .modal-user-sub {
+      font-family: var(--fc); font-size: .58rem; color: var(--muted2);
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .modal-celdas-badge {
+      font-family: var(--fc); font-size: .6rem; color: var(--gold);
+      background: rgba(191,155,90,0.06); border: 1px solid rgba(191,155,90,0.2);
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .modal-divider { height: 1px; background: var(--border); margin: 14px 0; }
+    .modal-info-row {
+      display: flex; align-items: center; gap: 12px; padding: 8px 0;
+      border-bottom: 1px solid rgba(237,232,224,0.05);
+    }
+    .modal-info-icon { width: 26px; color: var(--gold); font-size: .75rem; }
+    .modal-info-label {
+      font-family: var(--fc); font-size: .6rem; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--muted2); min-width: 56px;
+    }
+    .modal-info-val {
+      color: var(--cream); flex: 1; overflow: hidden; text-overflow: ellipsis;
+    }
+    .modal-link-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; margin-top: 18px; padding: 12px;
+      background: transparent; border: 1px solid var(--gold-dim);
+      border-radius: 2px; color: var(--gold);
+      font-family: var(--fc); font-size: .68rem; font-weight: 600;
+      letter-spacing: .2em; text-transform: uppercase;
+      text-decoration: none; transition: all .2s;
+    }
+    .modal-link-btn:hover { background: rgba(191,155,90,0.08); border-color: var(--gold); }
+    .modal-link-btn.no-link {
+      color: var(--muted); border-color: rgba(237,232,224,0.1);
+      cursor: default; background: transparent;
+    }
+    .modal-link-btn.no-link:hover { background: transparent; }
+
+    /* VIP modal */
+    #modal-vip .modal-panel { max-width: 400px; }
+    .vip-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+    .vip-tab {
+      flex: 1; padding: 10px; text-align: center;
+      font-family: var(--fc); font-size: .62rem; font-weight: 600;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted2); cursor: pointer;
+      border-bottom: 1px solid transparent; transition: all .2s;
+    }
+    .vip-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .vip-tab:hover:not(.active) { color: var(--cream); }
+    .campo-label {
+      font-family: var(--fc); font-size: .6rem; font-weight: 600;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--muted2); display: block; margin-bottom: 6px;
+    }
+    .campo {
+      width: 100%; background: rgba(237,232,224,0.03);
+      border: 1px solid rgba(237,232,224,0.1);
+      border-radius: 1px; padding: 10px 14px;
+      color: var(--cream); font-family: var(--fb); font-size: .84rem;
+      margin-bottom: 16px; outline: none; transition: border-color .2s;
+    }
+    .campo:focus { border-color: var(--gold); }
+    .campo::placeholder { color: var(--muted); }
+    .modal-title {
+      font-family: var(--fh); font-size: 1.55rem; font-weight: 300;
+      letter-spacing: 0.02em; color: var(--cream);
+      margin-bottom: 5px; line-height: 1.1;
+    }
+    .modal-sub {
+      font-family: var(--fb); font-size: .73rem; font-weight: 300;
+      color: var(--muted2); margin-bottom: 22px; line-height: 1.65;
+    }
+    .modal-eyebrow {
+      font-family: var(--fc); font-size: .58rem; font-weight: 600;
+      letter-spacing: .34em; text-transform: uppercase;
+      color: var(--gold); opacity: 0.7; margin-bottom: 6px; display: block;
+    }
+    .modal-rule {
+      width: 32px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+      opacity: 0.5; margin-bottom: 20px;
+    }
+    .btn-primary {
+      width: 100%; padding: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: transparent; border: 1px solid var(--gold-dim);
+      border-radius: 1px;
+      font-family: var(--fc); font-size: .68rem; font-weight: 600;
+      letter-spacing: .28em; text-transform: uppercase; color: var(--gold);
+      cursor: pointer; transition: background .2s, border-color .2s, box-shadow .2s;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: rgba(191,155,90,0.1); border-color: var(--gold);
+      box-shadow: 0 0 24px rgba(191,155,90,0.15);
+    }
+    .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 10px; margin-top: 8px;
+      background: transparent; border: 1px solid rgba(237,232,224,0.1);
+      border-radius: 1px;
+      font-family: var(--fc); font-size: .6rem; font-weight: 500;
+      letter-spacing: .2em; text-transform: uppercase;
+      color: var(--muted2); cursor: pointer; transition: all .2s;
+    }
+    .btn-secondary:hover { color: var(--cream); border-color: rgba(237,232,224,0.25); }
+    .status {
+      font-family: var(--fb); font-size: .73rem; font-weight: 300;
+      padding: 9px 13px; border-radius: 1px; margin-bottom: 12px; display: none;
+    }
+    .status.error { background: rgba(255,90,90,0.08); color: #ff9090; border: 1px solid rgba(255,90,90,0.18); }
+    .status.ok    { background: rgba(191,155,90,0.08); color: var(--gold-light); border: 1px solid var(--gold-dim); }
+    .status.info  { background: rgba(191,155,90,0.06); color: var(--gold); border: 1px solid var(--border); }
+    .vip-user-card {
+      background: rgba(191,155,90,0.05); border: 1px solid var(--border);
+      border-radius: 1px; padding: 18px; text-align: center; margin-bottom: 20px;
+    }
+    .vip-user-icon {
+      width: 50px; height: 50px; border-radius: 50%;
+      border: 1px solid var(--gold-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--fh); font-size: 1.4rem; font-weight: 300; color: var(--gold);
+      margin: 0 auto 12px;
+    }
+    .vip-user-email {
+      font-family: var(--fc); font-size: .72rem; font-weight: 500; letter-spacing: .06em;
+      color: var(--cream); margin-bottom: 6px; word-break: break-all;
+    }
+    .vip-user-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(191,155,90,0.1); border: 1px solid rgba(191,155,90,0.28);
+      border-radius: 20px; padding: 3px 12px;
+      font-family: var(--fc); font-size: .58rem; font-weight: 600;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--gold);
+    }
+    .vip-nav-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+    .vip-nav-link {
+      display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px;
+      background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.08);
+      border-radius: 1px; text-decoration: none;
+      font-family: var(--fc); font-size: .62rem; font-weight: 500;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--muted2);
+      transition: all .2s;
+    }
+    .vip-nav-link:hover { background: rgba(191,155,90,0.07); border-color: rgba(191,155,90,0.28); color: var(--cream); }
+    .vip-nav-link i { font-size: 1rem; color: var(--gold); }
+
+    /* Hint */
+    #hint-feed {
+      display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      z-index: 400; font-family: var(--fc); font-size: .6rem; font-weight: 600;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--muted2);
+      background: rgba(8,9,15,0.92); backdrop-filter: blur(14px);
+      border: 1px solid var(--border); padding: 8px 18px; border-radius: 99px;
+      white-space: nowrap; animation: hintFade 3s ease forwards;
+    }
+    @keyframes hintFade { 0%,70%{opacity:1} 100%{opacity:0} }
+  </style>
+</head>
+<body>
+
+<!-- BARRA (IDÉNTICA A OTRAS PÁGINAS) -->
+<div id="barra">
+  <a class="barra-logo" href="index.html">
+    <span class="barra-logo-main">
+      Zona<span class="barra-logo-vip">Vip</span>
+      <span class="trends-suffix">Trends</span>
+    </span>
+  </a>
+
+  <div id="barra-spacer"></div>
+
+  <div id="nav-menu-wrap">
+    <button id="btn-menu" onclick="toggleMenu()">
+      <i class="fas fa-bars"></i>
+      <span>Menú</span>
+      <i class="fas fa-chevron-down menu-chevron"></i>
+    </button>
+    <div id="nav-dropdown">
+      <div class="nav-header">Navegación</div>
+      <a class="nav-item" href="index.html"><span class="nav-icon"><i class="fas fa-th"></i></span><span class="nav-item-label">Expositor</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="feed.html"><span class="nav-icon"><i class="fas fa-th-large"></i></span><span class="nav-item-label">Feed</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="comunidad.html"><span class="nav-icon"><i class="fab fa-discord"></i></span><span class="nav-item-label">Comunidad</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>      
+      <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Más info</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
+      <div class="nav-divider"></div>
+      <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
+        <span class="nav-icon"><i class="fas fa-crown"></i></span>
+        <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
+        <i class="fas fa-chevron-right nav-item-arrow"></i>
+      </a>
+      <a class="nav-item" href="#" onclick="cerrarMenu();logoutVip();return false;" id="nav-logout-link" style="display:none">
+        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+        <span class="nav-item-label">Cerrar sesión</span>
+        <i class="fas fa-chevron-right nav-item-arrow"></i>
+      </a>
+    </div>
+  </div>
+</div>
+<div id="nav-overlay" onclick="cerrarMenu()"></div>
+
+<!-- CABECERA FEED -->
+<div id="feed-header">
+  <div class="fh-top">
+    <div class="fh-left">
+      <img class="fh-logo-img" src="https://cdn.jsdelivr.net/gh/onixmannager/Zona-Vip-Trend@main/ZonaVIP-Logo.webp" alt="Logo">
+      <div class="fh-text">
+        <div class="fh-name">ZonaVIP Trends</div>
+        <div class="fh-sub">Expositor colaborativo · zona a zona</div>
+      </div>
+    </div>
+  </div>
+  <div class="orden-row">
+    <span class="orden-badge ordenado" id="orden-badge">
+      <i class="fas fa-sort-amount-down"></i>
+      <span id="orden-label">Orden del expositor</span>
+    </span>
+    <button class="btn-reordenar" onclick="toggleOrden()">
+      <i class="fas fa-random" id="shuffle-icon"></i>
+      <span id="shuffle-label">Mezclar</span>
+    </button>
+  </div>
+</div>
+
+<!-- FEED -->
+<div id="feed-wrap">
+  <div id="loading-state">
+    <div class="spinner"></div>
+    <span style="font-family:var(--fc); letter-spacing:.1em; color:var(--muted2);">Cargando zonas del mosaico...</span>
+  </div>
+  <div id="empty-state" style="display:none;">
+    <div class="empty-icon"><i class="fas fa-image"></i></div>
+    <div class="empty-title">Sin imágenes todavía</div>
+    <div class="empty-sub">Cuando alguien compre una zona y suba su imagen aparecerá aquí.</div>
+  </div>
+  <div id="feed-grid" style="display:none;"></div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-bg" id="modal-bg" onclick="onBgClick(event)">
+  <div class="modal-panel">
+    <button class="modal-close" onclick="cerrarModalFeed()"><i class="fas fa-times"></i></button>
+    <div class="modal-img-wrap">
+      <img id="modal-img" src="" alt="">
+      <button class="modal-nav" id="modal-prev" onclick="navModal(-1)"><i class="fas fa-chevron-left"></i></button>
+      <button class="modal-nav" id="modal-next" onclick="navModal(1)"><i class="fas fa-chevron-right"></i></button>
+      <div class="modal-zona-badge" id="modal-zona-badge">—</div>
+      <div class="modal-counter" id="modal-counter">—</div>
+    </div>
+    <div class="modal-user-row">
+      <div class="modal-avatar" id="modal-avatar">?</div>
+      <div class="modal-user-info">
+        <div class="modal-username" id="modal-username">—</div>
+        <div class="modal-user-sub" id="modal-user-sub">—</div>
+      </div>
+      <div class="modal-celdas-badge" id="modal-celdas">— celdas</div>
+    </div>
+    <div class="modal-divider"></div>
+    <div class="modal-info-row">
+      <span class="modal-info-icon"><i class="fas fa-th"></i></span>
+      <span class="modal-info-label">Zona</span>
+      <span class="modal-info-val" id="mi-zona">—</span>
+    </div>
+    <div class="modal-info-row">
+      <span class="modal-info-icon"><i class="fas fa-expand-arrows-alt"></i></span>
+      <span class="modal-info-label">Tamaño</span>
+      <span class="modal-info-val" id="mi-size">—</span>
+    </div>
+    <div class="modal-info-row" id="mi-link-row">
+      <span class="modal-info-icon"><i class="fas fa-link"></i></span>
+      <span class="modal-info-label">Link</span>
+      <span class="modal-info-val" id="mi-link-val">—</span>
+    </div>
+    <a id="modal-link-btn" class="modal-link-btn" href="#" target="_blank" rel="noopener">
+      <i class="fas fa-external-link-alt"></i> Visitar enlace
+    </a>
+  </div>
+</div>
+
+<!-- MODAL VIP -->
+<div class="modal-bg" id="modal-vip">
+  <div class="modal-panel">
+    <button class="modal-close" onclick="cerrarModalVip()"><i class="fas fa-times"></i></button>
+
+    <!-- Sin sesión -->
+    <div id="vip-panel-login">
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Área VIP</span>
+      <div class="modal-title">Acceso VIP</div>
+      <div class="modal-rule"></div>
+      <div class="modal-sub">Inicia sesión con el email que usaste al pagar tu zona.</div>
+
+      <div class="vip-tabs">
+        <div class="vip-tab active" id="tab-login" onclick="cambiarTabVip('login')">Iniciar sesión</div>
+        <div class="vip-tab" id="tab-reset" onclick="cambiarTabVip('reset')">Recuperar acceso</div>
+      </div>
+
+      <div id="vip-form-login">
+        <label class="campo-label" for="vip-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email">
+        <label class="campo-label" for="vip-pass">Contraseña</label>
+        <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')loginVip()">
+        <div class="status" id="st-vip-login"></div>
+        <button class="btn-primary" id="btn-login-vip" onclick="loginVip()">
+          <i class="fas fa-sign-in-alt"></i>&nbsp; Entrar
+        </button>
+        <p style="font-family:var(--fc);font-size:.6rem;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7">
+          ¿Primera vez? Tu cuenta se creó al reservar una zona.<br>
+          Usa "Recuperar acceso" para establecer tu contraseña.
+        </p>
+      </div>
+
+      <div id="vip-form-reset" style="display:none">
+        <div class="modal-sub" style="margin-bottom:16px">Introduce el email con el que pagaste y te enviaremos un enlace para crear tu contraseña.</div>
+        <label class="campo-label" for="vip-reset-email">Email VIP</label>
+        <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')resetVip()">
+        <div class="status" id="st-vip-reset"></div>
+        <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()">
+          <i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace
+        </button>
+        <button class="btn-secondary" onclick="cambiarTabVip('login')">← Volver al login</button>
+      </div>
+    </div>
+
+    <!-- Con sesión activa -->
+    <div id="vip-panel-sesion" style="display:none">
+      <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Mi cuenta</span>
+      <div class="modal-title">Mi cuenta VIP</div>
+      <div class="modal-rule"></div>
+      <div class="vip-user-card">
+        <div class="vip-user-icon" id="vip-sesion-icon">V</div>
+        <div class="vip-user-email" id="vip-sesion-email">—</div>
+        <div class="vip-user-badge"><i class="fas fa-crown"></i>&nbsp; Miembro VIP</div>
+      </div>
+      <div class="vip-nav-links">
+        <a class="vip-nav-link" href="paneldecontrol.html">
+          <i class="fas fa-sliders-h"></i>Panel de control
+        </a>
+        <a class="vip-nav-link" href="comunidad.html">
+          <i class="fab fa-discord"></i>Comunidad
+        </a>
+      </div>
+      <div class="status" id="st-vip-sesion"></div>
+      <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px">
+        <i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="hint-feed"></div>
+
+<script>
+  // ═══════════════════════════════════════════════════════════════
+  // CONFIGURACIÓN
+  // ═══════════════════════════════════════════════════════════════
+  var CFG = {
+    PRECIO:   50,
+    TOTAL:    13040,
+    GH_REPOS: ['TU_USUARIO/mosaico-imgs-1']
+  };
+  var allZones  = [];
+  var feedZones = [];
+  var modalIdx  = 0;
+  var isOrdenado = true;
+  var VISIT_KEY  = 'zvt_feed_v2';
+
+  // ═══════════════════════════════════════════════════════════════
+  // CACHE VIP (localStorage)
+  // ═══════════════════════════════════════════════════════════════
+  function leerCacheVIP() {
+    try { const raw = localStorage.getItem('vip_cache'); return raw ? JSON.parse(raw) : null; }
+    catch(e) { return null; }
+  }
+  function guardarCacheVIP(data) {
+    try { localStorage.setItem('vip_cache', JSON.stringify(data)); } catch(e) {}
+  }
+  function cacheExpirado(cache) {
+    const MAX_EDAD_MS = 60 * 60 * 1000;
+    return Date.now() - cache.timestamp > MAX_EDAD_MS;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // MENÚ Y MODALES
+  // ═══════════════════════════════════════════════════════════════
+  function toggleMenu(){
+    var btn=document.getElementById('btn-menu'), dd=document.getElementById('nav-dropdown'), ov=document.getElementById('nav-overlay');
+    if(dd.classList.contains('open')) cerrarMenu();
+    else { btn.classList.add('open'); dd.classList.add('open'); ov.classList.add('open'); }
+  }
+  function cerrarMenu(){
+    document.getElementById('btn-menu').classList.remove('open');
+    document.getElementById('nav-dropdown').classList.remove('open');
+    document.getElementById('nav-overlay').classList.remove('open');
+  }
+
+  function cerrarModalFeed(){
+    document.getElementById('modal-bg').classList.remove('open');
+    document.body.style.overflow='';
+  }
+  function cerrarModalVip(){
+    document.getElementById('modal-vip').classList.remove('open');
+  }
+  function onBgClick(e){ if(e.target.classList.contains('modal-bg')) cerrarModalFeed(); }
+
+  // ═══════════════════════════════════════════════════════════════
+  // CARGA DE ZONAS
+  // ═══════════════════════════════════════════════════════════════
+  var isDemoMode = (CFG.GH_REPOS[0] === 'TU_USUARIO/mosaico-imgs-1');
+
+  async function loadZones(){
+    var zones=[];
+
+    // ── PRODUCCIÓN: leer desde Firestore ──────────────────────────
+    if(!isDemoMode && window._fbDb){
+      try{
+        var _fs = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        var snap = await _fs.getDocs(_fs.query(
+          _fs.collection(window._fbDb,'zones'),
+          _fs.orderBy('fechaCompra','desc')
+        ));
+        snap.forEach(function(d){ var z=d.data(); z.id=d.id; zones.push(z); });
+        return zones.filter(function(z){ return !!(z.imgUrlFull||z.imgUrl); });
+      }catch(e){
+        console.warn('[feed] Error leyendo Firestore:',e);
+      }
+    }
+
+    // ── DEMO / FALLBACK: leer desde GitHub/jsDelivr ───────────────
+    for(var ri=0; ri<CFG.GH_REPOS.length; ri++){
+      var url='https://cdn.jsdelivr.net/gh/'+CFG.GH_REPOS[ri]+'@main/zones.json?t='+Date.now();
+      try {
+        var r=await fetch(url);
+        if(r.ok){ var d=await r.json(); if(Array.isArray(d)) zones=zones.concat(d); }
+      }catch(e){}
+    }
+    return zones.filter(function(z){ return !!(z.imgUrl); });
+  }
+
+  function shuffle(arr){ 
+    var a=arr.slice();
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
+
+  function toggleOrden(){
+    isOrdenado=!isOrdenado;
+    feedZones=isOrdenado ? allZones.slice() : shuffle(allZones);
+    actualizarBadge();
+    renderGrid();
+    document.body.classList.toggle('mode-ordenado', isOrdenado);
+  }
+
+  function actualizarBadge(){
+    var badge=document.getElementById('orden-badge'), lbl=document.getElementById('orden-label');
+    var icon=document.getElementById('shuffle-icon'), slbl=document.getElementById('shuffle-label');
+    if(isOrdenado){
+      badge.className='orden-badge ordenado';
+      badge.querySelector('i').className='fas fa-sort-amount-down';
+      lbl.textContent='Orden del expositor';
+      icon.className='fas fa-random'; slbl.textContent='Mezclar';
+    }else{
+      badge.className='orden-badge mezclado';
+      badge.querySelector('i').className='fas fa-random';
+      lbl.textContent='Orden aleatorio';
+      icon.className='fas fa-sort-amount-down'; slbl.textContent='Ordenar';
+    }
+  }
+
+  function renderGrid(){
+    var grid=document.getElementById('feed-grid');
+    grid.innerHTML='';
+    if(feedZones.length===0){
+      document.getElementById('empty-state').style.display='flex';
+      return;
+    }
+    document.getElementById('empty-state').style.display='none';
+    document.getElementById('feed-grid').style.display='grid';
+
+    feedZones.forEach((z,i)=>{
+      var el=document.createElement('div');
+      el.className='feed-item';
+      el.style.animationDelay=Math.min(i*0.02, 0.4)+'s';
+
+      var img=document.createElement('img');
+      // imgUrlFull = 350px WebP (definido en compras.js); imgUrl = thumbnail mosaico
+      img.src=z.imgUrlFull||z.imgUrl; img.alt=''; img.loading='lazy';
+      el.appendChild(img);
+
+      var ov=document.createElement('div');
+      ov.className='feed-item-overlay';
+      ov.innerHTML='<div class="fo-zona">F'+(z.r1+1)+'–'+(z.r2+1)+' · C'+(z.c1+1)+'–'+(z.c2+1)+'</div>'+
+        (z.link ? '<div class="fo-link"><i class="fas fa-external-link-alt"></i> Ver enlace</div>' : '');
+      el.appendChild(ov);
+
+      if(z.link){ var dot=document.createElement('div'); dot.className='link-dot'; el.appendChild(dot); }
+      var num=document.createElement('div'); num.className='pos-num'; num.textContent='#'+(i+1); el.appendChild(num);
+
+      el.addEventListener('click', ()=>abrirModal(i));
+      grid.appendChild(el);
+    });
+  }
+
+  function abrirModal(idx){
+    modalIdx=idx; rellenarModal();
+    document.getElementById('modal-bg').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function navModal(dir){
+    modalIdx=(modalIdx+dir+feedZones.length)%feedZones.length;
+    rellenarModal();
+  }
+
+  function rellenarModal(){
+    var z=feedZones[modalIdx]; if(!z) return;
+    document.getElementById('modal-img').src=z.imgUrlFull||z.imgUrl;
+    document.getElementById('modal-zona-badge').textContent='F'+(z.r1+1)+'–'+(z.r2+1)+' · C'+(z.c1+1)+'–'+(z.c2+1);
+    document.getElementById('modal-counter').textContent=(modalIdx+1)+' / '+feedZones.length;
+
+    var nombre=z.email ? z.email.split('@')[0] : ('zona-'+(z.r1+1)+'-'+(z.c1+1));
+    document.getElementById('modal-avatar').textContent=nombre.charAt(0).toUpperCase();
+    document.getElementById('modal-username').textContent='@'+nombre;
+    document.getElementById('modal-celdas').textContent=(z.n||'?')+' celdas';
+    document.getElementById('modal-user-sub').textContent=z.n ? ((z.n*CFG.PRECIO).toLocaleString('es-ES')+' € invertidos') : 'Propietario de zona';
+
+    document.getElementById('mi-zona').textContent='Filas '+(z.r1+1)+'–'+(z.r2+1)+', Cols '+(z.c1+1)+'–'+(z.c2+1);
+    document.getElementById('mi-size').textContent=(z.c2-z.c1+1)+' × '+(z.r2-z.r1+1)+' ('+(z.n||'?')+' celdas)';
+
+    var linkBtn=document.getElementById('modal-link-btn');
+    if(z.link){
+      document.getElementById('mi-link-row').style.display='flex';
+      document.getElementById('mi-link-val').textContent=z.link.replace(/^https?:\/\//,'').slice(0,38)+(z.link.length>40?'…':'');
+      linkBtn.href=z.link; linkBtn.className='modal-link-btn';
+      linkBtn.innerHTML='<i class="fas fa-external-link-alt"></i> Visitar enlace';
+      linkBtn.onclick=null;  // limpiar handler de "sin enlace" si venía de antes
+    }else{
+      document.getElementById('mi-link-row').style.display='none';
+      linkBtn.href='#'; linkBtn.className='modal-link-btn no-link';
+      linkBtn.innerHTML='<i class="fas fa-times-circle"></i> Sin enlace asociado';
+      linkBtn.onclick=function(e){e.preventDefault();};
+    }
+    var showNav=feedZones.length>1;
+    document.getElementById('modal-prev').style.display=showNav?'flex':'none';
+    document.getElementById('modal-next').style.display=showNav?'flex':'none';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // UTILIDADES
+  // ═══════════════════════════════════════════════════════════════
+  function setStatus(id,type,msg){
+    var el=document.getElementById(id);
+    if(!msg){el.style.display='none';el.textContent='';return;}
+    el.className='status '+type;el.textContent=msg;el.style.display='block';
+  }
+  function showHint(txt){
+    var el=document.getElementById('hint-feed');
+    el.textContent=txt;el.style.display='block';
+    el.style.animation='none';void el.offsetWidth;
+    el.style.animation='hintFade 3s ease forwards';
+    setTimeout(function(){el.style.display='none';},3200);
+  }
+  function traducirErrorFirebase(code){
+    var msgs={
+      'auth/invalid-email':'Email no válido.',
+      'auth/user-not-found':'No existe cuenta VIP con ese email. ¿Has comprado una zona?',
+      'auth/wrong-password':'Contraseña incorrecta. Usa "Recuperar acceso" si no recuerdas tu clave.',
+      'auth/invalid-credential':'Email o contraseña incorrectos.',
+      'auth/too-many-requests':'Demasiados intentos. Espera unos minutos o recupera tu acceso.',
+      'auth/network-request-failed':'Error de red. Comprueba tu conexión.',
+      'auth/email-already-in-use':'Ya existe una cuenta con ese email.',
+      'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
+      'auth/configuration-not-found':'Firebase no está configurado en este entorno.',
+    };
+    return msgs[code]||'Error de autenticación ('+(code||'desconocido')+').';
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // FIREBASE VIP AUTH
+  // ═══════════════════════════════════════════════════════════════
+  var vipUser=null;
+
+  window._onAuthReady=function(user){
+    vipUser=user;
+    actualizarUIVip(user);
+  };
+  // BUG 5 fix: consume auth state queued before this script was ready
+  if(window._pendingAuthUser !== undefined){
+    window._onAuthReady(window._pendingAuthUser);
+    delete window._pendingAuthUser;
+  }
+
+  function actualizarUIVip(user){
+    var panelSes=document.getElementById('vip-panel-sesion');
+    var panelLog=document.getElementById('vip-panel-login');
+    var navVipLink=document.getElementById('nav-vip-link');
+    var navLogoutLink=document.getElementById('nav-logout-link');
+    if(user){
+      var initials=(user.email||'V').charAt(0).toUpperCase();
+      document.getElementById('vip-sesion-icon').textContent=initials;
+      document.getElementById('vip-sesion-email').textContent=user.email||'';
+      panelSes.style.display='block'; panelLog.style.display='none';
+      // Menú: ocultar "Acceso VIP", mostrar "Cerrar sesión"
+      if(navVipLink)navVipLink.style.display='none';
+      if(navLogoutLink)navLogoutLink.style.display='flex';
+    }else{
+      panelSes.style.display='none'; panelLog.style.display='block';
+      // Menú: mostrar "Acceso VIP", ocultar "Cerrar sesión"
+      if(navVipLink)navVipLink.style.display='';
+      if(navLogoutLink)navLogoutLink.style.display='none';
+    }
+  }
+
+  function abrirModalVip(){
+    cerrarMenu();
+    setStatus('st-vip-login','','');
+    setStatus('st-vip-reset','','');
+    document.getElementById('modal-vip').classList.add('open');
+  }
+
+  function cambiarTabVip(tab){
+    document.getElementById('tab-login').classList.toggle('active',tab==='login');
+    document.getElementById('tab-reset').classList.toggle('active',tab==='reset');
+    document.getElementById('vip-form-login').style.display=tab==='login'?'':'none';
+    document.getElementById('vip-form-reset').style.display=tab==='reset'?'':'none';
+    setStatus('st-vip-login','','');
+    setStatus('st-vip-reset','','');
+  }
+
+  async function loginVip(){
+    var email=document.getElementById('vip-email').value.trim();
+    var pass=document.getElementById('vip-pass').value;
+    if(!email||!pass){setStatus('st-vip-login','error','Rellena email y contraseña.');return;}
+    var btn=document.getElementById('btn-login-vip');
+    btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Entrando...';
+    setStatus('st-vip-login','','');
+    try{
+      if(!window._fbSignIn)throw new Error('Firebase no configurado. Edita firebaseConfig en el HTML.');
+      await window._fbSignIn(email,pass);
+      cerrarModalVip();showHint('¡Bienvenido de nuevo, VIP!');
+    }catch(err){
+      var msg=traducirErrorFirebase(err.code);setStatus('st-vip-login','error',msg);
+    }finally{
+      btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i>&nbsp; Entrar';
+    }
+  }
+
+  async function resetVip(){
+    var email=document.getElementById('vip-reset-email').value.trim();
+    if(!email){setStatus('st-vip-reset','error','Introduce tu email.');return;}
+    var btn=document.getElementById('btn-reset-vip');
+    btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
+    setStatus('st-vip-reset','','');
+    try{
+      if(!window._fbReset)throw new Error('Firebase no configurado.');
+      await window._fbReset(email);
+      setStatus('st-vip-reset','ok','✓ Enlace enviado. Revisa tu bandeja de entrada (y spam).');
+    }catch(err){
+      setStatus('st-vip-reset','error',traducirErrorFirebase(err.code));
+    }finally{
+      btn.disabled=false;btn.innerHTML='<i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace';
+    }
+  }
+
+  async function logoutVip(){
+    // btn puede ser null si se llama desde el menú nav (modal cerrado)
+    var btn=document.querySelector('#vip-panel-sesion .btn-secondary');
+    if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...';}
+    try{
+      if(window._fbSignOut) await window._fbSignOut();
+      localStorage.removeItem('vip_cache');
+      cerrarModalVip();
+      cerrarMenu();
+      showHint('Sesión cerrada.');
+    }catch(e){
+      console.warn('[logoutVip] Error al cerrar sesión:', e);
+    }finally{
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión';}
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ARRANQUE
+  // ═══════════════════════════════════════════════════════════════
+  (async function(){
+    try{
+      // Esperar a que el módulo Firebase haya inicializado window._fbDb
+      // (el módulo es async; el non-module script puede arrancar antes)
+      if(window._fbReady) await window._fbReady;
+
+      var raw=await loadZones();
+
+      // BUG 2 fix: en producción Firestore ya devuelve orden fechaCompra desc;
+      // solo ordenar por posición en modo demo/GitHub donde no hay timestamp.
+      if(isDemoMode){
+        raw.sort(function(a,b){ return a.r1!==b.r1 ? a.r1-b.r1 : a.c1-b.c1; });
+      }
+      allZones=raw;
+
+      var visited=localStorage.getItem(VISIT_KEY);
+      if(visited){
+        isOrdenado=false; feedZones=shuffle(allZones); actualizarBadge();
+      }else{
+        isOrdenado=true; feedZones=allZones.slice();
+        localStorage.setItem(VISIT_KEY,'1');
+      }
+      document.body.classList.toggle('mode-ordenado', isOrdenado);
+
+      document.getElementById('loading-state').style.display='none';
+      // BUG 6 fix: solo mostrar grid si hay zonas (evita flash vacío)
+      if(feedZones.length > 0){
+        document.getElementById('feed-grid').style.display='grid';
+      }
+      renderGrid();
+    }catch(err){
+      console.error('[feed] Error en arranque:', err);
+      document.getElementById('loading-state').innerHTML='<span style="color:#ff9090">Error al cargar datos.</span>';
+    }
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  // EVENTOS GLOBALES
+  // ═══════════════════════════════════════════════════════════════
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      cerrarMenu();
+      cerrarModalFeed();
+      cerrarModalVip();
+    }
+    if(document.getElementById('modal-bg').classList.contains('open')){
+      if(e.key==='ArrowLeft') navModal(-1);
+      if(e.key==='ArrowRight') navModal(1);
+    }
+  });
+
+  document.getElementById('modal-bg').addEventListener('click',function(e){
+    if(e.target===this) cerrarModalFeed();
+  });
+  document.getElementById('modal-vip').addEventListener('click',function(e){
+    if(e.target===this) cerrarModalVip();
+  });
+</script>
+</body>
+</html>
