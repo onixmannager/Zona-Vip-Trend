@@ -925,6 +925,8 @@ async function logoutVip(){
   if(btn){ btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...'; }
   try{
     if(window._fbSignOut) await window._fbSignOut();
+    // ⭐ LIMPIAR CACHE VIP AL CERRAR SESIÓN
+    localStorage.removeItem('vip_cache');
     cerrarModal('modal-vip');
     showHint('Sesión cerrada.');
   }catch(e){}
@@ -956,6 +958,35 @@ function traducirErrorFirebase(code){
   };
   return msgs[code]||'Error de autenticación ('+(code||'desconocido')+').';
 }
+
+// ⭐ NUEVO: funciones de cache VIP en localStorage
+function leerCacheVIP() {
+  try {
+    const raw = localStorage.getItem('vip_cache');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function guardarCacheVIP(data) {
+  try {
+    localStorage.setItem('vip_cache', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function cacheExpirado(cache) {
+  const MAX_EDAD_MS = 60 * 60 * 1000; // 1 hora
+  return Date.now() - cache.timestamp > MAX_EDAD_MS;
+}
+
+// ⭐ Función para aplicar UI provisional (antes de verificación real)
+function aplicarUIProvisionalVIP(esVip) {
+  // Si es true, podemos mostrar inmediatamente el formulario VIP
+  // pero sin afectar el estado real hasta confirmar.
+  // En esta implementación simplemente renderizamos el form con isVip=true
+  // para que el usuario vea la UI de VIP de inmediato.
+  // Nota: esto se llamará desde el módulo principal (ver abajo)
+  if (window._applyTempVIP) window._applyTempVIP(esVip);
+}
 </script>
 
 <script type="module">
@@ -971,6 +1002,7 @@ let isVip              = false;
 let canPost            = false;
 let selectedFile       = null;
 let unsubscribePosts   = null;
+let vipCheckPromise    = null;  // Para evitar múltiples verificaciones simultáneas
 
 /* ── Utilidades ─────────────────────────────────────────────── */
 function formatTime(ts){
@@ -1077,8 +1109,8 @@ async function checkVip(email){
   catch(e){ return false; }
 }
 
-/* ── Renderizar formulario según estado ─────────────────────── */
-async function renderForm(){
+/* ── Renderizar formulario según estado (definitivo) ────────── */
+async function renderFormDefinitivo() {
   if(!currentUser){
     formContainer.innerHTML=`
       <div class="info-panel">
@@ -1092,7 +1124,6 @@ async function renderForm(){
     return;
   }
 
-  isVip = await checkVip(currentUser.email);
   if(!isVip){
     formContainer.innerHTML=`
       <div class="info-panel">
@@ -1148,12 +1179,29 @@ async function renderForm(){
   });
 }
 
-window.removeImage = function(){
-  selectedFile=null;
-  const fi=document.getElementById('image-upload');
-  const pc=document.getElementById('image-preview-container');
-  if(fi) fi.value='';
-  if(pc) pc.innerHTML='';
+// ⭐ Renderizado provisional (se llama antes de confirmar VIP)
+window._applyTempVIP = function(tempVip) {
+  if (!currentUser) return;
+  // Mostramos una versión simplificada mientras se verifica
+  if (tempVip) {
+    formContainer.innerHTML = `
+      <div class="chat-form" style="opacity:0.7; pointer-events:none;">
+        <textarea class="chat-textarea" placeholder="Cargando tu acceso VIP..." disabled></textarea>
+        <div class="form-row">
+          <span class="attach-label" style="opacity:0.5"><i class="fas fa-image"></i>&nbsp; Añadir imagen</span>
+          <button class="send-btn" disabled><i class="fas fa-spinner fa-spin"></i>&nbsp; Verificando</button>
+        </div>
+        <div class="limit-info">Verificando privilegios VIP...</div>
+      </div>`;
+  } else {
+    // Si no es VIP según cache, mostramos el panel público provisional
+    formContainer.innerHTML = `
+      <div class="info-panel" style="opacity:0.8">
+        <i class="fas fa-spinner fa-spin" style="font-size:1.8rem;color:var(--gold)"></i>
+        <div class="info-title">Verificando acceso...</div>
+        <div class="info-sub">Comprobando tu membresía VIP</div>
+      </div>`;
+  }
 };
 
 /* ── Publicar ────────────────────────────────────────────────── */
@@ -1187,7 +1235,7 @@ window.publishPost = async function(){
 
     // Actualizar límite tras publicar
     await checkCanPost(currentUser.email);
-    await renderForm();
+    await renderFormDefinitivo();
   }catch(e){
     console.error(e);
     showHint('Error al publicar. Inténtalo de nuevo.','err');
@@ -1211,12 +1259,43 @@ function suscribirFeed(){
 /* ── Arranque cuando Firebase Auth esté listo ──────────────── */
 window._onVipAuthChange = async function(user){
   currentUser=user;
-  await renderForm();
+
+  // ⭐ 1. Intentar usar cache VIP
+  const cache = leerCacheVIP();
+  const usarCache = cache && cache.email === user?.email && !cacheExpirado(cache);
+  if (usarCache && cache.vip) {
+    // Aplicar UI provisional de VIP
+    window._applyTempVIP(true);
+  } else if (usarCache && !cache.vip) {
+    window._applyTempVIP(false);
+  }
+
+  // ⭐ 2. Verificación real con Firestore (siempre)
+  let vipReal = false;
+  if (user) {
+    try {
+      vipReal = await window._fbCheckVip(user.email);
+    } catch(e) {
+      vipReal = false;
+    }
+  }
+  isVip = vipReal;
+
+  // ⭐ 3. Guardar/actualizar cache
+  if (user) {
+    guardarCacheVIP({
+      email: user.email,
+      vip: vipReal,
+      timestamp: Date.now()
+    });
+  }
+
+  // ⭐ 4. Renderizar UI definitiva
+  await renderFormDefinitivo();
   suscribirFeed();
 };
 
-// Fallback: si Firebase ya disparó _onAuthReady antes de que esta
-// función estuviera definida, lanzamos el arranque aquí también.
+// Fallback: si Firebase ya disparó _onAuthReady antes
 if(window.vipUser!==undefined){
   window._onVipAuthChange(window.vipUser);
 }
