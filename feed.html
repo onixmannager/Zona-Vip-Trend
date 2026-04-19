@@ -109,28 +109,20 @@
     }
     .barra-logo-main {
       font-family: var(--fh);
-      font-size: 1.4rem;
-      font-weight: 400;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
+      font-size: 1.4rem; font-weight: 400;
+      letter-spacing: 0.15em; text-transform: uppercase;
       color: var(--cream);
     }
     .barra-logo-vip { color: var(--gold); }
     .barra-logo-main .trends-suffix {
       font-family: var(--fc);
-      font-size: 0.9rem;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      margin-left: 6px;
-      color: var(--cream-muted);
-      text-transform: uppercase;
+      font-size: 0.9rem; font-weight: 500;
+      letter-spacing: 0.12em; margin-left: 6px;
+      color: var(--cream-muted); text-transform: uppercase;
     }
 
     /* Spacer central */
-    #barra-spacer {
-      flex: 1;
-      min-width: 0;
-    }
+    #barra-spacer { flex: 1; min-width: 0; }
 
     #nav-menu-wrap {
       position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
@@ -227,6 +219,7 @@
       padding: 20px 24px 8px;
       max-width: 1400px;
       margin-left: auto; margin-right: auto;
+      overflow-x: hidden;
     }
     .fh-top {
       display: flex; align-items: center; justify-content: space-between;
@@ -259,8 +252,12 @@
 
     /* Orden toggle */
     .orden-row {
-      display: flex; align-items: center; justify-content: flex-end;
+      display: flex; align-items: center; justify-content: center;
+      flex-wrap: wrap; gap: 8px;
       margin: 12px 0 20px;
+    }
+    @media (min-width: 480px) {
+      .orden-row { justify-content: flex-end; flex-wrap: nowrap; }
     }
     .orden-badge {
       font-family: var(--fc); font-size: .6rem; letter-spacing: .12em;
@@ -276,8 +273,8 @@
       color: var(--muted2); background: transparent;
       border: 1px solid rgba(237,232,224,0.15);
       padding: 6px 14px; border-radius: 2px; cursor: pointer;
-      margin-left: 10px; display: flex; align-items: center; gap: 6px;
-      transition: all .18s;
+      display: flex; align-items: center; gap: 6px;
+      transition: all .18s; white-space: nowrap;
     }
     .btn-reordenar:hover { color: var(--cream); border-color: rgba(237,232,224,0.3); }
 
