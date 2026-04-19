@@ -107,8 +107,13 @@ async function procesarCompraExitosa({ publicId, celdas, link, zonaCoords }, db,
     celdas,
     link:        link || '',
     imgPublicId: publicId,
-    imgUrl:      `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/w_400/${publicId}`,
-    imgUrlFull:  `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/${publicId}`,
+    // URLs generadas en Firestore — las transformaciones reales las aplican
+    // cloudinaryMosaico() y cloudinaryModal() en el frontend según contexto.
+    // Aquí guardamos solo la base para que el frontend pueda reconstruirlas.
+    // imgUrl  → thumbnail para el mosaico (fit sin recorte, fondo oscuro)
+    // imgUrlFull → modal y feed (350px, WebP automático)
+    imgUrl:      `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/w_400,h_400,c_fit,f_auto,q_auto,b_rgb:08090F/${publicId}`,
+    imgUrlFull:  `https://res.cloudinary.com/${CLOUDINARY_CONFIG.cloudName}/image/upload/w_350,f_auto,q_auto/${publicId}`,
     r1:          zonaCoords.r1,
     c1:          zonaCoords.c1,
     r2:          zonaCoords.r2,
