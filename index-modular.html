@@ -21,7 +21,8 @@
       subirImagenTemporal,
       guardarDatosCompra,
       ejecutarFlujoPostPago,
-      limpiarImagenTemporalSiExpirada
+      limpiarImagenTemporalSiExpirada,
+      cloudName as _comprasCloudName
     } from './compras.js';
 
     const firebaseConfig = {
@@ -56,7 +57,8 @@
       subirImagenTemporal,
       guardarDatosCompra,
       ejecutarFlujoPostPago,
-      limpiarImagenTemporalSiExpirada
+      limpiarImagenTemporalSiExpirada,
+      _cloudName: _comprasCloudName   // ← expuesto para que _clUrl() funcione
     };
 
     // Limpiar imágenes temporales expiradas al cargar la página
@@ -1330,7 +1332,14 @@ async function getActiveRepo(){
 // Si la imagen no es de Cloudinary (demo/local) devuelve la URL original.
 function _clUrl(publicId, transform){
   if(!publicId)return null;
-  var cn=window._compras&&window._compras._cloudName?window._compras._cloudName:'TU_CLOUD_NAME';
+  // Intenta leer el cloudName real expuesto por compras.js;
+  // si no está disponible aún (módulo no cargado), usa el placeholder.
+  var cn=(window._compras&&window._compras._cloudName&&window._compras._cloudName!=='TU_CLOUD_NAME')
+        ? window._compras._cloudName
+        : 'TU_CLOUD_NAME';
+  if(cn==='TU_CLOUD_NAME'){
+    console.warn('[_clUrl] CLOUD_NAME no configurado. Edita CLOUDINARY_CONFIG en compras.js');
+  }
   return 'https://res.cloudinary.com/'+cn+'/image/upload/'+transform+'/'+publicId;
 }
 
@@ -1483,7 +1492,8 @@ async function pagarPayPal(){
     // Guardar datos de compra temporales via compras.js (publicId se completa tras el pago)
     if(window._compras&&cloudinaryPublicId){
       var zonaCoords={r1:pendingZone.r1,c1:pendingZone.c1,r2:pendingZone.r2,c2:pendingZone.c2,n:pendingZone.n};
-      window._compras.guardarDatosCompra({publicId:cloudinaryPublicId,celdas:Array.from(selActual),link:'',zonaCoords:zonaCoords});
+      var linkActual=document.getElementById('campo-link')?document.getElementById('campo-link').value.trim():'';
+      window._compras.guardarDatosCompra({publicId:cloudinaryPublicId,celdas:Array.from(selActual),link:linkActual,zonaCoords:zonaCoords});
     }
     window.location.href=data.approveUrl;
   }catch(err){
@@ -1500,7 +1510,8 @@ function pagarStripe(){
   // Guardar datos de compra temporales via compras.js
   if(window._compras&&cloudinaryPublicId){
     var zonaCoords={r1:pendingZone.r1,c1:pendingZone.c1,r2:pendingZone.r2,c2:pendingZone.c2,n:pendingZone.n};
-    window._compras.guardarDatosCompra({publicId:cloudinaryPublicId,celdas:Array.from(selActual),link:'',zonaCoords:zonaCoords});
+    var linkStripe=document.getElementById('campo-link')?document.getElementById('campo-link').value.trim():'';
+    window._compras.guardarDatosCompra({publicId:cloudinaryPublicId,celdas:Array.from(selActual),link:linkStripe,zonaCoords:zonaCoords});
   }
   var btn=document.getElementById('btn-pagar-stripe');
   btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>&nbsp; Redirigiendo a Stripe...';
@@ -1534,10 +1545,8 @@ async function detectarRetornoPago(){
       if(!data.ok)throw new Error(data.error||'Pago no verificado');
       uploadToken=data.uploadToken;crearCuentaVipTrasCompra(stripeEmail);
       showHint('¡Pago con tarjeta confirmado! Sube tu imagen.');
-      // Ejecutar flujo post-pago en Firestore si hay datos guardados
-      if(window._compras&&window._fbDb&&window._fbAuth){
-        window._compras.ejecutarFlujoPostPago(window._fbDb,window._fbAuth).catch(function(){});
-      }
+      // NOTA: ejecutarFlujoPostPago se llama en publicar() tras subir la imagen,
+      // no aquí, porque el publicId de Cloudinary aún no está disponible.
       setTimeout(abrirUpload,800);
     }catch(err){showHint('Error al verificar el pago. Contacta con soporte.');}
     return;
@@ -1546,16 +1555,14 @@ async function detectarRetornoPago(){
   sessionStorage.removeItem('paypalOrderID');
   showHint('Verificando pago con PayPal...');
   try{
-    var res=await fetch(CFG.API_BASE+'/verify-paypal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderID:orderID,zone:pendingZone})});
-    var data=await res.json();
-    if(!data.ok){showHint('Error: '+(data.error||'Pago no verificado'));return;}
-    uploadToken=data.uploadToken;
+    var resPaypal=await fetch(CFG.API_BASE+'/verify-paypal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderID:orderID,zone:pendingZone})});
+    var dataPaypal=await resPaypal.json();
+    if(!dataPaypal.ok){showHint('Error: '+(dataPaypal.error||'Pago no verificado'));return;}
+    uploadToken=dataPaypal.uploadToken;
     if(pendingZone.email)crearCuentaVipTrasCompra(pendingZone.email);
     showHint('¡Pago verificado! Ahora sube tu imagen.');
-    // Ejecutar flujo post-pago en Firestore si hay datos guardados
-    if(window._compras&&window._fbDb&&window._fbAuth){
-      window._compras.ejecutarFlujoPostPago(window._fbDb,window._fbAuth).catch(function(){});
-    }
+    // NOTA: ejecutarFlujoPostPago se llama en publicar() tras subir la imagen,
+    // no aquí, porque el publicId de Cloudinary aún no está disponible.
     setTimeout(abrirUpload,800);
   }catch(err){showHint('Error al verificar el pago. Contacta con soporte.');}
 }
@@ -1670,6 +1677,9 @@ async function publicar(){
       // ── FLUJO PRODUCCIÓN: usar compras.js ─────────────────────
       if(!window._compras||!window._fbDb||!window._fbAuth){
         throw new Error('Módulo compras.js o Firebase no disponible');
+      }
+      if(!cloudinaryPublicId){
+        throw new Error('No hay imagen subida a Cloudinary. Vuelve al paso 1 y sube tu imagen.');
       }
       var celdas=Array.from(selActual);
       var zonaCoords={r1:pendingZone.r1,c1:pendingZone.c1,r2:pendingZone.r2,c2:pendingZone.c2,n:pendingZone.n};
