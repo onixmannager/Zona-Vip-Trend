@@ -79,14 +79,11 @@
       backdrop-filter: blur(24px);
       display: flex; align-items: center;
       padding: 0 36px; z-index: 100; gap: 6px;
-      animation: fadeDown 700ms 300ms both;
     }
-    @keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
-    /* Ajustes específicos para móvil (navbar sin solapamientos) */
     @media (max-width: 420px) {
       #nav-dropdown { min-width: 200px; }
       #barra { padding: 0 12px; }
-      #nav-menu-wrap { right: 12px; gap: 2px; }
+      #nav-menu-wrap { gap: 2px; }
       .barra-logo-main {
         font-size: 1.1rem !important;
         letter-spacing: 0.1em !important;
@@ -96,7 +93,6 @@
         font-size: 0.6rem !important;
       }
     }
-    /* Ajustes extra para pantallas muy pequeñas (≤380px) */
     @media (max-width: 380px) {
       .barra-logo-main { font-size: 1.0rem !important; }
       #btn-menu span { display: none; }
@@ -121,11 +117,9 @@
       color: var(--cream-muted); text-transform: uppercase;
     }
 
-    /* Spacer central */
-    #barra-spacer { flex: 1; min-width: 0; }
-
     #nav-menu-wrap {
-      position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
+      position: relative;
+      margin-left: auto;
       display: flex; align-items: center; gap: 5px;
     }
     #btn-menu {
@@ -219,7 +213,6 @@
       padding: 20px 24px 8px;
       max-width: 1400px;
       margin-left: auto; margin-right: auto;
-      overflow-x: hidden;
     }
     .fh-top {
       display: flex; align-items: center; justify-content: space-between;
@@ -605,8 +598,6 @@
       <span class="trends-suffix">Trends</span>
     </span>
   </a>
-
-  <div id="barra-spacer"></div>
 
   <div id="nav-menu-wrap">
     <button id="btn-menu" onclick="toggleMenu()">
