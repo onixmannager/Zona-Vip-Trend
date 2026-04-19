@@ -22,8 +22,9 @@ const PRECIO_POR_CELDA = 50;
 const STORAGE_KEY = 'pendingPurchaseData';
 const TIEMPO_MAX = 15 * 60 * 1000; // 15 min
 
-// ✅ FIX advertencia 1: exportar cloudName para que index.html construya URLs
-export const _cloudName = CLOUDINARY_CONFIG.cloudName;
+// Exportar cloudName para que index.html construya URLs de previsualización
+// Se exporta aquí como named export; NO se repite en el bloque export{} del final.
+export const cloudName = CLOUDINARY_CONFIG.cloudName;
 
 // ═══════════════════════════════════════════════════════════════
 // 🟢 1. SUBIR IMAGEN TEMPORAL A CLOUDINARY
@@ -93,7 +94,10 @@ async function procesarCompraExitosa({ publicId, celdas, link, zonaCoords }, db,
   if (!user) throw new Error('Usuario no autenticado');
 
   if (!celdas?.length || !publicId || !zonaCoords) {
-    throw new Error('Datos de compra incompletos');
+    throw new Error('Datos de compra incompletos: falta ' +
+      (!publicId ? 'publicId ' : '') +
+      (!celdas?.length ? 'celdas ' : '') +
+      (!zonaCoords ? 'zonaCoords' : ''));
   }
 
   const batch = writeBatch(db);
@@ -216,4 +220,4 @@ export {
   ejecutarFlujoPostPago,
   limpiarImagenTemporalSiExpirada
 };
-// _cloudName se exporta arriba como named export (export const)
+// cloudName se exporta arriba como named export (export const)
