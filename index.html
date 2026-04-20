@@ -846,7 +846,7 @@ body {
       <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>    
       <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Informacion</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      
+      <button id="installBtn">Instalar app</button>
       
       
       <div class="nav-divider"></div>
@@ -1782,6 +1782,33 @@ function cerrarMenu(){
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarMenu();});
 </script>
+
+
+
+
+
+
+
+
+  <script>
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) {
+    alert("Abre la web en Chrome Android para poder instalarla");
+    return;
+  }
+
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+});
+  </script>
 
   
 
