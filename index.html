@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
   <link rel="icon" href="/ZonaVIP-Logo.webp">
 <link rel="apple-touch-icon" href="/ZonaVIP-Logo.webp">
-  <link rel="manifest" href="/manifest.json">
+  
 
   <!-- Firebase SDK -->
   <script type="module">
@@ -847,7 +847,7 @@ body {
       <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Informacion</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       
-      <button id="installBtn">📲 Instalar app</button>
+      
       
       <div class="nav-divider"></div>
       <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
@@ -1785,27 +1785,5 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarMenu()
 
   
 
-  <script>
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if (!deferredPrompt) {
-    alert("Abre desde Chrome en Android para instalar");
-    return;
-  }
-
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-});
-  </script>
-
-
-  
 </body>
  </html>
