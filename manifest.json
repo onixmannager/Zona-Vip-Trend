@@ -1,0 +1,15 @@
+{
+  "name": "ZonaVip Trends",
+  "short_name": "ZonaVip",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08090F",
+  "theme_color": "#08090F",
+  "icons": [
+    {
+      "src": "/ZonaVIP-Logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}
