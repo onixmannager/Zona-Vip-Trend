@@ -846,7 +846,7 @@ body {
       <a class="nav-item" href="paneldecontrol.html"><span class="nav-icon"><i class="fas fa-sliders-h"></i></span><span class="nav-item-label">Panel de control</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>    
       <a class="nav-item" href="selector.html"><span class="nav-icon"><i class="fas fa-info-circle"></i></span><span class="nav-item-label">Informacion</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
       <a class="nav-item" href="soporte.html"><span class="nav-icon"><i class="fas fa-headset"></i></span><span class="nav-item-label">Soporte</span><i class="fas fa-chevron-right nav-item-arrow"></i></a>
-      <button id="installBtn">Instalar app</button>
+      <button onclick="createShortcut()">📲 Crear acceso directo</button>
       
       
       <div class="nav-divider"></div>
@@ -1791,23 +1791,23 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrarMenu()
 
 
   <script>
-let deferredPrompt;
+function createShortcut() {
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if (!deferredPrompt) {
-    alert("Abre la web en Chrome Android para poder instalarla");
+  if (isAndroid) {
+    alert("Pulsa ⋮ (arriba derecha) → 'Añadir a pantalla de inicio'");
+    window.location.href = window.location.href;
     return;
   }
 
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt = null;
-});
+  if (isIOS) {
+    alert("Pulsa compartir ↓ → 'Añadir a pantalla de inicio'");
+    return;
+  }
+
+  alert("Abre esto desde el móvil para crear acceso directo");
+}
   </script>
 
   
