@@ -212,7 +212,7 @@
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(5, 1fr);
             gap: 6px; padding: 8px;
-            touch-action: manipulation; /* mejora respuesta táctil */
+            touch-action: manipulation;
         }
         .slot {
             background: rgba(12,13,22,0.9);
@@ -253,7 +253,7 @@
         }
         .slot.ocupado .img-slot { display: block; }
 
-        /* ── Botón esquina doblada (izquierda, discreto, icono centrado en pliegue) ── */
+        /* ── Botón esquina doblada ── */
         .dogear-btn {
             position: absolute;
             top: 0;
@@ -261,7 +261,7 @@
             width: 0;
             height: 0;
             border-style: solid;
-            border-width: 0 0 42px 42px;         /* un poco más grande para acomodar el icono */
+            border-width: 0 0 42px 42px;
             border-color: transparent transparent transparent rgba(191,155,90,0.18);
             z-index: 15;
             cursor: pointer;
@@ -278,7 +278,6 @@
             font-size: 0.7rem;
             color: var(--gold);
             pointer-events: none;
-            transform: translate(0, 0);
         }
         .slot:hover .dogear-btn {
             opacity: 0.8;
@@ -396,6 +395,131 @@
         .vip-nav-link { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px; background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.08); border-radius: 1px; text-decoration: none; font-family: var(--fc); font-size: .62rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted2); transition: all .2s; }
         .vip-nav-link:hover { background: rgba(191,155,90,0.07); border-color: rgba(191,155,90,0.28); color: var(--cream); }
         .vip-nav-link i { font-size: 1rem; color: var(--gold); }
+
+        /* ─── MODAL DE BIENVENIDA ─── */
+        #modal-welcome {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -120%);
+            z-index: 500;
+            background: rgba(12,13,22,0.98);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 28px 24px 24px;
+            width: min(420px, 92vw);
+            box-shadow: 0 28px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(191,155,90,0.08), inset 0 1px 0 rgba(237,232,224,0.04);
+            transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+            pointer-events: none;
+            opacity: 0;
+        }
+        #modal-welcome.visible {
+            transform: translate(-50%, 20vh);
+            opacity: 1;
+            pointer-events: all;
+        }
+        #modal-welcome .welcome-icon {
+            text-align: center;
+            font-size: 2.4rem;
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+        #modal-welcome .welcome-title {
+            font-family: var(--fh);
+            font-size: 1.7rem;
+            font-weight: 300;
+            letter-spacing: 0.02em;
+            color: var(--cream);
+            text-align: center;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+        #modal-welcome .welcome-sub {
+            font-family: var(--fb);
+            font-size: 0.8rem;
+            font-weight: 300;
+            color: var(--muted2);
+            text-align: center;
+            margin-bottom: 22px;
+            line-height: 1.55;
+            padding: 0 4px;
+        }
+        #modal-welcome .welcome-sub b {
+            color: var(--gold);
+            font-weight: 500;
+        }
+        #modal-welcome .welcome-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .btn-welcome {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 13px 16px;
+            border: 1px solid var(--gold-dim);
+            border-radius: 2px;
+            background: transparent;
+            font-family: var(--fc);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-welcome:hover {
+            background: rgba(191,155,90,0.12);
+            border-color: var(--gold);
+            box-shadow: 0 0 18px rgba(191,155,90,0.12);
+        }
+        .btn-welcome.sec {
+            border-color: rgba(237,232,224,0.12);
+            color: var(--muted2);
+            font-weight: 500;
+        }
+        .btn-welcome.sec:hover {
+            border-color: rgba(237,232,224,0.28);
+            color: var(--cream);
+            background: rgba(237,232,224,0.04);
+            box-shadow: none;
+        }
+        .welcome-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            font-family: var(--fb);
+            font-size: 0.7rem;
+            color: var(--muted2);
+            cursor: pointer;
+            user-select: none;
+        }
+        .welcome-check input[type="checkbox"] {
+            accent-color: var(--gold);
+            width: 15px;
+            height: 15px;
+            cursor: pointer;
+        }
+        #welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8,9,15,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 499;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s;
+        }
+        #welcome-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
     </style>
 </head>
 <body>
@@ -438,6 +562,29 @@
         </div>
     </div>
     <div id="nav-overlay" onclick="cerrarMenu()"></div>
+
+    <!-- MODAL DE BIENVENIDA -->
+    <div id="welcome-overlay"></div>
+    <div id="modal-welcome">
+        <div class="welcome-icon"><i class="fas fa-crown"></i></div>
+        <div class="welcome-title">Bienvenido a Zona Vip Trends!!</div>
+        <div class="welcome-sub">
+            Si quieres aprender cómo <b>gestionar los activos</b> de este Marketplace puedes hacerlo desde <b>Instrucciones</b>.<br><br>
+            También puedes acceder desde el <b>menú de navegación</b>.
+        </div>
+        <div class="welcome-btns">
+            <a class="btn-welcome" href="selector.html">
+                <i class="fas fa-book-open"></i>&nbsp; Instrucciones
+            </a>
+            <button class="btn-welcome sec" onclick="cerrarWelcome()">
+                <i class="fas fa-times"></i>&nbsp; Cerrar
+            </button>
+        </div>
+        <label class="welcome-check">
+            <input type="checkbox" id="chk-no-mostrar" />
+            No volver a mostrar este mensaje
+        </label>
+    </div>
 
     <!-- TABLERO DE 15 SLOTS -->
     <div id="tablero"></div>
@@ -506,7 +653,6 @@
             dividido: false
         }));
 
-        // Variables para long press (delegación en tablero)
         let longPressTimer = null;
         let longPressTriggered = false;
         let currentSlotIndex = null;
@@ -524,14 +670,12 @@
             }
             refrescarSlots();
 
-            // Delegación de eventos pointer en el tablero
             tablero.addEventListener('pointerdown', manejarPointerDownTablero);
             tablero.addEventListener('pointerup', manejarPointerUpTablero);
             tablero.addEventListener('pointerleave', cancelarLongPressGlobal);
             tablero.addEventListener('pointercancel', cancelarLongPressGlobal);
         }
 
-        // Buscar el slot más cercano (puede ser el propio slot o un hijo)
         function obtenerSlotDesdeEvento(e) {
             let target = e.target;
             while (target && target !== document.getElementById('tablero')) {
@@ -550,17 +694,8 @@
             const s = slotsState[index];
             if (!s) return;
 
-            // Si el slot está ocupado (banner, etc.) o tiene grupo, no hacer long press (solo click normal)
-            if (s.estado !== 'libre' || s.grupo) {
-                // Si es banner, permitir que el botón dogear maneje su propio click,
-                // pero no interferir con long press.
-                return;
-            }
-
-            // Verificar si el click viene de un botón dogear (esquina doblada) → no iniciar long press
-            if (e.target.closest('.dogear-btn')) {
-                return;
-            }
+            if (s.estado !== 'libre' || s.grupo) return;
+            if (e.target.closest('.dogear-btn')) return;
 
             cancelarLongPressGlobal();
             longPressTriggered = false;
@@ -577,10 +712,7 @@
 
         function manejarPointerUpTablero(e) {
             const slotDiv = obtenerSlotDesdeEvento(e);
-            if (!slotDiv) {
-                cancelarLongPressGlobal();
-                return;
-            }
+            if (!slotDiv) { cancelarLongPressGlobal(); return; }
             const index = parseInt(slotDiv.dataset.index, 10);
             const s = slotsState[index];
             if (!s) return;
@@ -593,22 +725,15 @@
             }
             cancelarLongPressGlobal();
 
-            // Si el click viene de un botón dogear, no navegar
-            if (e.target.closest('.dogear-btn')) {
-                return;
-            }
+            if (e.target.closest('.dogear-btn')) return;
 
-            // Click normal en slot libre (no dividido ni banner) → navegar
             if (s.estado === 'libre' && !s.grupo && !s.dividido) {
                 window.location.href = `slot.html?id=${index}`;
             }
         }
 
         function cancelarLongPressGlobal() {
-            if (longPressTimer) {
-                clearTimeout(longPressTimer);
-                longPressTimer = null;
-            }
+            if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
             longPressTriggered = false;
             currentSlotIndex = null;
         }
@@ -633,7 +758,6 @@
                 if (!slotDiv) continue;
                 const s = slotsState[i];
 
-                // Limpiar contenido pero mantener el div
                 slotDiv.innerHTML = '';
                 slotDiv.style.display = '';
                 slotDiv.classList.remove('libre', 'ocupado', 'banner', 'dividido');
@@ -652,7 +776,6 @@
                         estadoDiv.className = 'estado';
                         estadoDiv.textContent = 'Activo Publicitario Libre';
                         slotDiv.appendChild(estadoDiv);
-                        
                         const btn = crearDogearBtn(() => toggleFila(Math.floor(i/3)), 'fa-unlink');
                         slotDiv.appendChild(btn);
                     } else {
@@ -678,23 +801,16 @@
                         const sub = document.createElement('div');
                         sub.className = 'sub-slot';
                         sub.textContent = 'Activo Publicitario Libre';
-                        sub.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            // futura acción para sub-slots
-                        });
+                        sub.addEventListener('click', (e) => { e.stopPropagation(); });
                         subGrid.appendChild(sub);
                     }
                     slotDiv.appendChild(subGrid);
-                    // No se añaden listeners adicionales aquí, la delegación se encarga
                 } else {
-                    // Slot libre normal
                     slotDiv.classList.add('libre');
                     const estadoDiv = document.createElement('div');
                     estadoDiv.className = 'estado';
                     estadoDiv.textContent = 'Activo Publicitario Libre';
                     slotDiv.appendChild(estadoDiv);
-                    
-                    // Botón esquina doblada solo en primera columna
                     if (i % 3 === 0) {
                         const btn = crearDogearBtn(() => toggleFila(Math.floor(i/3)), 'fa-link');
                         slotDiv.appendChild(btn);
@@ -707,22 +823,9 @@
             const btn = document.createElement('div');
             btn.className = 'dogear-btn';
             btn.innerHTML = `<i class="fas ${iconClass}"></i>`;
-            // Prevenir propagación para que no active el long press ni el click del slot
-            btn.addEventListener('pointerdown', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                cancelarLongPressGlobal();
-            });
-            btn.addEventListener('pointerup', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-            });
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                cancelarLongPressGlobal();
-                callback();
-            });
+            btn.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); cancelarLongPressGlobal(); });
+            btn.addEventListener('pointerup', (e) => { e.stopPropagation(); e.preventDefault(); });
+            btn.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); cancelarLongPressGlobal(); callback(); });
             return btn;
         }
 
@@ -752,6 +855,24 @@
             refrescarSlots();
         }
 
+        // ─── MODAL DE BIENVENIDA ───
+        function mostrarWelcomeSiProcede() {
+            if (localStorage.getItem('zvp_welcome_hidden') === 'true') return;
+            setTimeout(() => {
+                document.getElementById('modal-welcome').classList.add('visible');
+                document.getElementById('welcome-overlay').classList.add('visible');
+            }, 600);
+        }
+
+        function cerrarWelcome() {
+            document.getElementById('modal-welcome').classList.remove('visible');
+            document.getElementById('welcome-overlay').classList.remove('visible');
+            if (document.getElementById('chk-no-mostrar').checked) {
+                localStorage.setItem('zvp_welcome_hidden', 'true');
+            }
+        }
+        document.getElementById('welcome-overlay').addEventListener('click', cerrarWelcome);
+
         // ─── MENÚ ───
         function toggleMenu() {
             var btn = document.getElementById('btn-menu');
@@ -774,9 +895,7 @@
         function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
 
         // ─── AUTENTICACIÓN VIP ───
-        window._onAuthReady = function(user) {
-            actualizarUIVip(user);
-        };
+        window._onAuthReady = function(user) { actualizarUIVip(user); };
         function actualizarUIVip(user) {
             var panelSes = document.getElementById('vip-panel-sesion');
             var panelLog = document.getElementById('vip-panel-login');
@@ -864,6 +983,7 @@
 
         // ─── INICIALIZACIÓN ───
         construirTablero();
+        mostrarWelcomeSiProcede();
     </script>
 </body>
 </html>
