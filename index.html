@@ -410,7 +410,7 @@
             padding: 28px 24px 24px;
             width: min(440px, 94vw);
             box-shadow: 0 30px 70px rgba(0,0,0,0.95), 0 0 0 1px rgba(191,155,90,0.2), inset 0 1px 0 rgba(237,232,224,0.05);
-            transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+            transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s ease;
             pointer-events: none;
             opacity: 0;
             will-change: transform, opacity;
@@ -509,14 +509,14 @@
             cursor: pointer;
         }
 
-        /* ─── OVERLAY DE BIENVENIDA (transparente, intercepta primer clic) ─── */
+        /* ─── OVERLAY DE BIENVENIDA ─── */
         #welcome-overlay {
             position: fixed;
             inset: 0;
-            z-index: 150;
-            background: transparent;
-            cursor: pointer;
+            z-index: 250;
+            background: rgba(0,0,0,0.001); /* mínimo para capturar eventos en todos los navegadores */
             display: none;
+            cursor: default;
         }
         #welcome-overlay.active {
             display: block;
@@ -570,8 +570,8 @@
     </div>
     <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
-    <!-- OVERLAY TRANSPARENTE: intercepta el primer clic y lanza la tarjeta -->
-    <div id="welcome-overlay" onclick="mostrarWelcomeDesdeOverlay()"></div>
+    <!-- OVERLAY: bloquea los slots mientras la tarjeta está activa -->
+    <div id="welcome-overlay"></div>
 
     <!-- TARJETA DE BIENVENIDA (aparece al primer toque, sin fondo oscuro) -->
     <div id="modal-welcome">
@@ -874,45 +874,47 @@
         }
 
         // ─── TARJETA DE BIENVENIDA ───
-        // El overlay se muestra al cargar la página (si no estaba oculto).
-        // Al hacer clic en él aparece la tarjeta; los botones quedan bloqueados
-        // hasta que termina la transición de expansión (0.55 s).
-        // Tanto el estado del overlay como el de la tarjeta se persisten en localStorage.
+        // Al cargar: overlay invisible bloquea los slots y espera el primer click.
+        // Al primer click en cualquier punto → tarjeta cae desde arriba.
+        // Botones bloqueados durante la animación (620ms).
+        // Al cerrar tarjeta → overlay desaparece, slots interactivos.
+        // Estado en localStorage: 'zvp_welcome_v2'.
 
-        function inicializarOverlayBienvenida() {
-            if (localStorage.getItem('zvp_welcome_hidden') === 'true') return;
-            document.getElementById('welcome-overlay').classList.add('active');
-        }
+        function inicializarBienvenida() {
+            if (localStorage.getItem('zvp_welcome_v2') === 'true') return;
 
-        function mostrarWelcomeDesdeOverlay() {
-            const overlay = document.getElementById('welcome-overlay');
-            const welcome = document.getElementById('modal-welcome');
+            var overlay = document.getElementById('welcome-overlay');
+            overlay.classList.add('active');
 
-            // Quitar overlay
-            overlay.classList.remove('active');
-            localStorage.setItem('zvp_overlay_dismissed', 'true');
+            // Un solo click en el overlay muestra la tarjeta
+            overlay.addEventListener('click', function handler(e) {
+                e.stopPropagation(); // evita que el mismo click cierre la tarjeta al burbujear
+                overlay.removeEventListener('click', handler);
+                overlay.classList.remove('active');
 
-            // Mostrar tarjeta bloqueando botones durante la transición
-            welcome.classList.add('visible', 'expanding');
-            setTimeout(() => welcome.classList.remove('expanding'), 620);
+                var welcome = document.getElementById('modal-welcome');
+                welcome.classList.add('visible', 'expanding');
+                setTimeout(function() {
+                    welcome.classList.remove('expanding');
+                }, 620);
+            }, { once: true });
         }
 
         function cerrarWelcome() {
-            const welcome = document.getElementById('modal-welcome');
+            var welcome = document.getElementById('modal-welcome');
+            var overlay = document.getElementById('welcome-overlay');
             welcome.classList.remove('visible', 'expanding');
-            document.getElementById('welcome-overlay').classList.remove('active');
+            overlay.classList.remove('active');
             if (document.getElementById('chk-no-mostrar').checked) {
-                localStorage.setItem('zvp_welcome_hidden', 'true');
+                localStorage.setItem('zvp_welcome_v2', 'true');
             }
         }
 
-        // Cerrar al hacer clic fuera de la tarjeta (solo si overlay ya fue cerrado)
+        // Cerrar al hacer clic fuera de la tarjeta
         document.addEventListener('click', function(e) {
-            const welcome = document.getElementById('modal-welcome');
-            const overlay = document.getElementById('welcome-overlay');
+            var welcome = document.getElementById('modal-welcome');
             if (
                 welcome.classList.contains('visible') &&
-                !overlay.classList.contains('active') &&
                 !e.target.closest('#modal-welcome')
             ) {
                 cerrarWelcome();
@@ -1029,7 +1031,7 @@
 
         // ─── INICIALIZACIÓN ───
         construirTablero();
-        inicializarOverlayBienvenida();
+        inicializarBienvenida();
     </script>
 </body>
-    </html>
+</html>
