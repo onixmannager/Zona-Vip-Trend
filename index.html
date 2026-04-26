@@ -96,7 +96,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-        /* ─── BARRA SUPERIOR (INDEX-MODULAR EXACTA) ─── */
+        /* ─── BARRA SUPERIOR ─── */
         #barra {
             position: fixed; top: 0; left: 0; right: 0; height: 58px;
             background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
@@ -126,7 +126,7 @@
             overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
         }
 
-        /* ─── MENÚ NAVEGACIÓN (INDEX-MODULAR EXACTO) ─── */
+        /* ─── MENÚ NAVEGACIÓN ─── */
         #nav-menu-wrap {
             position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
             display: flex; align-items: center; gap: 5px;
@@ -396,77 +396,86 @@
         .vip-nav-link:hover { background: rgba(191,155,90,0.07); border-color: rgba(191,155,90,0.28); color: var(--cream); }
         .vip-nav-link i { font-size: 1rem; color: var(--gold); }
 
-        /* ─── TARJETA DE BIENVENIDA (SIN OVERLAY, CAE DEL NAVEGADOR) ─── */
+        /* ─── OVERLAY PROTECTOR Y TARJETA DE BIENVENIDA ─── */
+        #welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8,9,15,0.78);
+            backdrop-filter: blur(10px);
+            z-index: 699;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.45s ease;
+        }
+        #welcome-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
         #modal-welcome {
             position: fixed;
-            top: 0;
+            top: 50%;
             left: 50%;
-            transform: translate(-50%, -120%);
-            z-index: 300;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 700;
             background: rgba(12,13,22,0.98);
             border: 1px solid var(--gold-dim);
-            border-top: none;
-            border-radius: 0 0 12px 12px;
-            padding: 28px 24px 24px;
-            width: min(440px, 94vw);
-            box-shadow: 0 30px 70px rgba(0,0,0,0.95), 0 0 0 1px rgba(191,155,90,0.2), inset 0 1px 0 rgba(237,232,224,0.05);
-            transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
-            pointer-events: none;
+            border-radius: 12px;
+            padding: 32px 24px 24px;
+            width: min(420px, 92vw);
+            box-shadow: 0 35px 70px rgba(0,0,0,0.95), 0 0 0 1px rgba(191,155,90,0.25);
             opacity: 0;
-            will-change: transform, opacity;
+            pointer-events: none;
+            transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
         }
         #modal-welcome.visible {
-            transform: translate(-50%, 0);
+            transform: translate(-50%, -50%) scale(1);
             opacity: 1;
             pointer-events: all;
         }
         #modal-welcome .welcome-icon {
             text-align: center;
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             color: var(--gold);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         #modal-welcome .welcome-title {
             font-family: var(--fh);
-            font-size: 1.7rem;
+            font-size: 1.8rem;
             font-weight: 300;
             letter-spacing: 0.02em;
             color: var(--cream);
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             line-height: 1.2;
         }
         #modal-welcome .welcome-sub {
             font-family: var(--fb);
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             font-weight: 300;
             color: var(--muted2);
             text-align: center;
-            margin-bottom: 22px;
+            margin-bottom: 24px;
             line-height: 1.55;
             padding: 0 4px;
         }
-        #modal-welcome .welcome-sub b {
-            color: var(--gold);
-            font-weight: 500;
-        }
+        #modal-welcome .welcome-sub b { color: var(--gold); font-weight: 500; }
         #modal-welcome .welcome-btns {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
         .btn-welcome {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 13px 16px;
+            padding: 14px 16px;
             border: 1px solid var(--gold-dim);
             border-radius: 3px;
             background: transparent;
             font-family: var(--fc);
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 600;
             letter-spacing: 0.2em;
             text-transform: uppercase;
@@ -475,22 +484,9 @@
             transition: all 0.2s;
             text-decoration: none;
         }
-        .btn-welcome:hover {
-            background: rgba(191,155,90,0.12);
-            border-color: var(--gold);
-            box-shadow: 0 0 18px rgba(191,155,90,0.12);
-        }
-        .btn-welcome.sec {
-            border-color: rgba(237,232,224,0.12);
-            color: var(--muted2);
-            font-weight: 500;
-        }
-        .btn-welcome.sec:hover {
-            border-color: rgba(237,232,224,0.28);
-            color: var(--cream);
-            background: rgba(237,232,224,0.04);
-            box-shadow: none;
-        }
+        .btn-welcome:hover { background: rgba(191,155,90,0.12); border-color: var(--gold); }
+        .btn-welcome.sec { border-color: rgba(237,232,224,0.12); color: var(--muted2); font-weight: 500; }
+        .btn-welcome.sec:hover { border-color: rgba(237,232,224,0.28); color: var(--cream); background: rgba(237,232,224,0.04); }
         .welcome-check {
             display: flex;
             align-items: center;
@@ -502,12 +498,7 @@
             cursor: pointer;
             user-select: none;
         }
-        .welcome-check input[type="checkbox"] {
-            accent-color: var(--gold);
-            width: 15px;
-            height: 15px;
-            cursor: pointer;
-        }
+        .welcome-check input[type="checkbox"] { accent-color: var(--gold); width: 15px; height: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -551,7 +542,10 @@
     </div>
     <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
-    <!-- TARJETA DE BIENVENIDA (aparece al primer toque, sin fondo oscuro) -->
+    <!-- CAPA PROTECTORA (se activa de inmediato si no está oculta por localStorage) -->
+    <div id="welcome-overlay"></div>
+
+    <!-- TARJETA DE BIENVENIDA -->
     <div id="modal-welcome">
         <div class="welcome-icon"><i class="fas fa-crown"></i></div>
         <div class="welcome-title">Bienvenido a Zona Vip Trends!!</div>
@@ -842,32 +836,36 @@
             refrescarSlots();
         }
 
-        // ─── TARJETA DE BIENVENIDA (aparece al primer toque, sin overlay) ───
-        let welcomeShown = false;
-        function mostrarWelcomeSiProcede() {
-            if (localStorage.getItem('zvp_welcome_hidden') === 'true') return;
-            if (welcomeShown) return;
-            welcomeShown = true;
-            document.getElementById('modal-welcome').classList.add('visible');
-        }
-        document.addEventListener('pointerdown', function firstTouch() {
-            mostrarWelcomeSiProcede();
-            document.removeEventListener('pointerdown', firstTouch);
-        }, { once: true });
+        // ─── CAPA PROTECTORA + TARJETA DE BIENVENIDA ───
+        (function() {
+            const overlay = document.getElementById('welcome-overlay');
+            const modal = document.getElementById('modal-welcome');
+            const chk = document.getElementById('chk-no-mostrar');
 
-        function cerrarWelcome() {
-            document.getElementById('modal-welcome').classList.remove('visible');
-            if (document.getElementById('chk-no-mostrar').checked) {
-                localStorage.setItem('zvp_welcome_hidden', 'true');
+            // Si ya ocultó el mensaje, no hacemos nada
+            if (localStorage.getItem('zvp_welcome_hidden') === 'true') return;
+
+            // Mostrar capa protectora de inmediato
+            overlay.classList.add('visible');
+
+            // Al primer clic/toque sobre la capa, mostrar la tarjeta de bienvenida
+            function mostrarTarjeta(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                modal.classList.add('visible');
+                overlay.removeEventListener('pointerdown', mostrarTarjeta);
             }
-        }
-        // Cerrar al hacer clic fuera de la tarjeta
-        document.addEventListener('click', function(e) {
-            const welcome = document.getElementById('modal-welcome');
-            if (welcome.classList.contains('visible') && !e.target.closest('#modal-welcome')) {
-                cerrarWelcome();
-            }
-        });
+            overlay.addEventListener('pointerdown', mostrarTarjeta);
+
+            // Cerrar solo desde botón "Cerrar"
+            window.cerrarWelcome = function() {
+                modal.classList.remove('visible');
+                overlay.classList.remove('visible');
+                if (chk.checked) {
+                    localStorage.setItem('zvp_welcome_hidden', 'true');
+                }
+            };
+        })();
 
         // ─── MENÚ ───
         function toggleMenu() {
@@ -979,7 +977,6 @@
 
         // ─── INICIALIZACIÓN ───
         construirTablero();
-        // La tarjeta de bienvenida se activa con el primer toque (ver listener arriba)
     </script>
 </body>
 </html>
