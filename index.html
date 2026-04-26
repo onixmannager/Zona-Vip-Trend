@@ -11,7 +11,7 @@
     <link rel="icon" href="/ZonaVIP-Logo.webp" />
     <link rel="apple-touch-icon" href="/ZonaVIP-Logo.webp" />
 
-    <!-- Firebase + compras.js (idéntico al original) -->
+    <!-- Firebase + compras.js -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
@@ -65,7 +65,7 @@
     </script>
 
     <style>
-        /* ─── VARIABLES (sistema selector) ─────────────────────────── */
+        /* ─── VARIABLES ─── */
         :root {
             --gold: #BF9B5A;
             --gold-light: #D4B578;
@@ -78,776 +78,331 @@
             --bg: #08090F;
             --card: rgba(12, 13, 22, 0.97);
             --border: rgba(191, 155, 90, 0.18);
-            --sel: rgba(191, 155, 90, 0.45);
-            --sold: rgba(191, 155, 90, 0.09);
             --muted: rgba(237, 232, 224, 0.28);
             --muted2: rgba(237, 232, 224, 0.55);
-            --white: #EDE8E0;
-            --cyan: #BF9B5A;
             --fh: 'Cormorant Garamond', serif;
             --fb: 'Barlow', sans-serif;
             --fc: 'Barlow Condensed', sans-serif;
-            --transition: 430ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: var(--fb);
             background: var(--bg);
             color: var(--cream);
             overflow: hidden;
         }
-
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--border);
-            border-radius: 99px;
-        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
         /* ─── BARRA SUPERIOR (INDEX-MODULAR EXACTA) ─── */
         #barra {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 58px;
-            background: linear-gradient(to bottom, rgba(8, 9, 15, 0.96) 0%, rgba(8, 9, 15, 0.88) 100%);
+            position: fixed; top: 0; left: 0; right: 0; height: 58px;
+            background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(24px);
-            display: flex;
-            align-items: center;
-            padding: 0 36px;
-            z-index: 100;
-            gap: 6px;
+            display: flex; align-items: center;
+            padding: 0 36px; z-index: 100; gap: 6px;
             animation: fadeDown 700ms 300ms both;
         }
-        @keyframes fadeDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        @keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
 
-        /* Logo */
-        .barra-logo {
-            display: flex;
-            align-items: baseline;
-            gap: 6px;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
+        .barra-logo { display: flex; align-items: baseline; gap: 6px; text-decoration: none; flex-shrink: 0; }
         .barra-logo-main {
-            font-family: var(--fh);
-            font-size: 1.4rem;
-            font-weight: 400;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--cream);
+            font-family: var(--fh); font-size: 1.4rem; font-weight: 400;
+            letter-spacing: 0.15em; text-transform: uppercase; color: var(--cream);
         }
-        .barra-logo-vip {
-            color: var(--gold);
-        }
+        .barra-logo-vip { color: var(--gold); }
         .barra-logo-main .trends-suffix {
-            font-family: var(--fc);
-            font-size: 0.9rem;
-            font-weight: 500;
-            letter-spacing: 0.12em;
-            margin-left: 6px;
-            color: var(--cream-muted);
+            font-family: var(--fc); font-size: 0.9rem; font-weight: 500;
+            letter-spacing: 0.12em; margin-left: 6px; color: var(--cream-muted);
             text-transform: uppercase;
         }
 
         #barra-info {
-            font-family: var(--fc);
-            font-size: .62rem;
-            color: var(--muted2);
-            letter-spacing: .06em;
-            flex: 1;
-            text-align: center;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            min-width: 0;
-        }
-        #barra-info b {
-            color: var(--cream);
-        }
-        #barra-info .g {
-            color: var(--gold);
+            font-family: var(--fc); font-size: .62rem; color: var(--muted2);
+            letter-spacing: .06em; flex: 1; text-align: center;
+            overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
         }
 
-        /* ─── MENÚ NAVEGACIÓN ─────────────────────────────────────── */
+        /* ─── MENÚ NAVEGACIÓN (INDEX-MODULAR EXACTO) ─── */
         #nav-menu-wrap {
-            position: absolute;
-            right: 36px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 5px;
         }
-
         #btn-menu {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            padding: 8px 16px;
-            font-family: var(--fc);
-            font-size: .68rem;
-            font-weight: 600;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: var(--muted2);
-            background: transparent;
-            border: 1px solid rgba(237, 232, 224, 0.12);
-            border-radius: 1px;
-            cursor: pointer;
-            white-space: nowrap;
-            user-select: none;
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 16px; font-family: var(--fc); font-size: .68rem; font-weight: 600;
+            letter-spacing: 0.22em; text-transform: uppercase;
+            color: var(--muted2); background: transparent;
+            border: 1px solid rgba(237,232,224,0.12); border-radius: 1px;
+            cursor: pointer; white-space: nowrap; user-select: none;
             transition: color .18s, border-color .18s, background .18s;
         }
-        @media (hover: hover) and (pointer: fine) {
-            #btn-menu:hover {
-                color: var(--cream);
-                border-color: rgba(237, 232, 224, 0.28);
-            }
+        @media (hover:hover) and (pointer:fine) {
+            #btn-menu:hover { color: var(--cream); border-color: rgba(237,232,224,0.28); }
         }
-        #btn-menu.open {
-            color: var(--gold);
-            border-color: var(--gold-dim);
-            background: rgba(191, 155, 90, 0.06);
-        }
-        #btn-menu .menu-chevron {
-            font-size: .5rem;
-            transition: transform .25s cubic-bezier(.4, 0, .2, 1);
-        }
-        #btn-menu.open .menu-chevron {
-            transform: rotate(180deg);
-        }
+        #btn-menu.open { color: var(--gold); border-color: var(--gold-dim); background: rgba(191,155,90,0.06); }
+        #btn-menu .menu-chevron { font-size: .5rem; transition: transform .25s cubic-bezier(.4,0,.2,1); }
+        #btn-menu.open .menu-chevron { transform: rotate(180deg); }
 
-        /* Dropdown */
         #nav-dropdown {
-            position: absolute;
-            top: calc(100% + 12px);
-            right: 0;
-            min-width: 220px;
-            background: rgba(8, 9, 15, 0.98);
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            backdrop-filter: blur(32px);
-            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75),
-                0 0 0 1px rgba(191, 155, 90, 0.06),
-                inset 0 1px 0 rgba(237, 232, 224, 0.03);
-            z-index: 600;
-            overflow: hidden;
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(-8px) scale(0.97);
-            transform-origin: top right;
-            transition: opacity .2s cubic-bezier(.4, 0, .2, 1),
-                transform .2s cubic-bezier(.4, 0, .2, 1);
+            position: absolute; top: calc(100% + 12px); right: 0; min-width: 220px;
+            background: rgba(8,9,15,0.98); border: 1px solid var(--border);
+            border-radius: 2px; backdrop-filter: blur(32px);
+            box-shadow: 0 24px 64px rgba(0,0,0,0.75), 0 0 0 1px rgba(191,155,90,0.06), inset 0 1px 0 rgba(237,232,224,0.03);
+            z-index: 600; overflow: hidden;
+            opacity: 0; pointer-events: none;
+            transform: translateY(-8px) scale(0.97); transform-origin: top right;
+            transition: opacity .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1);
         }
-        #nav-dropdown.open {
-            opacity: 1;
-            pointer-events: all;
-            transform: translateY(0) scale(1);
-        }
-
+        #nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0) scale(1); }
         .nav-header {
-            padding: 13px 18px 9px;
-            font-family: var(--fc);
-            font-size: .6rem;
-            font-weight: 600;
-            letter-spacing: .32em;
-            text-transform: uppercase;
-            color: var(--gold);
-            opacity: 0.7;
+            padding: 13px 18px 9px; font-family: var(--fc); font-size: .6rem; font-weight: 600;
+            letter-spacing: .32em; text-transform: uppercase; color: var(--gold); opacity: 0.7;
             border-bottom: 1px solid var(--border);
         }
-
         .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 18px;
-            font-family: var(--fb);
-            font-size: .78rem;
-            font-weight: 300;
-            color: var(--muted2);
-            text-decoration: none;
+            display: flex; align-items: center; gap: 12px; padding: 12px 18px;
+            font-family: var(--fb); font-size: .78rem; font-weight: 300;
+            color: var(--muted2); text-decoration: none;
             transition: background .15s, color .15s, padding-left .15s;
-            border-bottom: 1px solid rgba(237, 232, 224, 0.03);
-            position: relative;
+            border-bottom: 1px solid rgba(237,232,224,0.03); position: relative;
         }
-        .nav-item:last-child {
-            border-bottom: none;
-        }
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 1px;
-            background: var(--gold);
-            opacity: 0;
-            transition: opacity .15s;
-        }
-        .nav-item:hover {
-            background: rgba(191, 155, 90, 0.04);
-            color: var(--cream);
-            padding-left: 22px;
-        }
-        .nav-item:hover::before {
-            opacity: 1;
-        }
+        .nav-item:last-child { border-bottom: none; }
+        .nav-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--gold); opacity: 0; transition: opacity .15s; }
+        .nav-item:hover { background: rgba(191,155,90,0.04); color: var(--cream); padding-left: 22px; }
+        .nav-item:hover::before { opacity: 1; }
         .nav-icon {
-            width: 26px;
-            height: 26px;
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(237, 232, 224, 0.04);
-            border: 1px solid rgba(237, 232, 224, 0.07);
-            font-size: .68rem;
-            color: var(--muted2);
-            flex-shrink: 0;
+            width: 26px; height: 26px; border-radius: 2px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(237,232,224,0.04); border: 1px solid rgba(237,232,224,0.07);
+            font-size: .68rem; color: var(--muted2); flex-shrink: 0;
             transition: background .15s, border-color .15s, color .15s;
         }
-        .nav-item:hover .nav-icon {
-            background: rgba(191, 155, 90, 0.1);
-            border-color: rgba(191, 155, 90, 0.3);
-            color: var(--gold);
-        }
-        .nav-item-label {
-            flex: 1;
-        }
-        .nav-item-arrow {
-            font-size: .5rem;
-            color: var(--muted);
-            opacity: 0;
-            transition: opacity .15s, transform .15s;
-        }
-        .nav-item:hover .nav-item-arrow {
-            opacity: 1;
-            transform: translateX(2px);
-        }
+        .nav-item:hover .nav-icon { background: rgba(191,155,90,0.1); border-color: rgba(191,155,90,0.3); color: var(--gold); }
+        .nav-item-label { flex: 1; }
+        .nav-item-arrow { font-size: .5rem; color: var(--muted); opacity: 0; transition: opacity .15s, transform .15s; }
+        .nav-item:hover .nav-item-arrow { opacity: 1; transform: translateX(2px); }
+        .nav-divider { height: 1px; background: var(--border); margin: 4px 0; }
+        .nav-item.nav-vip-item .nav-icon { background: rgba(191,155,90,0.1); border-color: rgba(191,155,90,0.25); color: var(--gold); }
+        #nav-overlay { display: none; position: fixed; inset: 0; z-index: 99; }
+        #nav-overlay.open { display: block; }
 
-        .nav-divider {
-            height: 1px;
-            background: var(--border);
-            margin: 4px 0;
-        }
-        .nav-item.nav-vip-item .nav-icon {
-            background: rgba(191, 155, 90, 0.1);
-            border-color: rgba(191, 155, 90, 0.25);
-            color: var(--gold);
-        }
-
-        #nav-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 99;
-        }
-        #nav-overlay.open {
-            display: block;
-        }
-
-        /* Ajustes específicos para móvil (navbar sin solapamientos) */
         @media (max-width: 420px) {
-            #barra-info {
-                display: none;
-            }
-            #nav-dropdown {
-                min-width: 200px;
-            }
-            #barra {
-                padding: 0 12px;
-            }
-            #nav-menu-wrap {
-                right: 12px;
-                gap: 2px;
-            }
-
-            .barra-logo-main {
-                font-size: 1.2rem !important;
-                letter-spacing: 0.1em !important;
-            }
-            .barra-logo-main .trends-suffix {
-                font-size: 0.7rem;
-                margin-left: 3px;
-            }
-
-            #btn-menu {
-                padding: 6px 10px !important;
-                font-size: 0.6rem !important;
-            }
+            #barra-info { display: none; }
+            #nav-dropdown { min-width: 200px; }
+            #barra { padding: 0 12px; }
+            #nav-menu-wrap { right: 12px; gap: 2px; }
+            .barra-logo-main { font-size: 1.2rem !important; letter-spacing: 0.1em !important; }
+            .barra-logo-main .trends-suffix { font-size: 0.7rem; margin-left: 3px; }
+            #btn-menu { padding: 6px 10px !important; font-size: 0.6rem !important; }
         }
-
-        /* Ajustes extra para pantallas muy pequeñas (≤380px) */
         @media (max-width: 380px) {
-            .barra-logo-main {
-                font-size: 1.0rem !important;
-            }
-
-            #btn-menu span {
-                display: none;
-            }
-
-            #barra {
-                padding: 0 8px !important;
-            }
+            .barra-logo-main { font-size: 1.0rem !important; }
+            #btn-menu span { display: none; }
+            #barra { padding: 0 8px !important; }
         }
 
         /* ─── TABLERO DE SLOTS ─── */
         #tablero {
-            position: fixed;
-            top: 58px;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: fixed; top: 58px; left: 0; right: 0; bottom: 0;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 6px;
-            padding: 8px;
+            gap: 6px; padding: 8px;
         }
         .slot {
-            background: rgba(12, 13, 22, 0.9);
+            background: rgba(12,13,22,0.9);
             border: 1px solid var(--border);
             border-radius: 3px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             position: relative;
             transition: border-color .2s, background .2s;
-            cursor: pointer;
-            overflow: hidden;
+            cursor: pointer; overflow: hidden;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
-        .slot:hover {
-            border-color: var(--gold);
-        }
-        .slot.libre {
-            background: rgba(191, 155, 90, 0.03);
-            border-style: dashed;
-        }
-        .slot.ocupado {
-            background: rgba(0, 0, 0, 0.2);
-        }
-        .slot.banner {
-            grid-column: span 3;
-        }
+        .slot:hover { border-color: var(--gold); }
+        .slot.libre { background: rgba(191,155,90,0.03); border-style: dashed; }
+        .slot.ocupado { background: rgba(0,0,0,0.2); }
+        .slot.banner { grid-column: span 3; }
+        .slot.dividido { cursor: default; }
+
+        /* ─── TIPOGRAFÍA DE SLOTS ─── */
         .slot .estado {
             font-family: var(--fc);
-            font-size: .55rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            letter-spacing: .15em;
+            letter-spacing: 0.12em;
             text-transform: uppercase;
             color: var(--muted);
             margin-bottom: 4px;
             z-index: 1;
+            text-align: center;
+            line-height: 1.2;
         }
-        .slot.libre .estado {
-            color: var(--gold);
-        }
+        .slot.libre .estado,
+        .slot.banner .estado { color: var(--gold); }
         .slot .precio {
             font-family: var(--fc);
-            font-size: .7rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: var(--gold);
             margin-top: 4px;
             z-index: 1;
         }
         .slot .img-slot {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0; display: none;
+        }
+        .slot.ocupado .img-slot { display: block; }
+
+        /* ── Botón esquina doblada (izquierda, discreto) ── */
+        .dogear-btn {
             position: absolute;
             top: 0;
             left: 0;
-            display: none;
-        }
-        .slot.ocupado .img-slot {
-            display: block;
-        }
-
-        /* ── Botón unir/dividir ── */
-        .union-btn {
-            position: absolute;
-            left: 4px;
-            top: 4px;
-            width: 28px;
-            height: 28px;
-            background: rgba(12, 13, 22, 0.5);
-            border: 1px solid var(--gold-dim);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .85rem;
-            color: var(--gold);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 36px 36px;
+            border-color: transparent transparent transparent rgba(191,155,90,0.15);
+            z-index: 15;
             cursor: pointer;
-            z-index: 10;
-            opacity: 0.7;
-            transition: opacity .2s, background .2s;
+            opacity: 0.3;
+            transition: opacity .2s, border-color .2s;
         }
-        .slot.col1:hover .union-btn {
-            opacity: 1;
-        }
-        .union-btn:hover {
-            background: rgba(191, 155, 90, 0.25);
-        }
-
-        /* ─── MODALES BASE ────────────────────────────────────────────── */
-        .modal-bg {
-            position: fixed;
-            inset: 0;
-            background: rgba(8, 9, 15, 0.86);
-            backdrop-filter: blur(14px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            opacity: 0;
+        .dogear-btn i {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            font-size: 0.65rem;
+            color: var(--gold);
             pointer-events: none;
-            transition: opacity .28s;
         }
-        .modal-bg.open {
+        .slot:hover .dogear-btn {
+            opacity: 0.8;
+            border-color: transparent transparent transparent rgba(191,155,90,0.4);
+        }
+        .dogear-btn:hover {
             opacity: 1;
-            pointer-events: all;
+            border-color: transparent transparent transparent var(--gold);
         }
 
-        .modal-panel {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            padding: 30px;
-            width: min(440px, 92vw);
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7),
-                0 0 0 1px rgba(191, 155, 90, 0.06),
-                inset 0 1px 0 rgba(237, 232, 224, 0.03);
-        }
-        .modal-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 20%;
-            right: 20%;
-            height: 1px;
-            background: linear-gradient(to right, transparent, rgba(191, 155, 90, 0.6), transparent);
-        }
-
-        .modal-title {
-            font-family: var(--fh);
-            font-size: 1.55rem;
-            font-weight: 300;
-            letter-spacing: 0.02em;
-            color: var(--cream);
-            margin-bottom: 5px;
-            line-height: 1.1;
-        }
-        .modal-sub {
-            font-family: var(--fb);
-            font-size: .73rem;
-            font-weight: 300;
-            color: var(--muted2);
-            margin-bottom: 22px;
-            line-height: 1.65;
-        }
-
-        .modal-eyebrow {
-            font-family: var(--fc);
-            font-size: .58rem;
-            font-weight: 600;
-            letter-spacing: .34em;
-            text-transform: uppercase;
-            color: var(--gold);
-            opacity: 0.7;
-            margin-bottom: 6px;
-            display: block;
-        }
-        .modal-rule {
-            width: 32px;
-            height: 1px;
-            background: linear-gradient(to right, transparent, var(--gold), transparent);
-            opacity: 0.5;
-            margin-bottom: 20px;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 18px;
-            right: 18px;
-            background: rgba(237, 232, 224, 0.04);
-            border: 1px solid rgba(237, 232, 224, 0.1);
-            border-radius: 1px;
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--muted2);
-            font-size: .7rem;
-            transition: all .2s;
-        }
-        .modal-close:hover {
-            color: var(--cream);
-            background: rgba(237, 232, 224, 0.1);
-        }
-
-        /* ─── CAMPOS Y BOTONES ─── */
-        .campo-label {
-            font-family: var(--fc);
-            font-size: .6rem;
-            font-weight: 600;
-            letter-spacing: .22em;
-            text-transform: uppercase;
-            color: var(--muted2);
-            display: block;
-            margin-bottom: 6px;
-        }
-        .campo {
-            width: 100%;
-            background: rgba(237, 232, 224, 0.03);
-            border: 1px solid rgba(237, 232, 224, 0.1);
-            border-radius: 1px;
-            padding: 10px 14px;
-            color: var(--cream);
-            font-family: var(--fb);
-            font-size: .84rem;
-            font-weight: 300;
-            margin-bottom: 14px;
-            outline: none;
-            transition: border-color .2s;
-        }
-        .campo:focus {
-            border-color: var(--gold);
-        }
-        .campo::placeholder {
-            color: var(--muted);
-        }
-
-        .btn-primary {
-            width: 100%;
-            padding: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: transparent;
-            border: 1px solid var(--gold-dim);
-            border-radius: 1px;
-            font-family: var(--fc);
-            font-size: .68rem;
-            font-weight: 600;
-            letter-spacing: .28em;
-            text-transform: uppercase;
-            color: var(--gold);
-            cursor: pointer;
-            transition: background .2s, border-color .2s, box-shadow .2s;
-        }
-        .btn-primary:hover:not(:disabled) {
-            background: rgba(191, 155, 90, 0.1);
-            border-color: var(--gold);
-            box-shadow: 0 0 24px rgba(191, 155, 90, 0.15);
-        }
-        .btn-primary:disabled {
-            opacity: .35;
-            cursor: not-allowed;
-        }
-
-        .btn-secondary {
-            width: 100%;
-            padding: 10px;
-            margin-top: 8px;
-            background: transparent;
-            border: 1px solid rgba(237, 232, 224, 0.1);
-            border-radius: 1px;
-            font-family: var(--fc);
-            font-size: .6rem;
-            font-weight: 500;
-            letter-spacing: .2em;
-            text-transform: uppercase;
-            color: var(--muted2);
-            cursor: pointer;
-            transition: all .2s;
-        }
-        .btn-secondary:hover {
-            color: var(--cream);
-            border-color: rgba(237, 232, 224, 0.25);
-        }
-
-        .status {
-            font-family: var(--fb);
-            font-size: .73rem;
-            font-weight: 300;
-            padding: 9px 13px;
-            border-radius: 1px;
-            margin-bottom: 12px;
-            display: none;
-        }
-        .status.error {
-            background: rgba(255, 90, 90, 0.08);
-            color: #ff9090;
-            border: 1px solid rgba(255, 90, 90, 0.18);
-        }
-        .status.ok {
-            background: rgba(191, 155, 90, 0.08);
-            color: var(--gold-light);
-            border: 1px solid var(--gold-dim);
-        }
-        .status.info {
-            background: rgba(191, 155, 90, 0.06);
-            color: var(--gold);
-            border: 1px solid var(--border);
-        }
-
-        /* ─── MODAL VIP ──────────────────────────────────────────── */
-        #modal-vip .modal-panel {
-            max-width: 400px;
-        }
-        .vip-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 22px;
-        }
-        .vip-tab {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            font-family: var(--fc);
-            font-size: .62rem;
-            font-weight: 600;
-            letter-spacing: .2em;
-            text-transform: uppercase;
-            color: var(--muted2);
-            cursor: pointer;
-            border-bottom: 1px solid transparent;
-            transition: all .2s;
-        }
-        .vip-tab.active {
-            color: var(--gold);
-            border-bottom-color: var(--gold);
-        }
-        .vip-tab:hover:not(.active) {
-            color: var(--cream);
-        }
-
-        #vip-panel-sesion {
-            display: none;
-        }
-        #vip-panel-login {
-            display: block;
-        }
-
-        .vip-user-card {
-            background: rgba(191, 155, 90, 0.05);
-            border: 1px solid var(--border);
-            border-radius: 1px;
-            padding: 18px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .vip-user-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 1px solid var(--gold-dim);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: var(--fh);
-            font-size: 1.4rem;
-            font-weight: 300;
-            color: var(--gold);
-            margin: 0 auto 12px;
-        }
-        .vip-user-email {
-            font-family: var(--fc);
-            font-size: .72rem;
-            font-weight: 500;
-            letter-spacing: .06em;
-            color: var(--cream);
-            margin-bottom: 6px;
-            word-break: break-all;
-        }
-        .vip-user-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(191, 155, 90, 0.1);
-            border: 1px solid rgba(191, 155, 90, 0.28);
-            border-radius: 20px;
-            padding: 3px 12px;
-            font-family: var(--fc);
-            font-size: .58rem;
-            font-weight: 600;
-            letter-spacing: .16em;
-            text-transform: uppercase;
-            color: var(--gold);
-        }
-        .vip-nav-links {
+        /* ── Cuadrícula interna al dividir ── */
+        .sub-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 18px;
+            grid-template-rows: 1fr 1fr;
+            width: 100%;
+            height: 100%;
+            gap: 2px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 5;
         }
-        .vip-nav-link {
+        .sub-slot {
+            background: rgba(191,155,90,0.06);
+            border: 1px dashed var(--gold-dim);
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 7px;
-            padding: 14px 10px;
-            background: rgba(237, 232, 224, 0.03);
-            border: 1px solid rgba(237, 232, 224, 0.08);
-            border-radius: 1px;
-            text-decoration: none;
+            justify-content: center;
             font-family: var(--fc);
-            font-size: .62rem;
-            font-weight: 500;
-            letter-spacing: .14em;
+            font-size: 0.45rem;
+            color: var(--muted);
             text-transform: uppercase;
-            color: var(--muted2);
-            transition: all .2s;
+            letter-spacing: 0.03em;
+            text-align: center;
+            word-break: break-word;
+            line-height: 1.2;
+            padding: 2px;
+            transition: background .2s;
         }
-        .vip-nav-link:hover {
-            background: rgba(191, 155, 90, 0.07);
-            border-color: rgba(191, 155, 90, 0.28);
-            color: var(--cream);
-        }
-        .vip-nav-link i {
-            font-size: 1rem;
+        .sub-slot:hover {
+            background: rgba(191,155,90,0.12);
+            border-color: var(--gold);
             color: var(--gold);
         }
+
+        /* ─── MODALES BASE ─── */
+        .modal-bg {
+            position: fixed; inset: 0; background: rgba(8,9,15,0.86);
+            backdrop-filter: blur(14px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 200; opacity: 0; pointer-events: none; transition: opacity .28s;
+        }
+        .modal-bg.open { opacity: 1; pointer-events: all; }
+        .modal-panel {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 2px; padding: 30px;
+            width: min(440px, 92vw); max-height: 90vh; overflow-y: auto;
+            position: relative;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(191,155,90,0.06), inset 0 1px 0 rgba(237,232,224,0.03);
+        }
+        .modal-panel::before {
+            content: ''; position: absolute; top: 0; left: 20%; right: 20%; height: 1px;
+            background: linear-gradient(to right, transparent, rgba(191,155,90,0.6), transparent);
+        }
+        .modal-title { font-family: var(--fh); font-size: 1.55rem; font-weight: 300; letter-spacing: 0.02em; color: var(--cream); margin-bottom: 5px; line-height: 1.1; }
+        .modal-sub { font-family: var(--fb); font-size: .73rem; font-weight: 300; color: var(--muted2); margin-bottom: 22px; line-height: 1.65; }
+        .modal-eyebrow { font-family: var(--fc); font-size: .58rem; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; color: var(--gold); opacity: 0.7; margin-bottom: 6px; display: block; }
+        .modal-rule { width: 32px; height: 1px; background: linear-gradient(to right, transparent, var(--gold), transparent); opacity: 0.5; margin-bottom: 20px; }
+        .modal-close {
+            position: absolute; top: 18px; right: 18px;
+            background: rgba(237,232,224,0.04); border: 1px solid rgba(237,232,224,0.1);
+            border-radius: 1px; width: 28px; height: 28px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--muted2); font-size: .7rem; transition: all .2s;
+        }
+        .modal-close:hover { color: var(--cream); background: rgba(237,232,224,0.1); }
+
+        .campo-label { font-family: var(--fc); font-size: .6rem; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: var(--muted2); display: block; margin-bottom: 6px; }
+        .campo { width: 100%; background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.1); border-radius: 1px; padding: 10px 14px; color: var(--cream); font-family: var(--fb); font-size: .84rem; font-weight: 300; margin-bottom: 14px; outline: none; transition: border-color .2s; }
+        .campo:focus { border-color: var(--gold); }
+        .campo::placeholder { color: var(--muted); }
+        .btn-primary {
+            width: 100%; padding: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;
+            background: transparent; border: 1px solid var(--gold-dim); border-radius: 1px;
+            font-family: var(--fc); font-size: .68rem; font-weight: 600; letter-spacing: .28em;
+            text-transform: uppercase; color: var(--gold); cursor: pointer;
+            transition: background .2s, border-color .2s, box-shadow .2s;
+        }
+        .btn-primary:hover:not(:disabled) { background: rgba(191,155,90,0.1); border-color: var(--gold); box-shadow: 0 0 24px rgba(191,155,90,0.15); }
+        .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+        .btn-secondary {
+            width: 100%; padding: 10px; margin-top: 8px;
+            background: transparent; border: 1px solid rgba(237,232,224,0.1); border-radius: 1px;
+            font-family: var(--fc); font-size: .6rem; font-weight: 500; letter-spacing: .2em;
+            text-transform: uppercase; color: var(--muted2); cursor: pointer; transition: all .2s;
+        }
+        .btn-secondary:hover { color: var(--cream); border-color: rgba(237,232,224,0.25); }
+        .status { font-family: var(--fb); font-size: .73rem; font-weight: 300; padding: 9px 13px; border-radius: 1px; margin-bottom: 12px; display: none; }
+        .status.error { background: rgba(255,90,90,0.08); color: #ff9090; border: 1px solid rgba(255,90,90,0.18); }
+        .status.ok { background: rgba(191,155,90,0.08); color: var(--gold-light); border: 1px solid var(--gold-dim); }
+
+        /* ─── MODAL VIP ─── */
+        #modal-vip .modal-panel { max-width: 400px; }
+        .vip-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+        .vip-tab { flex: 1; padding: 10px; text-align: center; font-family: var(--fc); font-size: .62rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--muted2); cursor: pointer; border-bottom: 1px solid transparent; transition: all .2s; }
+        .vip-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .vip-tab:hover:not(.active) { color: var(--cream); }
+        #vip-panel-sesion { display: none; }
+        .vip-user-card { background: rgba(191,155,90,0.05); border: 1px solid var(--border); border-radius: 1px; padding: 18px; text-align: center; margin-bottom: 20px; }
+        .vip-user-icon { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--gold-dim); display: flex; align-items: center; justify-content: center; font-family: var(--fh); font-size: 1.4rem; font-weight: 300; color: var(--gold); margin: 0 auto 12px; }
+        .vip-user-email { font-family: var(--fc); font-size: .72rem; font-weight: 500; letter-spacing: .06em; color: var(--cream); margin-bottom: 6px; word-break: break-all; }
+        .vip-user-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(191,155,90,0.1); border: 1px solid rgba(191,155,90,0.28); border-radius: 20px; padding: 3px 12px; font-family: var(--fc); font-size: .58rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+        .vip-nav-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+        .vip-nav-link { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px; background: rgba(237,232,224,0.03); border: 1px solid rgba(237,232,224,0.08); border-radius: 1px; text-decoration: none; font-family: var(--fc); font-size: .62rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted2); transition: all .2s; }
+        .vip-nav-link:hover { background: rgba(191,155,90,0.07); border-color: rgba(191,155,90,0.28); color: var(--cream); }
+        .vip-nav-link i { font-size: 1rem; color: var(--gold); }
     </style>
 </head>
 <body>
 
-    <!-- BARRA SUPERIOR (INDEX-MODULAR EXACTA, SIN BOTONES DE COMPRA) -->
+    <!-- BARRA SUPERIOR -->
     <div id="barra">
         <a class="barra-logo" href="info.html">
             <span class="barra-logo-main">
@@ -855,9 +410,7 @@
                 <span class="trends-suffix">Trends</span>
             </span>
         </a>
-
         <div id="barra-info"></div>
-
         <div id="nav-menu-wrap">
             <button id="btn-menu" onclick="toggleMenu()">
                 <i class="fas fa-bars"></i>
@@ -875,7 +428,7 @@
                 <div class="nav-divider"></div>
                 <a class="nav-item nav-vip-item" href="#" onclick="cerrarMenu();abrirModalVip();return false;" id="nav-vip-link">
                     <span class="nav-icon"><i class="fas fa-crown"></i></span>
-                    <span class="nav-item-label" id="nav-vip-label">Acceso VIP</span>
+                    <span class="nav-item-label">Acceso VIP</span>
                     <i class="fas fa-chevron-right nav-item-arrow"></i>
                 </a>
                 <a class="nav-item" href="#" onclick="cerrarMenu();logoutVip();return false;" id="nav-logout-link" style="display:none;color:var(--muted2)">
@@ -886,59 +439,42 @@
             </div>
         </div>
     </div>
-
     <div id="nav-overlay" onclick="cerrarMenu()"></div>
 
     <!-- TABLERO DE 15 SLOTS -->
     <div id="tablero"></div>
 
-    <!-- MODAL VIP (INDEX-MODULAR EXACTO) -->
+    <!-- MODAL VIP -->
     <div class="modal-bg" id="modal-vip">
         <div class="modal-panel">
             <button class="modal-close" onclick="cerrarModal('modal-vip')"><i class="fas fa-times"></i></button>
-
-            <!-- Sin sesión -->
             <div id="vip-panel-login">
                 <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Área VIP</span>
                 <div class="modal-title">Acceso VIP</div>
                 <div class="modal-rule"></div>
                 <div class="modal-sub">Inicia sesión con el email que usaste al pagar tu zona.</div>
-
                 <div class="vip-tabs">
                     <div class="vip-tab active" id="tab-login" onclick="cambiarTabVip('login')">Iniciar sesión</div>
                     <div class="vip-tab" id="tab-reset" onclick="cambiarTabVip('reset')">Recuperar acceso</div>
                 </div>
-
                 <div id="vip-form-login">
                     <label class="campo-label" for="vip-email">Email VIP</label>
-                    <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email" />
+                    <input type="email" class="campo" id="vip-email" placeholder="hola@tudominio.com" autocomplete="email"/>
                     <label class="campo-label" for="vip-pass">Contraseña</label>
-                    <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password"
-                    onkeydown="if(event.key==='Enter')loginVip()" />
+                    <input type="password" class="campo" id="vip-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')loginVip()"/>
                     <div class="status" id="st-vip-login"></div>
-                    <button class="btn-primary" id="btn-login-vip" onclick="loginVip()">
-                        <i class="fas fa-sign-in-alt"></i>&nbsp; Entrar
-                    </button>
-                    <p style="font-family:var(--fc);font-size:.6rem;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7">
-                        ¿Primera vez? Tu cuenta se creó al reservar una zona.<br>
-                        Usa "Recuperar acceso" para establecer tu contraseña.
-                    </p>
+                    <button class="btn-primary" id="btn-login-vip" onclick="loginVip()"><i class="fas fa-sign-in-alt"></i>&nbsp; Entrar</button>
+                    <p style="font-family:var(--fc);font-size:.6rem;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:14px;line-height:1.7">¿Primera vez? Tu cuenta se creó al reservar una zona.<br>Usa "Recuperar acceso" para establecer tu contraseña.</p>
                 </div>
-
                 <div id="vip-form-reset" style="display:none">
                     <div class="modal-sub" style="margin-bottom:16px">Introduce el email con el que pagaste y te enviaremos un enlace para crear tu contraseña.</div>
                     <label class="campo-label" for="vip-reset-email">Email VIP</label>
-                    <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email"
-                    onkeydown="if(event.key==='Enter')resetVip()" />
+                    <input type="email" class="campo" id="vip-reset-email" placeholder="hola@tudominio.com" autocomplete="email" onkeydown="if(event.key==='Enter')resetVip()"/>
                     <div class="status" id="st-vip-reset"></div>
-                    <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()">
-                        <i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace
-                    </button>
+                    <button class="btn-primary" id="btn-reset-vip" onclick="resetVip()"><i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace</button>
                     <button class="btn-secondary" onclick="cambiarTabVip('login')">← Volver al login</button>
                 </div>
             </div>
-
-            <!-- Con sesión activa -->
             <div id="vip-panel-sesion">
                 <span class="modal-eyebrow"><i class="fas fa-crown" style="margin-right:5px"></i>Mi cuenta</span>
                 <div class="modal-title">Mi cuenta VIP</div>
@@ -949,17 +485,11 @@
                     <div class="vip-user-badge"><i class="fas fa-crown"></i>&nbsp; Miembro VIP</div>
                 </div>
                 <div class="vip-nav-links">
-                    <a class="vip-nav-link" href="paneldecontrol.html">
-                        <i class="fas fa-sliders-h"></i>Panel de control
-                    </a>
-                    <a class="vip-nav-link" href="comunidad.html">
-                        <i class="fab fa-discord"></i>Comunidad
-                    </a>
+                    <a class="vip-nav-link" href="paneldecontrol.html"><i class="fas fa-sliders-h"></i>Panel de control</a>
+                    <a class="vip-nav-link" href="comunidad.html"><i class="fab fa-discord"></i>Comunidad</a>
                 </div>
                 <div class="status" id="st-vip-sesion"></div>
-                <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px">
-                    <i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión
-                </button>
+                <button class="btn-secondary" onclick="logoutVip()" style="margin-top:4px"><i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión</button>
             </div>
         </div>
     </div>
@@ -970,12 +500,18 @@
         const PRECIO_GRANDE = 60;
         const TOTAL_SLOTS = 15;
 
-        let slotsState = Array.from({ length: TOTAL_SLOTS }, () => ({
+        let slotsState = Array.from({length: TOTAL_SLOTS}, () => ({
             estado: 'libre',
             grupo: null,
             imgUrl: null,
-            link: null
+            link: null,
+            dividido: false
         }));
+
+        // Variables para long press
+        let longPressTimer = null;
+        let longPressTriggered = false;
+        const LONG_PRESS_DURATION = 500;
 
         function construirTablero() {
             const tablero = document.getElementById('tablero');
@@ -985,23 +521,65 @@
                 slot.className = 'slot libre';
                 if (i % 3 === 0) slot.classList.add('col1');
                 slot.dataset.index = i;
-                slot.addEventListener('click', () => {
-                    window.location.href = `slot.html?id=${i}`;
-                });
-
-                if (i % 3 === 0) {
-                    const btn = document.createElement('div');
-                    btn.className = 'union-btn';
-                    btn.innerHTML = '<i class="fas fa-link"></i>';
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        toggleFila(Math.floor(i / 3));
-                    });
-                    slot.appendChild(btn);
-                }
+                
+                // Eventos para long press y click normal
+                slot.addEventListener('pointerdown', (e) => manejarPointerDown(e, i));
+                slot.addEventListener('pointerup', (e) => manejarPointerUp(e, i));
+                slot.addEventListener('pointerleave', () => cancelarLongPress());
+                slot.addEventListener('pointercancel', () => cancelarLongPress());
 
                 tablero.appendChild(slot);
             }
+            refrescarSlots();
+        }
+
+        function manejarPointerDown(e, index) {
+            const s = slotsState[index];
+            if (s.estado !== 'libre' || s.grupo) {
+                // Si no es libre normal, no hacer nada especial
+                return;
+            }
+            // Iniciar temporizador para long press
+            cancelarLongPress();
+            longPressTriggered = false;
+            longPressTimer = setTimeout(() => {
+                longPressTriggered = true;
+                dividirSlot(index);
+            }, LONG_PRESS_DURATION);
+        }
+
+        function manejarPointerUp(e, index) {
+            if (longPressTriggered) {
+                // Se activó el long press, cancelar cualquier acción de click
+                e.preventDefault();
+                e.stopPropagation();
+                cancelarLongPress();
+                return;
+            }
+            cancelarLongPress();
+            // Click normal: navegar a slot.html
+            window.location.href = `slot.html?id=${index}`;
+        }
+
+        function cancelarLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+            longPressTriggered = false;
+        }
+
+        function dividirSlot(index) {
+            const s = slotsState[index];
+            if (s.estado !== 'libre' || s.dividido || s.grupo) return;
+            s.dividido = true;
+            refrescarSlots();
+        }
+
+        function unirSlot(index) {
+            const s = slotsState[index];
+            if (!s.dividido) return;
+            s.dividido = false;
             refrescarSlots();
         }
 
@@ -1011,12 +589,13 @@
                 if (!slotDiv) continue;
                 const s = slotsState[i];
 
+                // Limpiar
                 slotDiv.innerHTML = '';
                 slotDiv.style.display = '';
-                slotDiv.classList.remove('libre', 'ocupado', 'banner');
+                slotDiv.classList.remove('libre', 'ocupado', 'banner', 'dividido');
 
                 if (s.grupo && s.grupo.startsWith('banner_')) {
-                    const inicio = Math.floor(i / 3) * 3;
+                    const inicio = Math.floor(i/3)*3;
                     if (i === inicio) {
                         slotDiv.classList.add('banner', 'ocupado');
                         if (s.imgUrl) {
@@ -1025,14 +604,14 @@
                             img.src = s.imgUrl;
                             slotDiv.appendChild(img);
                         }
-                        slotDiv.innerHTML += '<div class="estado">BANNER</div>';
-                        const btn = document.createElement('div');
-                        btn.className = 'union-btn';
-                        btn.innerHTML = '<i class="fas fa-unlink"></i>';
-                        btn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            toggleFila(Math.floor(i / 3));
-                        });
+                        // Texto "Activo Publicitario Libre" sin precio
+                        const estadoDiv = document.createElement('div');
+                        estadoDiv.className = 'estado';
+                        estadoDiv.textContent = 'Activo Publicitario Libre';
+                        slotDiv.appendChild(estadoDiv);
+                        
+                        // Botón esquina doblada para desunir (izquierda)
+                        const btn = crearDogearBtn(() => toggleFila(Math.floor(i/3)), 'fa-unlink');
                         slotDiv.appendChild(btn);
                     } else {
                         slotDiv.style.display = 'none';
@@ -1045,29 +624,90 @@
                         img.src = s.imgUrl;
                         slotDiv.appendChild(img);
                     }
-                    slotDiv.innerHTML += '<div class="estado">OCUPADO</div>';
-                } else {
-                    slotDiv.classList.add('libre');
-                    slotDiv.innerHTML =
-                        `<div class="estado">LIBRE</div><div class="precio">desde ${s.grupo ? PRECIO_GRANDE : PRECIO_PEQ}€</div>`;
-                    if (i % 3 === 0) {
-                        const btn = document.createElement('div');
-                        btn.className = 'union-btn';
-                        btn.innerHTML = '<i class="fas fa-link"></i>';
-                        btn.addEventListener('click', (e) => {
+                    const estadoDiv = document.createElement('div');
+                    estadoDiv.className = 'estado';
+                    estadoDiv.textContent = 'OCUPADO';
+                    slotDiv.appendChild(estadoDiv);
+                } else if (s.dividido) {
+                    // Slot dividido en 4 sub-slots
+                    slotDiv.classList.add('libre', 'dividido');
+                    const subGrid = document.createElement('div');
+                    subGrid.className = 'sub-grid';
+                    for (let j = 0; j < 4; j++) {
+                        const sub = document.createElement('div');
+                        sub.className = 'sub-slot';
+                        sub.textContent = 'Activo Publicitario Libre';  // Texto idéntico al del slot libre
+                        sub.addEventListener('click', (e) => {
                             e.stopPropagation();
-                            toggleFila(Math.floor(i / 3));
+                            // Acción futura para sub-slots
                         });
+                        subGrid.appendChild(sub);
+                    }
+                    slotDiv.appendChild(subGrid);
+                    
+                    // Long press en slot dividido para unir
+                    slotDiv.addEventListener('pointerdown', (e) => {
+                        e.stopPropagation();
+                        cancelarLongPress();
+                        longPressTimer = setTimeout(() => {
+                            unirSlot(i);
+                        }, LONG_PRESS_DURATION);
+                    });
+                    slotDiv.addEventListener('pointerup', (e) => {
+                        cancelarLongPress();
+                    });
+                    slotDiv.addEventListener('pointerleave', cancelarLongPress);
+                } else {
+                    // Slot libre normal
+                    slotDiv.classList.add('libre');
+                    const estadoDiv = document.createElement('div');
+                    estadoDiv.className = 'estado';
+                    estadoDiv.textContent = 'Activo Publicitario Libre';
+                    slotDiv.appendChild(estadoDiv);
+                    
+                    const precioDiv = document.createElement('div');
+                    precioDiv.className = 'precio';
+                    precioDiv.textContent = `desde ${s.grupo ? PRECIO_GRANDE : PRECIO_PEQ}€`;
+                    slotDiv.appendChild(precioDiv);
+                    
+                    // Botón esquina doblada solo en primera columna (izquierda)
+                    if (i % 3 === 0) {
+                        const btn = crearDogearBtn(() => toggleFila(Math.floor(i/3)), 'fa-link');
                         slotDiv.appendChild(btn);
                     }
                 }
             }
         }
 
+        function crearDogearBtn(callback, iconClass) {
+            const btn = document.createElement('div');
+            btn.className = 'dogear-btn';
+            btn.innerHTML = `<i class="fas ${iconClass}"></i>`;
+            
+            // Prevenir cualquier propagación que pueda activar el slot
+            btn.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                cancelarLongPress();
+            });
+            btn.addEventListener('pointerup', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                cancelarLongPress();
+            });
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                cancelarLongPress();
+                callback();
+            });
+            return btn;
+        }
+
         function toggleFila(fila) {
             const inicio = fila * 3;
             const tres = slotsState.slice(inicio, inicio + 3);
-            const todosLibres = tres.every(s => s.estado === 'libre' && !s.grupo);
+            const todosLibres = tres.every(s => s.estado === 'libre' && !s.grupo && !s.dividido);
             const esBanner = tres[0].grupo && tres[0].grupo.startsWith('banner_');
 
             if (todosLibres) {
@@ -1075,12 +715,14 @@
                 for (let i = inicio; i < inicio + 3; i++) {
                     slotsState[i].grupo = grupo;
                     slotsState[i].estado = 'ocupado';
+                    slotsState[i].dividido = false;
                 }
             } else if (esBanner) {
                 for (let i = inicio; i < inicio + 3; i++) {
                     slotsState[i].grupo = null;
                     slotsState[i].estado = 'libre';
                     slotsState[i].imgUrl = null;
+                    slotsState[i].dividido = false;
                 }
             } else {
                 return;
@@ -1093,12 +735,9 @@
             var btn = document.getElementById('btn-menu');
             var dd = document.getElementById('nav-dropdown');
             var ov = document.getElementById('nav-overlay');
-            var isOpen = dd.classList.contains('open');
-            if (isOpen) { cerrarMenu(); } else { btn.classList.add('open');
-                dd.classList.add('open');
-                ov.classList.add('open'); }
+            if (dd.classList.contains('open')) { cerrarMenu(); }
+            else { btn.classList.add('open'); dd.classList.add('open'); ov.classList.add('open'); }
         }
-
         function cerrarMenu() {
             var btn = document.getElementById('btn-menu');
             btn.classList.remove('open');
@@ -1106,21 +745,16 @@
             document.getElementById('nav-overlay').classList.remove('open');
             if (document.activeElement === btn) btn.blur();
         }
-        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') cerrarMenu(); });
+        document.addEventListener('keydown', function(e){ if(e.key==='Escape') cerrarMenu(); });
 
-        // ─── MODALES GENÉRICOS ───
+        // ─── MODALES ───
         function abrirModal(id) { document.getElementById(id).classList.add('open'); }
-
         function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
 
-        // ─── AUTENTICACIÓN VIP (INDEX-MODULAR EXACTA, SIN showHint) ───
-        var vipUser = null;
-
+        // ─── AUTENTICACIÓN VIP ───
         window._onAuthReady = function(user) {
-            vipUser = user;
             actualizarUIVip(user);
         };
-
         function actualizarUIVip(user) {
             var panelSes = document.getElementById('vip-panel-sesion');
             var panelLog = document.getElementById('vip-panel-login');
@@ -1130,112 +764,80 @@
                 var initials = (user.email || 'V').charAt(0).toUpperCase();
                 document.getElementById('vip-sesion-icon').textContent = initials;
                 document.getElementById('vip-sesion-email').textContent = user.email || '';
-                panelSes.style.display = 'block';
-                panelLog.style.display = 'none';
+                panelSes.style.display = 'block'; panelLog.style.display = 'none';
                 if (navVipLink) navVipLink.style.display = 'none';
                 if (navLogoutLink) navLogoutLink.style.display = 'flex';
             } else {
-                panelSes.style.display = 'none';
-                panelLog.style.display = 'block';
+                panelSes.style.display = 'none'; panelLog.style.display = 'block';
                 if (navVipLink) navVipLink.style.display = '';
                 if (navLogoutLink) navLogoutLink.style.display = 'none';
             }
         }
-
-        function abrirModalVip() {
-            setStatus('st-vip-login', '', '');
-            setStatus('st-vip-reset', '', '');
-            abrirModal('modal-vip');
-        }
-
+        function abrirModalVip() { setStatus('st-vip-login','',''); setStatus('st-vip-reset','',''); abrirModal('modal-vip'); }
         function cambiarTabVip(tab) {
-            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-            document.getElementById('tab-reset').classList.toggle('active', tab === 'reset');
-            document.getElementById('vip-form-login').style.display = tab === 'login' ? '' : 'none';
-            document.getElementById('vip-form-reset').style.display = tab === 'reset' ? '' : 'none';
-            setStatus('st-vip-login', '', '');
-            setStatus('st-vip-reset', '', '');
+            document.getElementById('tab-login').classList.toggle('active', tab==='login');
+            document.getElementById('tab-reset').classList.toggle('active', tab==='reset');
+            document.getElementById('vip-form-login').style.display = tab==='login' ? '' : 'none';
+            document.getElementById('vip-form-reset').style.display = tab==='reset' ? '' : 'none';
+            setStatus('st-vip-login','',''); setStatus('st-vip-reset','','');
         }
-
         function setStatus(id, type, msg) {
             const el = document.getElementById(id);
             if (!el) return;
-            if (!msg) { el.style.display = 'none';
-                el.textContent = ''; return; }
-            el.className = 'status ' + type;
-            el.textContent = msg;
-            el.style.display = 'block';
+            if (!msg) { el.style.display = 'none'; el.textContent = ''; return; }
+            el.className = 'status ' + type; el.textContent = msg; el.style.display = 'block';
         }
-
         async function loginVip() {
             const email = document.getElementById('vip-email').value.trim();
             const pass = document.getElementById('vip-pass').value;
-            if (!email || !pass) {
-                setStatus('st-vip-login', 'error', 'Rellena email y contraseña.');
-                return;
-            }
+            if (!email || !pass) { setStatus('st-vip-login','error','Rellena email y contraseña.'); return; }
             const btn = document.getElementById('btn-login-vip');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Entrando...';
-            setStatus('st-vip-login', '', '');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Entrando...';
+            setStatus('st-vip-login','','');
             try {
                 if (!window._fbSignIn) throw new Error('Firebase no configurado.');
                 await window._fbSignIn(email, pass);
                 cerrarModal('modal-vip');
             } catch (err) {
-                setStatus('st-vip-login', 'error', traducirErrorFirebase(err.code));
+                setStatus('st-vip-login','error', traducirErrorFirebase(err.code));
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i>&nbsp; Entrar';
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i>&nbsp; Entrar';
             }
         }
-
         async function resetVip() {
             const email = document.getElementById('vip-reset-email').value.trim();
-            if (!email) {
-                setStatus('st-vip-reset', 'error', 'Introduce tu email.');
-                return;
-            }
+            if (!email) { setStatus('st-vip-reset','error','Introduce tu email.'); return; }
             const btn = document.getElementById('btn-reset-vip');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
-            setStatus('st-vip-reset', '', '');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Enviando...';
+            setStatus('st-vip-reset','','');
             try {
                 if (!window._fbReset) throw new Error('Firebase no configurado.');
                 await window._fbReset(email);
-                setStatus('st-vip-reset', 'ok', '✓ Enlace enviado. Revisa tu bandeja de entrada (y spam).');
+                setStatus('st-vip-reset','ok','✓ Enlace enviado. Revisa tu bandeja de entrada (y spam).');
             } catch (err) {
-                setStatus('st-vip-reset', 'error', traducirErrorFirebase(err.code));
+                setStatus('st-vip-reset','error', traducirErrorFirebase(err.code));
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace';
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i>&nbsp; Enviar enlace';
             }
         }
-
         async function logoutVip() {
             var btn = document.querySelector('#vip-panel-sesion .btn-secondary');
-            if (btn) { btn.disabled = true;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...'; }
-            try { if (window._fbSignOut) await window._fbSignOut();
-                cerrarModal('modal-vip'); } catch (e) {} finally {
-                if (btn) { btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión'; }
-            }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp; Saliendo...'; }
+            try { if (window._fbSignOut) await window._fbSignOut(); cerrarModal('modal-vip'); } catch(e) {}
+            finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-out-alt"></i>&nbsp; Cerrar sesión'; } }
         }
-
         function traducirErrorFirebase(code) {
             const msgs = {
-                'auth/invalid-email': 'Email no válido.',
-                'auth/user-not-found': 'No existe cuenta VIP con ese email. ¿Has comprado una zona?',
-                'auth/wrong-password': 'Contraseña incorrecta. Usa "Recuperar acceso" si no recuerdas tu clave.',
-                'auth/invalid-credential': 'Email o contraseña incorrectos.',
-                'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos o recupera tu acceso.',
-                'auth/network-request-failed': 'Error de red. Comprueba tu conexión.',
-                'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
-                'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-                'auth/configuration-not-found': 'Firebase no está configurado en este entorno.',
+                'auth/invalid-email':'Email no válido.',
+                'auth/user-not-found':'No existe cuenta VIP con ese email.',
+                'auth/wrong-password':'Contraseña incorrecta.',
+                'auth/invalid-credential':'Email o contraseña incorrectos.',
+                'auth/too-many-requests':'Demasiados intentos.',
+                'auth/network-request-failed':'Error de red.',
+                'auth/email-already-in-use':'Ya existe una cuenta.',
+                'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.',
             };
-            return msgs[code] || 'Error de autenticación (' + (code || 'desconocido') + ').';
+            return msgs[code] || 'Error de autenticación.';
         }
 
         // ─── INICIALIZACIÓN ───
