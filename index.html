@@ -508,6 +508,25 @@
             height: 15px;
             cursor: pointer;
         }
+
+        /* ─── OVERLAY DE BIENVENIDA (transparente, intercepta primer clic) ─── */
+        #welcome-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 150;
+            background: transparent;
+            cursor: pointer;
+            display: none;
+        }
+        #welcome-overlay.active {
+            display: block;
+        }
+
+        /* ─── BOTONES BLOQUEADOS MIENTRAS EXPANDE LA TARJETA ─── */
+        #modal-welcome.expanding .btn-welcome {
+            pointer-events: none;
+            opacity: 0.38;
+        }
     </style>
 </head>
 <body>
@@ -550,6 +569,9 @@
         </div>
     </div>
     <div id="nav-overlay" onclick="cerrarMenu()"></div>
+
+    <!-- OVERLAY TRANSPARENTE: intercepta el primer clic y lanza la tarjeta -->
+    <div id="welcome-overlay" onclick="mostrarWelcomeDesdeOverlay()"></div>
 
     <!-- TARJETA DE BIENVENIDA (aparece al primer toque, sin fondo oscuro) -->
     <div id="modal-welcome">
@@ -765,6 +787,12 @@
                         slotDiv.appendChild(estadoDiv);
                         const btn = crearDogearBtn(() => toggleFila(Math.floor(i/3)), 'fa-unlink');
                         slotDiv.appendChild(btn);
+                        // Clic en banner → redirigir (enlace por determinar)
+                        slotDiv.style.cursor = 'pointer';
+                        slotDiv.addEventListener('click', function(e) {
+                            if (e.target.closest('.dogear-btn')) return;
+                            window.location.href = 'ENLACE_BANNER'; // ← sustituir por URL definitiva
+                        });
                     } else {
                         slotDiv.style.display = 'none';
                     }
@@ -788,7 +816,10 @@
                         const sub = document.createElement('div');
                         sub.className = 'sub-slot';
                         sub.textContent = 'Activo Publicitario Libre';
-                        sub.addEventListener('click', (e) => { e.stopPropagation(); });
+                        sub.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            window.location.href = 'ENLACE_SUB'; // ← sustituir por URL definitiva
+                        });
                         subGrid.appendChild(sub);
                     }
                     slotDiv.appendChild(subGrid);
@@ -842,29 +873,48 @@
             refrescarSlots();
         }
 
-        // ─── TARJETA DE BIENVENIDA (aparece al primer toque, sin overlay) ───
-        let welcomeShown = false;
-        function mostrarWelcomeSiProcede() {
+        // ─── TARJETA DE BIENVENIDA ───
+        // El overlay se muestra al cargar la página (si no estaba oculto).
+        // Al hacer clic en él aparece la tarjeta; los botones quedan bloqueados
+        // hasta que termina la transición de expansión (0.55 s).
+        // Tanto el estado del overlay como el de la tarjeta se persisten en localStorage.
+
+        function inicializarOverlayBienvenida() {
             if (localStorage.getItem('zvp_welcome_hidden') === 'true') return;
-            if (welcomeShown) return;
-            welcomeShown = true;
-            document.getElementById('modal-welcome').classList.add('visible');
+            document.getElementById('welcome-overlay').classList.add('active');
         }
-        document.addEventListener('pointerdown', function firstTouch() {
-            mostrarWelcomeSiProcede();
-            document.removeEventListener('pointerdown', firstTouch);
-        }, { once: true });
+
+        function mostrarWelcomeDesdeOverlay() {
+            const overlay = document.getElementById('welcome-overlay');
+            const welcome = document.getElementById('modal-welcome');
+
+            // Quitar overlay
+            overlay.classList.remove('active');
+            localStorage.setItem('zvp_overlay_dismissed', 'true');
+
+            // Mostrar tarjeta bloqueando botones durante la transición
+            welcome.classList.add('visible', 'expanding');
+            setTimeout(() => welcome.classList.remove('expanding'), 620);
+        }
 
         function cerrarWelcome() {
-            document.getElementById('modal-welcome').classList.remove('visible');
+            const welcome = document.getElementById('modal-welcome');
+            welcome.classList.remove('visible', 'expanding');
+            document.getElementById('welcome-overlay').classList.remove('active');
             if (document.getElementById('chk-no-mostrar').checked) {
                 localStorage.setItem('zvp_welcome_hidden', 'true');
             }
         }
-        // Cerrar al hacer clic fuera de la tarjeta
+
+        // Cerrar al hacer clic fuera de la tarjeta (solo si overlay ya fue cerrado)
         document.addEventListener('click', function(e) {
             const welcome = document.getElementById('modal-welcome');
-            if (welcome.classList.contains('visible') && !e.target.closest('#modal-welcome')) {
+            const overlay = document.getElementById('welcome-overlay');
+            if (
+                welcome.classList.contains('visible') &&
+                !overlay.classList.contains('active') &&
+                !e.target.closest('#modal-welcome')
+            ) {
                 cerrarWelcome();
             }
         });
@@ -979,7 +1029,7 @@
 
         // ─── INICIALIZACIÓN ───
         construirTablero();
-        // La tarjeta de bienvenida se activa con el primer toque (ver listener arriba)
+        inicializarOverlayBienvenida();
     </script>
 </body>
-</html>
+    </html>
