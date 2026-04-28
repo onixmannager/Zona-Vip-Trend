@@ -97,7 +97,7 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-        /* ─── BARRA SUPERIOR (INDEX-MODULAR EXACTA) ─── */
+        /* ─── BARRA SUPERIOR ─── */
         #barra {
             position: fixed; top: 0; left: 0; right: 0; height: 58px;
             background: linear-gradient(to bottom, rgba(8,9,15,0.96) 0%, rgba(8,9,15,0.88) 100%);
@@ -127,7 +127,7 @@
             overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
         }
 
-        /* ─── MENÚ NAVEGACIÓN (INDEX-MODULAR EXACTO) ─── */
+        /* ─── MENÚ NAVEGACIÓN ─── */
         #nav-menu-wrap {
             position: absolute; right: 36px; top: 50%; transform: translateY(-50%);
             display: flex; align-items: center; gap: 5px;
@@ -346,15 +346,17 @@
             #tablero {
                 height: auto;
                 width: 100%;
-                /* Fórmula: altura disponible = (100vh - barra(58px) - padding(16px) - gaps entre filas(4*6=24px))
-                   Queremos que quepan 5 filas cuadradas justo en esa altura.
-                   Ancho necesario = (altura_disponible * 3/5) + 2*gap(12px) + padding(16px) */
                 max-width: calc( (100vh - 98px) * 3 / 5 + 12px + 16px );
                 grid-template-rows: auto;
             }
             .slot {
                 aspect-ratio: 1 / 1;
                 height: auto;
+            }
+            /* Banner: ocupa justo una fila, sin volverse cuadrado */
+            .slot.banner {
+                aspect-ratio: auto;
+                height: calc((100vh - 98px) / 5);
             }
         }
 
