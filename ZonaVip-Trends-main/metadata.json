@@ -1,0 +1,8 @@
+{
+  "name": "Social UI",
+  "description": "Exploración de diseño moderno con estilo red social, micro-interacciones, animaciones tipo feed y componentes interactivos.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
