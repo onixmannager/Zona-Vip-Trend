@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-brand-purple: #c026d3;
+  --color-brand-pink: #f43f5e;
+  --color-brand-orange: #fb923c;
+  
+  --color-white: #0a0a10;
+  --color-black: #ffffff;
+  
+  --color-gray-50: #0a0a10;
+  --color-gray-100: #12121a;
+  --color-gray-200: #1a1a2e;
+  --color-gray-300: #262640;
+  --color-gray-400: #4a4a7a;
+  --color-gray-500: #6a6aaa;
+  --color-gray-600: #8a8aca;
+  --color-gray-700: #aaaaeb;
+  --color-gray-800: #cacaff;
+  --color-gray-900: #eaeaff;
+  --color-gray-950: #ffffff;
+
+  --color-pink-50: #1a0a10;
+  --color-pink-100: #2a0a15;
+  --color-pink-500: #ff2a85;
+  --color-pink-600: #ff0055;
+
+  --color-purple-50: #100a1a;
+  --color-purple-100: #1a0a2a;
+  --color-purple-500: #b026ff;
+  --color-purple-600: #9000ff;
+
+  --color-red-500: #ff003c;
+  --color-green-500: #00ffaa;
+  --color-blue-500: #0088ff;
+  --color-teal-50: #0a1515;
+  --color-teal-100: #0a2020;
+  --color-teal-500: #00ffd5;
+  --color-teal-600: #00ddb8;
+  --color-teal-900: #aaffea;
+  
+  --color-indigo-50: #0a1020;
+  --color-indigo-100: #101a30;
+  --color-indigo-600: #00d5ff;
+  
+  --color-background: #05050a;
+  --color-surface: #0a0a10;
+  --color-text-main: #f0f0ff;
+  --color-text-muted: #8a8aca;
+
+  --shadow-sm: 0 0 5px rgba(255, 0, 255, 0.4);
+  --shadow-md: 0 0 10px rgba(0, 255, 255, 0.3), 0 0 20px rgba(255, 0, 255, 0.2);
+  --shadow-lg: 0 0 15px rgba(0, 255, 255, 0.4), 0 0 30px rgba(255, 0, 255, 0.3);
+  --shadow-xl: 0 0 20px rgba(0, 255, 255, 0.5), 0 0 40px rgba(255, 0, 255, 0.4);
+}
+
+@layer utilities {
+  .bg-instagram {
+    background: linear-gradient(45deg, #0acffe, #495aff);
+    box-shadow: 0 0 15px rgba(10, 207, 254, 0.6);
+  }
+  .text-instagram {
+    background: linear-gradient(45deg, #0acffe, #495aff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(10, 207, 254, 0.5);
+  }
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-main);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide scrollbar for feeds/stories */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar globally */
+html {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body::-webkit-scrollbar,
+html::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+  Fix: Chrome/Desktop — overflow:hidden + border-radius breaks when
+  the element has a GPU-composited transform (translateZ, will-change, etc).
+  Applying border-radius via clip-path guarantees the clip is respected
+  even in composited layers, for all rounded cards with images.
+*/
+.rounded-\[24px\].overflow-hidden,
+.rounded-2xl.overflow-hidden,
+.rounded-3xl.overflow-hidden,
+.rounded-full.overflow-hidden {
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
+}
+
+.rounded-\[24px\].overflow-hidden { clip-path: inset(0 round 24px); }
+.rounded-2xl.overflow-hidden      { clip-path: inset(0 round 1rem); }
+.rounded-3xl.overflow-hidden      { clip-path: inset(0 round 1.5rem); }
+.rounded-full.overflow-hidden     { clip-path: inset(0 round 9999px); }
