@@ -58,30 +58,16 @@ async function startServer() {
             status: asset.status,
             url: `https://stream.mux.com/${playbackId}.m3u8`,
             playbackId,
-            assetId: asset.id,
           });
         }
 
-        return res.json({status: asset.status, assetId: asset.id});
+        return res.json({status: asset.status});
       }
 
       res.json({status: upload.status});
     } catch (error) {
       console.error('Mux asset poll error:', error);
       res.status(500).json({error: error instanceof Error ? error.message : 'Mux asset lookup failed'});
-    }
-  });
-
-  app.delete('/api/mux/asset/:assetId', async (req, res) => {
-    if (!mux) {
-      return res.status(503).json({error: 'Mux is not configured'});
-    }
-    try {
-      await mux.video.assets.delete(req.params.assetId);
-      res.json({success: true});
-    } catch (error) {
-      console.error('Mux asset delete error:', error);
-      res.status(500).json({error: error instanceof Error ? error.message : 'Mux asset delete failed'});
     }
   });
 

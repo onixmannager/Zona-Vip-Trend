@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -207,7 +207,7 @@ function StoryViewer({
             <img src={story.image} className="w-full h-full object-cover" alt="Story" style={{ filter: story.filter || 'none' }} />
         ) : (
             <video 
-               src={story.image} 
+               src={story.image}
                className="w-full h-full object-cover" 
                autoPlay 
                playsInline 
@@ -236,7 +236,7 @@ function StoryViewer({
                         const overlays: StoryOverlay[] = JSON.parse(story.overlays);
                         return overlays.map((overlay, idx) => (
                             <div 
-                                key={idx} 
+                                key={idx}
                                 className="absolute transform-gpu whitespace-pre-wrap text-center flex flex-col items-center justify-center"
                                 style={{ 
                                     left: `50%`, 
@@ -384,7 +384,7 @@ const SlotCard: React.FC<{
                      onRent(slot);
                   } else if (onViewTenant) {
                      onViewTenant(slot);
-                  } 
+                  }
                }} className="absolute inset-0 w-full h-full rounded-[24px] bg-black flex flex-col justify-end overflow-hidden outline-none text-left cursor-pointer group/rented transition-transform active:scale-[0.98] block" style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', WebkitBackfaceVisibility: 'hidden', transform: 'translateZ(0)', clipPath: 'inset(0 round 24px)' }}>
                 {slot.image ? (
                    <div className="absolute inset-0 w-full h-full rounded-[24px] overflow-hidden" style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', WebkitBackfaceVisibility: 'hidden', transform: 'translateZ(0)', clipPath: 'inset(0 round 24px)' }}>
@@ -676,7 +676,7 @@ function Login({ user }: { user: FirebaseUser | null }) {
           Continuar con Google
         </button>
         <p className="mt-8 text-sm text-gray-500">
-          {isRegister ? 'Â¿Ya tienes cuenta?' : 'Â¿No tienes tu zona vip?'} 
+          {isRegister ? 'Â¿Ya tienes cuenta?' : 'Â¿No tienes tu zona vip?'}
           <button type="button" onClick={()=>setIsRegister(!isRegister)} className="text-pink-500 font-bold ml-1 hover:underline">
             {isRegister ? 'Iniciar SesiÃ³n' : 'RegÃ­strate'}
           </button>
@@ -722,8 +722,8 @@ const ProfileExploreCard: React.FC<{ p: CreatorProfile }> = ({ p }) => {
 
    return (
       <Link 
-         key={p.username} 
-         to={`/vip/${p.username}`} 
+         key={p.username}
+         to={`/vip/${p.username}`}
          ref={ref}
          className="group relative rounded-[24px] overflow-hidden aspect-[4/5] bg-gray-100 shadow-sm hover:shadow-md transition-all active:scale-[0.98] block isolate"
          style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', WebkitBackfaceVisibility: 'hidden', transform: 'translateZ(0)', willChange: 'transform', clipPath: 'inset(0 round 24px)' }}
@@ -737,7 +737,7 @@ const ProfileExploreCard: React.FC<{ p: CreatorProfile }> = ({ p }) => {
          {/* Usamos el banner o la foto para el fondo */}
          <div className="absolute inset-0 w-full h-full rounded-[24px] overflow-hidden" style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', WebkitBackfaceVisibility: 'hidden', transform: 'translateZ(0)', clipPath: 'inset(0 round 24px)' }}>
             <img 
-               src={p.bannerURL || p.photoURL || `https://i.pravatar.cc/300?u=${p.username}`} 
+               src={p.bannerURL || p.photoURL || `https://i.pravatar.cc/300?u=${p.username}`}
                alt="Fondo del perfil" 
                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
@@ -747,8 +747,8 @@ const ProfileExploreCard: React.FC<{ p: CreatorProfile }> = ({ p }) => {
          <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col gap-1.5">
             <div className="flex items-center gap-2">
                <img 
-                  src={p.photoURL || `https://i.pravatar.cc/150?u=${p.username}`} 
-                  alt={p.displayName} 
+                  src={p.photoURL || `https://i.pravatar.cc/150?u=${p.username}`}
+                  alt={p.displayName}
                   className="w-7 h-7 rounded-full border border-white/50 bg-black/50 object-cover shrink-0" 
                />
                <div className="flex flex-col min-w-0">
@@ -858,9 +858,9 @@ function ExplorerView({ currentUser, userProfile, searchQuery }: { currentUser: 
           <AnimatePresence>
             {selectedStoryIndex !== null && (
                <StoryViewer 
-                  stories={stories} 
-                  initialIndex={selectedStoryIndex} 
-                  onClose={() => setSelectedStoryIndex(null)} 
+                  stories={stories}
+                  initialIndex={selectedStoryIndex}
+                  onClose={() => setSelectedStoryIndex(null)}
                />
             )}
           </AnimatePresence>
@@ -1436,12 +1436,12 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
   if (!user || loading || !profile) return <div className="min-h-[100dvh] flex items-center justify-center font-sans tracking-wide">Cargando...</div>;
 
   return (
-    <div className="min-h-[100dvh] bg-gray-950 flex justify-center overflow-x-hidden font-sans relative isolate lg:px-6 lg:py-6">
+    <div className="min-h-[100dvh] bg-white flex justify-center overflow-x-hidden font-sans relative isolate">
       <div className="hidden lg:block absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         {profile.bannerURL ? <img src={profile.bannerURL} className="absolute inset-0 w-full h-full object-cover blur-3xl scale-110 opacity-35" alt="" /> : <div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-gray-950 to-purple-950" />}
         <div className="absolute inset-0 bg-gray-950/65" />
       </div>
-      <main className="w-full max-w-[500px] lg:max-w-none lg:w-full bg-white/95 lg:backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.18)] relative flex flex-col pb-[80px] min-h-[100dvh] lg:min-h-[calc(100dvh-48px)] lg:rounded-[32px] lg:overflow-hidden">
+      <main className="w-full max-w-[500px] lg:max-w-none lg:w-full bg-white relative flex flex-col pb-[80px] min-h-[100dvh]">
         
         {/* TOP BAR IF NOT PROFILE VIEW */}
         {activeTab !== 'profile' && (
@@ -1498,11 +1498,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                               const isBaseSlot = /^(slot-[1-5])($|-)/.test(item.slot.id);
                               return (
                                  <SlotCard 
-                                    key={item.slot.id} 
-                                    slot={item.slot} 
-                                    isAdmin={true} 
+                                    key={item.slot.id}
+                                    slot={item.slot}
+                                    isAdmin={true}
                                     isSelected={editingSize === item.slot.width}
-                                    onDivide={handleDivide} 
+                                    onDivide={handleDivide}
                                     onJoin={item.slot.width < 100 ? handleJoin : undefined}
                                     onEditPrices={openPricesModal}
                                     onDelete={(!isBaseSlot && item.slot.width === 100) ? handleDeleteSlot : undefined}
@@ -1515,11 +1515,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                                        const isBaseSlot = /^(slot-[1-5])($|-)/.test(slot.id);
                                        return (
                                          <SlotCard 
-                                            key={slot.id} 
-                                            slot={slot} 
-                                            isAdmin={true} 
+                                            key={slot.id}
+                                            slot={slot}
+                                            isAdmin={true}
                                             isSelected={editingSize === slot.width}
-                                            onDivide={handleDivide} 
+                                            onDivide={handleDivide}
                                             onJoin={handleJoin}
                                             onEditPrices={openPricesModal}
                                             onDelete={(!isBaseSlot && slot.width === 100) ? handleDeleteSlot : undefined}
@@ -1845,7 +1845,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
             {selectedTenantSlot && (
               <React.Fragment key="editing-tenant">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setSelectedTenantSlot(null); setConfirmClearSlot(false); }} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-                <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 w-full max-w-[500px] bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col"><div className="flex-1 overflow-y-auto p-6 pb-16">
+                <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 left-1/2 w-full max-w-[500px] -translate-x-1/2 bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col md:top-1/2 md:bottom-auto md:max-w-[760px] md:h-[82vh] md:-translate-y-1/2 md:rounded-[32px]"><div className="flex-1 overflow-y-auto p-6 pb-16">
                    <div className="flex justify-between items-center mb-6">
                       <h3 className="font-black text-xl text-gray-900">Editar ZonaVip</h3>
                       {confirmClearSlot ? (
@@ -2111,12 +2111,12 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
   if (!profile) return <div className="min-h-[100dvh] bg-gray-50 flex items-center justify-center text-gray-500 font-sans">Perfil no encontrado.</div>;
 
   return (
-    <div className="min-h-[100dvh] bg-gray-950 flex justify-center overflow-x-hidden font-sans relative isolate lg:px-6 lg:py-6">
+    <div className="min-h-[100dvh] bg-white flex justify-center overflow-x-hidden font-sans relative isolate">
       <div className="hidden lg:block absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         {profile.bannerURL ? <img src={profile.bannerURL} className="absolute inset-0 w-full h-full object-cover blur-3xl scale-110 opacity-35" alt="" /> : <div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-gray-950 to-purple-950" />}
         <div className="absolute inset-0 bg-gray-950/65" />
       </div>
-      <main className={cn("w-full max-w-[500px] lg:max-w-none lg:w-full bg-white/95 lg:backdrop-blur-xl shadow-[0_0_80px_rgba(0,0,0,0.18)] relative flex flex-col min-h-[100dvh] lg:min-h-[calc(100dvh-48px)] lg:rounded-[32px] lg:overflow-hidden", currentUser ? "pb-[60px]" : "")}>
+      <main className={cn("w-full max-w-[500px] lg:max-w-none lg:w-full bg-white relative flex flex-col min-h-[100dvh]", currentUser ? "pb-[60px]" : "")}>
          <div id="profile-scroll-container" className="flex-1 overflow-y-auto w-full pb-10">
             <ProfileView profile={profile} slots={slots} stories={stories} isOwnerPreview={false} profileId={profileId} currentUser={currentUser} onBack={currentUser ? () => navigate('/dashboard', { state: { tab: 'explorer' } }) : undefined} onDivide={handleDivide} onJoin={handleJoin} />
          </div>
@@ -2307,8 +2307,8 @@ function ChatModal({ connectionId, otherProfile, currentUser, onClose }: { conne
             <input 
                type="text" 
                placeholder="Escribe un mensaje..." 
-               value={text} 
-               onChange={e => setText(e.target.value)} 
+               value={text}
+               onChange={e => setText(e.target.value)}
                className="flex-1 bg-gray-100 border-none rounded-full px-4 text-sm focus:ring-2 focus:ring-pink-500 outline-none h-[44px]"
             />
             <button type="submit" disabled={!text.trim()} className="w-[44px] h-[44px] bg-pink-500 hover:bg-pink-600 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-full flex items-center justify-center transition-colors">
@@ -2640,7 +2640,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
                     <input 
                        type="range" 
                        min="0" 
-                       max={Math.max(0, videoDuration - clipDuration)} 
+                       max={Math.max(0, videoDuration - clipDuration)}
                        step="0.1" 
                        value={clipStart}
                        onChange={e => setClipStart(parseFloat(e.target.value))}
@@ -2673,8 +2673,8 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
                          ))}
                      </div>
                      <textarea 
-                        value={newOverlayText} 
-                        onChange={e => setNewOverlayText(e.target.value)} 
+                        value={newOverlayText}
+                        onChange={e => setNewOverlayText(e.target.value)}
                         autoFocus
                         className="bg-transparent text-white text-center text-3xl font-bold outline-none resize-none placeholder:text-white/30 truncate"
                         placeholder="Escribe algo..."
@@ -2692,7 +2692,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
        <div className="p-4 z-40 bg-gradient-to-t from-black/50 to-transparent">
           {media && (
               <button 
-                onClick={() => onPublish(media, overlays, filter, clipStart, clipDuration)} 
+                onClick={() => onPublish(media, overlays, filter, clipStart, clipDuration)}
                 disabled={isProcessing}
                 className="w-full py-4 bg-white text-black rounded-2xl font-bold text-lg hover:bg-gray-100 transition active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
               >
@@ -2892,7 +2892,7 @@ function TokenMarketPanel({
   const canSell = sellAmount > 0;
 
   return (
-    <section className="mx-4 mb-4 rounded-[24px] border border-gray-100 bg-white shadow-sm overflow-hidden shrink-0 lg:mx-0 lg:mb-0">
+    <section className="w-full rounded-[24px] border border-gray-100 bg-white shadow-sm overflow-hidden shrink-0">
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -3019,16 +3019,16 @@ function TokenMarketPanel({
   );
 }
 
-function TokenPriceStrip({ market }: { market: TokenMarket }) {
+function TokenPriceStrip({ market, onOpen }: { market: TokenMarket; onOpen: () => void }) {
   const isPositive = market.change24h >= 0;
 
   return (
-    <div className="sticky top-0 z-30 mx-4 mb-4 rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-md shadow-sm p-3 lg:hidden">
+    <button onClick={onOpen} className="sticky top-0 z-30 mx-4 mb-4 rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-md shadow-sm p-3 text-left w-[calc(100%-2rem)] transition active:scale-[0.99] lg:static lg:mx-8 lg:mb-8 lg:w-[calc(100%-4rem)] lg:p-5 lg:hover:border-pink-200 lg:hover:shadow-md">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{market.symbol} Token</p>
           <div className="flex items-end gap-2">
-            <span className="text-2xl font-black text-gray-900 leading-none">{formatTokenPrice(market.lastPrice)}</span>
+            <span className="text-2xl lg:text-3xl font-black text-gray-900 leading-none">{formatTokenPrice(market.lastPrice)}</span>
             <span className={cn("text-xs font-black pb-0.5", isPositive ? "text-green-500" : "text-red-500")}>
               {isPositive ? '+' : ''}{market.change24h.toFixed(2)}%
             </span>
@@ -3037,18 +3037,21 @@ function TokenPriceStrip({ market }: { market: TokenMarket }) {
         <div className="grid grid-cols-2 gap-2 text-right shrink-0">
           <div>
             <p className="text-[9px] font-black uppercase text-red-500">Ask</p>
-            <p className="text-xs font-black text-gray-900">{formatTokenPrice(market.bestAsk)}</p>
+            <p className="text-xs lg:text-sm font-black text-gray-900">{formatTokenPrice(market.bestAsk)}</p>
           </div>
           <div>
             <p className="text-[9px] font-black uppercase text-green-500">Bid</p>
-            <p className="text-xs font-black text-gray-900">{formatTokenPrice(market.bestBid)}</p>
+            <p className="text-xs lg:text-sm font-black text-gray-900">{formatTokenPrice(market.bestBid)}</p>
           </div>
         </div>
       </div>
-    </div>
+      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 lg:mt-4">
+        <span className="text-[11px] font-black uppercase tracking-wider text-gray-400">Mercado del creador</span>
+        <span className="text-xs font-black text-pink-500">Abrir exchange</span>
+      </div>
+    </button>
   );
 }
-
 function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, currentUser, onDivide, onJoin, onBack }: { profile: CreatorProfile, slots: AdSpace[], stories?: Story[], isOwnerPreview: boolean, profileId?: string | null, currentUser?: FirebaseUser | null, onDivide?: (id: string) => void, onJoin?: (id: string) => void, onBack?: () => void }) {
   const [selectedSlot, setSelectedSlot] = useState<AdSpace | null>(null);
   const [viewingTenantSlot, setViewingTenantSlot] = useState<AdSpace | null>(null);
@@ -3069,6 +3072,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const [buyTokenAmount, setBuyTokenAmount] = useState(10);
   const [sellTokenAmount, setSellTokenAmount] = useState(5);
   const [confirmMarketAction, setConfirmMarketAction] = useState<'buy' | 'sell' | null>(null);
+  const [showMarketModal, setShowMarketModal] = useState(false);
   const [openSellOffers, setOpenSellOffers] = useState<MarketOrder[]>([]);
 
   // Connections state
@@ -3084,7 +3088,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const scanTriggeredRef = useRef(false);
   const txsCountRef = useRef<number | undefined>(undefined);
 
-  useLockBodyScroll(!!selectedSlot || !!viewingTenantSlot || showTransactionsModal || showContactsModal || showCancelConfirm || !!confirmMarketAction || isUploadingStory || selectedStoryIndex !== null);
+  useLockBodyScroll(!!selectedSlot || !!viewingTenantSlot || showTransactionsModal || showContactsModal || showCancelConfirm || !!confirmMarketAction || showMarketModal || isUploadingStory || selectedStoryIndex !== null);
 
   useEffect(() => {
      if (!profileId) return;
@@ -3353,7 +3357,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
 
   return (
     <>
-        <div className="w-full h-[90px] lg:h-[170px] bg-gray-100 relative overflow-hidden shrink-0">
+        <div className="w-full h-[90px] lg:h-[220px] bg-gray-100 relative overflow-hidden shrink-0">
           <div className="absolute top-4 inset-x-4 z-30 flex items-center justify-between">
              {onBack ? (
                 <button onClick={onBack} title="Volver a explorar" className="h-[32px] w-[88px] bg-white/90 backdrop-blur-md rounded-full border border-gray-100 shadow-sm flex items-center justify-center gap-0.5 transition-colors active:scale-95 outline-none">
@@ -3416,19 +3420,9 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
            </div>
         </div>
 
-        <TokenPriceStrip market={tokenMarket} />
+        <TokenPriceStrip market={tokenMarket} onOpen={() => setShowMarketModal(true)} />
 
-        <div className="lg:hidden">
-          <TokenMarketPanel
-            market={tokenMarket}
-            openSellOffers={openSellOffers}
-            buyAmount={buyTokenAmount}
-            sellAmount={sellTokenAmount}
-            onBuyAmountChange={setBuyTokenAmount}
-            onSellAmountChange={setSellTokenAmount}
-            onConfirm={setConfirmMarketAction}
-          />
-        </div>
+
 
         <ProfileCustomCard card={profile.customCard} />
 
@@ -3445,8 +3439,8 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
            </div>
         )}
 
-        <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-5 lg:px-5 lg:pb-8">
-          <div className="lg:col-span-7 xl:col-span-8 lg:min-w-0">
+        <div className="lg:px-8 lg:pb-10">
+          <div className="lg:min-w-0">
         {/* Stories Section */}
         {((stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }]).length > 0 || canUploadStory) && (
             <div className="px-4 mb-4 shrink-0 w-full overflow-x-auto no-scrollbar">
@@ -3468,7 +3462,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                     {/* List of Stories */}
                     {((stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }])).map((story, idx, arr) => (
                         <button 
-                            key={story.id} 
+                            key={story.id}
                             onClick={() => setSelectedStoryIndex(idx)}
                             className="relative shrink-0 group cursor-pointer"
                         >
@@ -3489,12 +3483,12 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                  if (item.type === 'single') {
                     return (
                        <SlotCard 
-                         key={item.slot.id} 
-                         slot={item.slot} 
+                         key={item.slot.id}
+                         slot={item.slot}
                          isSelected={selectedSlot?.id === item.slot.id}
-                         onRent={setSelectedSlot} 
-                         onDivide={onDivide} 
-                         onJoin={onJoin && item.slot.width < 100 ? onJoin : undefined} 
+                         onRent={setSelectedSlot}
+                         onDivide={onDivide}
+                         onJoin={onJoin && item.slot.width < 100 ? onJoin : undefined}
                          onViewTenant={setViewingTenantSlot}
                        />
                     );
@@ -3503,12 +3497,12 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                        <div key={item.id} className="col-span-2 row-span-2 grid grid-cols-2 grid-rows-2 gap-2 md:gap-3 w-full h-full aspect-[10/7.65] relative bg-white rounded-[24px] overflow-hidden isolate">
                           {item.slots.sort((a, b) => a.order - b.order).map(slot => (
                             <SlotCard 
-                               key={slot.id} 
-                               slot={slot} 
+                               key={slot.id}
+                               slot={slot}
                                isSelected={selectedSlot?.id === slot.id}
-                               onRent={setSelectedSlot} 
-                               onDivide={onDivide} 
-                               onJoin={onJoin} 
+                               onRent={setSelectedSlot}
+                               onDivide={onDivide}
+                               onJoin={onJoin}
                                onViewTenant={setViewingTenantSlot}
                             />
                           ))}
@@ -3519,24 +3513,14 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
            </div>
         </div>
           </div>
-          <aside className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-5 lg:min-w-0">
-            <TokenMarketPanel
-              market={tokenMarket}
-              openSellOffers={openSellOffers}
-              buyAmount={buyTokenAmount}
-              sellAmount={sellTokenAmount}
-              onBuyAmountChange={setBuyTokenAmount}
-              onSellAmountChange={setSellTokenAmount}
-              onConfirm={setConfirmMarketAction}
-            />
-          </aside>
+
         </div>
 
         <AnimatePresence>
             {selectedSlot && (
               <React.Fragment key="selected-slot">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedSlot(null)} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-                <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 w-full max-w-[500px] bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col"><div className="flex-1 overflow-y-auto p-6 pb-16">
+                <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 left-1/2 w-full max-w-[500px] -translate-x-1/2 bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col md:top-1/2 md:bottom-auto md:max-w-[760px] md:h-[82vh] md:-translate-y-1/2 md:rounded-[32px]"><div className="flex-1 overflow-y-auto p-6 pb-16">
                    <h2 className="text-2xl font-black tracking-tight text-center text-gray-900 mb-2">Alquilar ZonaVip</h2>
                    <p className="text-center text-gray-500 font-medium text-[15px] mb-2 leading-snug">
                      Elige la duraciÃ³n para patrocinar a <strong className="text-gray-800">{profile.displayName}</strong>.
@@ -3609,7 +3593,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                    
                    <button 
                      disabled={isProcessing || !rentImage.trim() || !rentBrand.trim()}
-                     onClick={handleRent} 
+                     onClick={handleRent}
                      className={cn("w-full py-4 text-white rounded-2xl font-bold text-lg transition active:scale-[0.98] disabled:opacity-50",
                        {
                          25: 'bg-gray-900 hover:bg-black',
@@ -3632,9 +3616,9 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                <React.Fragment key="uploading">
                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50">
                     <StoryUploader 
-                       onCancel={() => setIsUploadingStory(false)} 
-                       onPublish={handlePublishStory} 
-                       isProcessing={isProcessing} 
+                       onCancel={() => setIsUploadingStory(false)}
+                       onPublish={handlePublishStory}
+                       isProcessing={isProcessing}
                     />
                  </motion.div>
                </React.Fragment>
@@ -3645,8 +3629,8 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
             {selectedStoryIndex !== null && (
                <StoryViewer 
                   stories={(stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }])}
-                  initialIndex={selectedStoryIndex} 
-                  onClose={() => setSelectedStoryIndex(null)} 
+                  initialIndex={selectedStoryIndex}
+                  onClose={() => setSelectedStoryIndex(null)}
                />
             )}
         </AnimatePresence>
@@ -3682,6 +3666,37 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
         </AnimatePresence>
 
         <AnimatePresence>
+            {showMarketModal && (
+                <>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowMarketModal(false)} className="fixed inset-0 bg-black/55 z-50 backdrop-blur-sm" />
+                  <motion.div initial={{ opacity: 0, y: 28, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 28, scale: 0.98 }} className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-h-[92dvh] overflow-hidden rounded-t-[28px] bg-white shadow-2xl md:inset-6 md:bottom-auto md:max-w-none md:rounded-[28px]">
+                    <div className="flex h-full max-h-[92dvh] flex-col">
+                      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 md:px-7">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Exchange del creador</p>
+                          <h2 className="text-xl font-black text-gray-900 md:text-2xl">{tokenMarket.symbol} Market</h2>
+                        </div>
+                        <button onClick={() => setShowMarketModal(false)} className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-gray-900">
+                          <PlusSquare className="h-5 w-5 rotate-45" />
+                        </button>
+                      </div>
+                      <div className="flex-1 overflow-y-auto p-4 md:p-7">
+                        <TokenMarketPanel
+                          market={tokenMarket}
+                          openSellOffers={openSellOffers}
+                          buyAmount={buyTokenAmount}
+                          sellAmount={sellTokenAmount}
+                          onBuyAmountChange={setBuyTokenAmount}
+                          onSellAmountChange={setSellTokenAmount}
+                          onConfirm={setConfirmMarketAction}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                </>
+            )}
+        </AnimatePresence>
+        <AnimatePresence>
             {confirmMarketAction && (
                 <>
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmMarketAction(null)} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
@@ -3711,7 +3726,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
             {viewingTenantSlot && (
               <React.Fragment key="view-tenant">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingTenantSlot(null)} className="fixed inset-0 bg-black/50 z-[100] backdrop-blur-sm" />
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 m-auto w-[90%] max-w-[400px] h-fit bg-white rounded-3xl p-6 z-[100] shadow-2xl flex flex-col items-center">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 m-auto w-[90%] max-w-[400px] md:max-w-[680px] h-fit bg-white rounded-3xl p-6 md:p-8 z-[100] shadow-2xl flex flex-col items-center">
                     {viewingTenantSlot.image && (
                        <div className="w-full aspect-[4/5] bg-gray-900 rounded-2xl overflow-hidden mb-6 relative shadow-inner flex items-center justify-center">
                           <img src={viewingTenantSlot.image} className="w-full h-full object-contain" alt="Ad" />
@@ -3734,5 +3749,3 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
     </>
   );
 }
-
-
