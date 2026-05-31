@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
@@ -1437,7 +1437,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
   return (
     <div className="min-h-[100dvh] bg-[#FDFDFD] flex justify-center overflow-x-hidden font-sans">
-      <main className="w-full max-w-[500px] bg-white shadow-[0_0_80px_rgba(0,0,0,0.1)] relative flex flex-col pb-[80px] min-h-[100dvh]">
+      <main className="w-full max-w-[500px] lg:max-w-[1180px] bg-white shadow-[0_0_80px_rgba(0,0,0,0.1)] relative flex flex-col pb-[80px] min-h-[100dvh]">
         
         {/* TOP BAR IF NOT PROFILE VIEW */}
         {activeTab !== 'profile' && (
@@ -1791,7 +1791,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
             {editingSize && (
               <React.Fragment key="editing">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingSize(null)} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
-                <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 w-full max-w-[500px] bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col"><div className="flex-1 overflow-y-auto p-6 pb-16">
+                <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col"><div className="flex-1 overflow-y-auto p-6 pb-16">
                    <h3 className="font-black text-xl mb-6">Precios (Zona {editingSize}%)</h3>
                    <div className="flex flex-col gap-3">
                       {(() => {
@@ -2108,7 +2108,7 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
 
   return (
     <div className="min-h-[100dvh] bg-[#FDFDFD] flex justify-center overflow-x-hidden font-sans">
-      <main className={cn("w-full max-w-[500px] bg-white shadow-[0_0_80px_rgba(0,0,0,0.1)] relative flex flex-col min-h-[100dvh]", currentUser ? "pb-[60px]" : "")}>
+      <main className={cn("w-full max-w-[500px] lg:max-w-[1180px] bg-white shadow-[0_0_80px_rgba(0,0,0,0.1)] relative flex flex-col min-h-[100dvh]", currentUser ? "pb-[60px]" : "")}>
          <div id="profile-scroll-container" className="flex-1 overflow-y-auto w-full pb-10">
             <ProfileView profile={profile} slots={slots} stories={stories} isOwnerPreview={false} profileId={profileId} currentUser={currentUser} onBack={currentUser ? () => navigate('/dashboard', { state: { tab: 'explorer' } }) : undefined} onDivide={handleDivide} onJoin={handleJoin} />
          </div>
@@ -2734,6 +2734,313 @@ function ProfileCustomCard({ card }: { card?: CreatorProfile['customCard'] }) {
   );
 }
 
+type MarketOrder = {
+  price: number;
+  amount: number;
+};
+
+type MarketTrade = {
+  id: string;
+  price: number;
+  amount: number;
+  createdAt: number;
+};
+
+type TokenMarket = {
+  symbol: string;
+  lastPrice: number;
+  bestAsk: number;
+  bestBid: number;
+  change24h: number;
+  volume24h: number;
+  asks: MarketOrder[];
+  bids: MarketOrder[];
+  trades: MarketTrade[];
+  history: Record<'24h' | '7d' | '30d', number[]>;
+};
+
+const formatTokenPrice = (value: number) => `$${value.toFixed(2)}`;
+const formatTokenAmount = (value: number) => value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+
+const formatAgo = (timestamp: number) => {
+  const diff = Math.max(1, Date.now() - timestamp);
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Ahora';
+  if (mins < 60) return `Hace ${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `Hace ${hours}h`;
+  return `Hace ${Math.floor(hours / 24)}d`;
+};
+
+function buildTokenMarket(profile: CreatorProfile, transactions: { id: string; price: number; createdAt: number; duration?: number }[], slots: AdSpace[]): TokenMarket {
+  const basePrice = Math.max(
+    1,
+    transactions[0]?.price ||
+      profile.prices25?.price1 ||
+      profile.prices50?.price1 ||
+      profile.prices100?.price1 ||
+      5
+  );
+  const rentedSlots = Math.max(1, slots.filter(s => s.isRented).length);
+  const symbol = (profile.username || profile.displayName || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase() || 'VIP';
+  const asks = Array.from({ length: 6 }, (_, i) => ({
+    price: Number((basePrice * (1.025 + i * 0.018)).toFixed(2)),
+    amount: Number((8 + rentedSlots * 1.35 + i * 3.15).toFixed(2))
+  })).sort((a, b) => a.price - b.price);
+  const bids = Array.from({ length: 6 }, (_, i) => ({
+    price: Number((basePrice * (0.985 - i * 0.018)).toFixed(2)),
+    amount: Number((7 + rentedSlots * 1.1 + i * 2.75).toFixed(2))
+  })).sort((a, b) => b.price - a.price);
+  const trades = transactions
+    .slice(0, 15)
+    .map((tx, i) => ({
+      id: tx.id,
+      price: Number((tx.price || basePrice).toFixed(2)),
+      amount: Number(Math.max(1, (tx.duration || 7) / 2).toFixed(2)),
+      createdAt: tx.createdAt || Date.now() - i * 18 * 60000
+    }));
+  if (trades.length === 0) {
+    for (let i = 0; i < 10; i++) {
+      trades.push({
+        id: `demo-trade-${i}`,
+        price: Number((basePrice * (1 + Math.sin(i + rentedSlots) * 0.035)).toFixed(2)),
+        amount: Number((3 + i * 1.4).toFixed(2)),
+        createdAt: Date.now() - (i + 1) * 22 * 60000
+      });
+    }
+  }
+  const previous = trades[trades.length - 1]?.price || basePrice * 0.96;
+  const lastPrice = trades[0]?.price || basePrice;
+  const change24h = previous ? ((lastPrice - previous) / previous) * 100 : 0;
+  const volume24h = trades
+    .filter(t => Date.now() - t.createdAt < 24 * 60 * 60 * 1000)
+    .reduce((sum, t) => sum + t.amount, 0);
+  const makeHistory = (points: number, waveSize: number, trendSize: number) =>
+    Array.from({ length: points }, (_, i) => {
+      const wave = Math.sin((i + rentedSlots) / 2.7) * waveSize;
+      const trend = (i - points / 2) * (change24h / trendSize);
+      return Number((basePrice * (1 + wave + trend)).toFixed(2));
+    });
+
+  return {
+    symbol,
+    lastPrice,
+    bestAsk: asks[0].price,
+    bestBid: bids[0].price,
+    change24h,
+    volume24h,
+    asks,
+    bids,
+    trades,
+    history: {
+      '24h': makeHistory(24, 0.045, 1000),
+      '7d': makeHistory(28, 0.07, 850),
+      '30d': makeHistory(30, 0.11, 700)
+    }
+  };
+}
+
+function PriceSparkline({ points }: { points: number[] }) {
+  const min = Math.min(...points);
+  const max = Math.max(...points);
+  const range = Math.max(0.01, max - min);
+  const d = points.map((point, i) => {
+    const x = (i / Math.max(1, points.length - 1)) * 100;
+    const y = 42 - ((point - min) / range) * 34;
+    return `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join(' ');
+
+  return (
+    <svg viewBox="0 0 100 46" className="w-full h-28 overflow-visible" preserveAspectRatio="none" aria-hidden="true">
+      <path d={d} fill="none" stroke="#ff2a85" strokeWidth="2.2" vectorEffect="non-scaling-stroke" />
+      <path d={`${d} L 100 46 L 0 46 Z`} fill="rgba(255,42,133,0.08)" />
+    </svg>
+  );
+}
+
+function TokenMarketPanel({
+  market,
+  openSellOffers,
+  buyAmount,
+  sellAmount,
+  onBuyAmountChange,
+  onSellAmountChange,
+  onConfirm
+}: {
+  market: TokenMarket;
+  openSellOffers: MarketOrder[];
+  buyAmount: number;
+  sellAmount: number;
+  onBuyAmountChange: (value: number) => void;
+  onSellAmountChange: (value: number) => void;
+  onConfirm: (side: 'buy' | 'sell') => void;
+}) {
+  const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d'>('24h');
+  const isPositive = market.change24h >= 0;
+  const buyTotal = buyAmount * market.bestAsk;
+  const sellTotal = sellAmount * market.bestBid;
+  const hasBid = market.bids.length > 0 && market.bestBid > 0;
+  const canBuy = buyAmount > 0 && market.bestAsk > 0;
+  const canSell = sellAmount > 0;
+
+  return (
+    <section className="mx-4 mb-4 rounded-[24px] border border-gray-100 bg-white shadow-sm overflow-hidden shrink-0 lg:mx-0 lg:mb-0">
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{market.symbol} Token</p>
+            <div className="flex items-end gap-2 mt-1">
+              <h2 className="text-3xl font-black text-gray-900 leading-none">{formatTokenPrice(market.lastPrice)}</h2>
+              <span className={cn("text-xs font-black pb-1", isPositive ? "text-green-500" : "text-red-500")}>
+                {isPositive ? '+' : ''}{market.change24h.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Vol 24h</p>
+            <p className="text-sm font-black text-gray-900">{formatTokenAmount(market.volume24h)}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-red-500">Mejor ask</p>
+            <p className="text-lg font-black text-gray-900">{formatTokenPrice(market.bestAsk)}</p>
+          </div>
+          <div className="rounded-2xl bg-green-500/10 border border-green-500/20 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-green-500">Mejor bid</p>
+            <p className="text-lg font-black text-gray-900">{formatTokenPrice(market.bestBid)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-black text-gray-900">Precio</h3>
+          <div className="flex bg-gray-100 p-1 rounded-full">
+            {(['24h', '7d', '30d'] as const).map(label => (
+              <button
+                key={label}
+                onClick={() => setTimeframe(label)}
+                className={cn("px-3 py-1 rounded-full text-[11px] font-black", timeframe === label ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <PriceSparkline points={market.history[timeframe]} />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 p-4 border-b border-gray-100">
+        <div className="rounded-2xl border border-gray-100 p-3">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-black text-gray-900">Comprar</h3>
+            <span className="text-[11px] font-bold text-gray-400">Ask {formatTokenPrice(market.bestAsk)}</span>
+          </div>
+          <input
+            type="number"
+            min="0"
+            value={buyAmount}
+            onChange={e => onBuyAmountChange(Math.max(0, Number(e.target.value) || 0))}
+            className="w-full h-11 rounded-xl bg-gray-50 border border-gray-100 px-3 text-gray-900 font-bold outline-none focus:border-pink-500"
+          />
+          <p className="text-xs text-gray-500 font-bold mt-2">Total estimado: <span className="text-gray-900">{formatTokenPrice(buyTotal)}</span></p>
+          <button disabled={!canBuy} onClick={() => onConfirm('buy')} className="w-full mt-3 h-11 rounded-xl bg-gray-900 text-white font-black active:scale-[0.98] transition disabled:opacity-40">
+            Comprar al mercado
+          </button>
+        </div>
+        <div className="rounded-2xl border border-gray-100 p-3">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-black text-gray-900">Vender</h3>
+            <span className="text-[11px] font-bold text-gray-400">{hasBid ? `Bid ${formatTokenPrice(market.bestBid)}` : 'Sin bid'}</span>
+          </div>
+          <input
+            type="number"
+            min="0"
+            value={sellAmount}
+            onChange={e => onSellAmountChange(Math.max(0, Number(e.target.value) || 0))}
+            className="w-full h-11 rounded-xl bg-gray-50 border border-gray-100 px-3 text-gray-900 font-bold outline-none focus:border-pink-500"
+          />
+          <p className="text-xs text-gray-500 font-bold mt-2">
+            {hasBid ? <>Recibirias: <span className="text-gray-900">{formatTokenPrice(sellTotal)}</span></> : 'Quedara como oferta abierta'}
+          </p>
+          <button disabled={!canSell} onClick={() => onConfirm('sell')} className="w-full mt-3 h-11 rounded-xl bg-pink-500 text-white font-black active:scale-[0.98] transition disabled:opacity-40">
+            Vender al mercado
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
+        <div>
+          <h3 className="text-sm font-black text-gray-900 mb-2">Libro de ordenes</h3>
+          <div className="space-y-1">
+            {market.asks.slice(0, 8).map((order, i) => (
+              <div key={`ask-${i}`} className="grid grid-cols-2 text-xs font-bold bg-red-500/5 rounded-lg px-2 py-1.5">
+                <span className="text-red-500">{formatTokenPrice(order.price)}</span>
+                <span className="text-right text-gray-500">{formatTokenAmount(order.amount)}</span>
+              </div>
+            ))}
+            {market.bids.slice(0, 8).map((order, i) => (
+              <div key={`bid-${i}`} className="grid grid-cols-2 text-xs font-bold bg-green-500/5 rounded-lg px-2 py-1.5">
+                <span className="text-green-500">{formatTokenPrice(order.price)}</span>
+                <span className="text-right text-gray-500">{formatTokenAmount(order.amount)}</span>
+              </div>
+            ))}
+            {openSellOffers.map((order, i) => (
+              <div key={`open-sell-${i}`} className="grid grid-cols-2 text-xs font-bold bg-gray-100 rounded-lg px-2 py-1.5">
+                <span className="text-gray-900">Oferta {formatTokenPrice(order.price)}</span>
+                <span className="text-right text-gray-500">{formatTokenAmount(order.amount)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h3 className="text-sm font-black text-gray-900 mb-2">Trades</h3>
+          <div className="space-y-1">
+            {market.trades.slice(0, 15).map(trade => (
+              <div key={trade.id} className="grid grid-cols-[1fr_0.8fr_1fr] gap-2 text-xs font-bold rounded-lg bg-gray-50 px-2 py-1.5">
+                <span className="text-gray-900">{formatTokenPrice(trade.price)}</span>
+                <span className="text-gray-500 text-right">{formatTokenAmount(trade.amount)}</span>
+                <span className="text-gray-400 text-right">{formatAgo(trade.createdAt)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TokenPriceStrip({ market }: { market: TokenMarket }) {
+  const isPositive = market.change24h >= 0;
+
+  return (
+    <div className="sticky top-0 z-30 mx-4 mb-4 rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-md shadow-sm p-3 lg:hidden">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{market.symbol} Token</p>
+          <div className="flex items-end gap-2">
+            <span className="text-2xl font-black text-gray-900 leading-none">{formatTokenPrice(market.lastPrice)}</span>
+            <span className={cn("text-xs font-black pb-0.5", isPositive ? "text-green-500" : "text-red-500")}>
+              {isPositive ? '+' : ''}{market.change24h.toFixed(2)}%
+            </span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-right shrink-0">
+          <div>
+            <p className="text-[9px] font-black uppercase text-red-500">Ask</p>
+            <p className="text-xs font-black text-gray-900">{formatTokenPrice(market.bestAsk)}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black uppercase text-green-500">Bid</p>
+            <p className="text-xs font-black text-gray-900">{formatTokenPrice(market.bestBid)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, currentUser, onDivide, onJoin, onBack }: { profile: CreatorProfile, slots: AdSpace[], stories?: Story[], isOwnerPreview: boolean, profileId?: string | null, currentUser?: FirebaseUser | null, onDivide?: (id: string) => void, onJoin?: (id: string) => void, onBack?: () => void }) {
   const [selectedSlot, setSelectedSlot] = useState<AdSpace | null>(null);
   const [viewingTenantSlot, setViewingTenantSlot] = useState<AdSpace | null>(null);
@@ -2751,6 +3058,10 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   };
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+  const [buyTokenAmount, setBuyTokenAmount] = useState(10);
+  const [sellTokenAmount, setSellTokenAmount] = useState(5);
+  const [confirmMarketAction, setConfirmMarketAction] = useState<'buy' | 'sell' | null>(null);
+  const [openSellOffers, setOpenSellOffers] = useState<MarketOrder[]>([]);
 
   // Connections state
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -2765,7 +3076,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const scanTriggeredRef = useRef(false);
   const txsCountRef = useRef<number | undefined>(undefined);
 
-  useLockBodyScroll(!!selectedSlot || !!viewingTenantSlot || showTransactionsModal || showContactsModal || showCancelConfirm || isUploadingStory || selectedStoryIndex !== null);
+  useLockBodyScroll(!!selectedSlot || !!viewingTenantSlot || showTransactionsModal || showContactsModal || showCancelConfirm || !!confirmMarketAction || isUploadingStory || selectedStoryIndex !== null);
 
   useEffect(() => {
      if (!profileId) return;
@@ -3009,6 +3320,28 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const isTenant = currentUser && slots.some(s => s.isRented && s.rentedBy === currentUser.uid);
   const isOwnerProfile = !!currentUser && currentUser.uid === profileId;
   const canUploadStory = isOwnerProfile || (!!isTenant && !isOwnerPreview && currentUser?.uid !== profileId);
+  const tokenMarket = useMemo(() => buildTokenMarket(profile, transactions, slots), [profile, transactions, slots]);
+  const marketActionAmount = confirmMarketAction === 'buy' ? buyTokenAmount : sellTokenAmount;
+  const marketActionPrice = confirmMarketAction === 'buy' ? tokenMarket.bestAsk : (tokenMarket.bestBid || tokenMarket.lastPrice);
+  const marketActionTotal = marketActionAmount * marketActionPrice;
+  const executeMarketAction = () => {
+    if (!confirmMarketAction) return;
+    if (marketActionAmount <= 0) {
+      alert('Introduce una cantidad mayor que cero.');
+      return;
+    }
+    const side = confirmMarketAction === 'buy' ? 'Compra' : 'Venta';
+    const hasBid = tokenMarket.bids.length > 0 && tokenMarket.bestBid > 0;
+    if (confirmMarketAction === 'sell' && !hasBid) {
+      setOpenSellOffers(current => [
+        { price: tokenMarket.lastPrice, amount: marketActionAmount },
+        ...current
+      ].slice(0, 5));
+    }
+    const fallbackText = confirmMarketAction === 'sell' && !hasBid ? 'No hay bid disponible; queda como oferta abierta.' : `${side} ejecutada al mercado.`;
+    alert(fallbackText);
+    setConfirmMarketAction(null);
+  };
 
   return (
     <>
@@ -3075,6 +3408,20 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
            </div>
         </div>
 
+        <TokenPriceStrip market={tokenMarket} />
+
+        <div className="lg:hidden">
+          <TokenMarketPanel
+            market={tokenMarket}
+            openSellOffers={openSellOffers}
+            buyAmount={buyTokenAmount}
+            sellAmount={sellTokenAmount}
+            onBuyAmountChange={setBuyTokenAmount}
+            onSellAmountChange={setSellTokenAmount}
+            onConfirm={setConfirmMarketAction}
+          />
+        </div>
+
         <ProfileCustomCard card={profile.customCard} />
 
         {!isOwnerPreview && currentUser && currentUser.uid !== profileId && contactStatus && contactStatus.status === 'pending' && contactStatus.initiator !== currentUser.uid && (
@@ -3090,6 +3437,8 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
            </div>
         )}
 
+        <div className="lg:grid lg:grid-cols-12 lg:items-start lg:gap-5 lg:px-5 lg:pb-8">
+          <div className="lg:col-span-7 xl:col-span-8 lg:min-w-0">
         {/* Stories Section */}
         {((stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }]).length > 0 || canUploadStory) && (
             <div className="px-4 mb-4 shrink-0 w-full overflow-x-auto no-scrollbar">
@@ -3160,6 +3509,19 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                  }
               })}
            </div>
+        </div>
+          </div>
+          <aside className="hidden lg:block lg:col-span-5 xl:col-span-4 lg:sticky lg:top-5 lg:min-w-0">
+            <TokenMarketPanel
+              market={tokenMarket}
+              openSellOffers={openSellOffers}
+              buyAmount={buyTokenAmount}
+              sellAmount={sellTokenAmount}
+              onBuyAmountChange={setBuyTokenAmount}
+              onSellAmountChange={setSellTokenAmount}
+              onConfirm={setConfirmMarketAction}
+            />
+          </aside>
         </div>
 
         <AnimatePresence>
@@ -3308,6 +3670,32 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
         <AnimatePresence>
             {showTransactionsModal && (
                <TransactionsModal transactions={transactions} onClose={() => setShowTransactionsModal(false)} />
+            )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+            {confirmMarketAction && (
+                <>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmMarketAction(null)} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 px-6">
+                      <div className="bg-white rounded-[24px] p-6 w-full max-w-[340px] shadow-2xl flex flex-col">
+                          <h3 className="font-black text-center text-xl text-gray-900 mb-2">
+                            Confirmar {confirmMarketAction === 'buy' ? 'compra' : 'venta'}
+                          </h3>
+                          <p className="text-gray-500 text-center text-sm mb-5 leading-snug">
+                            {formatTokenAmount(marketActionAmount)} {tokenMarket.symbol} a {formatTokenPrice(marketActionPrice)} por token.
+                          </p>
+                          <div className="rounded-2xl bg-gray-50 border border-gray-100 p-4 mb-5 flex items-center justify-between">
+                            <span className="text-xs font-black uppercase tracking-wider text-gray-400">Total</span>
+                            <span className="text-2xl font-black text-gray-900">{formatTokenPrice(marketActionTotal)}</span>
+                          </div>
+                          <div className="flex gap-3">
+                              <button onClick={() => setConfirmMarketAction(null)} className="flex-1 py-3 bg-gray-100 text-gray-900 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">Cancelar</button>
+                              <button onClick={executeMarketAction} className="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm hover:bg-pink-600 transition-colors">Ejecutar</button>
+                          </div>
+                      </div>
+                  </motion.div>
+                </>
             )}
         </AnimatePresence>
 
