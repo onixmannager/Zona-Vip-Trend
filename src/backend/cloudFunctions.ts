@@ -398,3 +398,94 @@ export const adminUpdatePayoutStatus = functions.https.onCall(async (data, conte
         throw new functions.https.HttpsError('internal', error.message || 'Error interno');
     }
 });
+
+/**
+ * 🚀 Cloud Function: deleteExpiredStories
+ *
+ * Scheduled every hour. Finds all stories older than 24 hours and:
+ *  1. Deletes the asset from Cloudinary (if cloudinaryPublicId is present).
+ *  2. Deletes the asset from Mux (if muxAssetId is present).
+ *  3. Deletes the Firestore document.
+ *
+ * Requires the following environment variables to be set in Firebase config / Secret Manager:
+ *   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+ *   MUX_TOKEN_ID, MUX_TOKEN_SECRET
+ */
+export const deleteExpiredStories = functions.pubsub.schedule('every 1 hours').onRun(async (_context) => {
+    const db = admin.firestore();
+
+    const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || '';
+    const CLOUDINARY_API_KEY    = process.env.CLOUDINARY_API_KEY    || '';
+    const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || '';
+    const MUX_TOKEN_ID          = process.env.MUX_TOKEN_ID          || '';
+    const MUX_TOKEN_SECRET      = process.env.MUX_TOKEN_SECRET      || '';
+
+    const hasCloudinaryConfig = !!CLOUDINARY_CLOUD_NAME && !!CLOUDINARY_API_KEY && !!CLOUDINARY_API_SECRET;
+    const hasMuxConfig        = !!MUX_TOKEN_ID && !!MUX_TOKEN_SECRET;
+
+    // Lazy-load Mux only if configured
+    let mux: any = null;
+    if (hasMuxConfig) {
+        const MuxModule = await import('@mux/mux-node');
+        const Mux = MuxModule.default;
+        mux = new Mux({ tokenId: MUX_TOKEN_ID, tokenSecret: MUX_TOKEN_SECRET });
+    }
+
+    const cutoffMs  = Date.now() - 24 * 60 * 60 * 1000; // 24 horas atrás
+
+    // Fetch all creatorProfiles to iterate their stories subcollections
+    const profilesSnap = await db.collection('creatorProfiles').get();
+    let deleted = 0;
+    let errors  = 0;
+
+    for (const profileDoc of profilesSnap.docs) {
+        const storiesSnap = await db
+            .collection(`creatorProfiles/${profileDoc.id}/stories`)
+            .where('createdAt', '<=', cutoffMs)
+            .get();
+
+        for (const storyDoc of storiesSnap.docs) {
+            const story = storyDoc.data();
+
+            // 1. Delete from Cloudinary
+            if (hasCloudinaryConfig && story.cloudinaryPublicId) {
+                try {
+                    const resourceType = story.mediaType === 'video' ? 'video' : 'image';
+                    const credentials  = Buffer.from(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`).toString('base64');
+                    const cloudinaryRes = await fetch(
+                        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/${resourceType}/upload/${story.cloudinaryPublicId}`,
+                        { method: 'DELETE', headers: { Authorization: `Basic ${credentials}` } }
+                    );
+                    if (!cloudinaryRes.ok) {
+                        const errBody = await cloudinaryRes.json().catch(() => ({}));
+                        console.warn(`Cloudinary delete warning for ${story.cloudinaryPublicId}:`, errBody);
+                    }
+                } catch (err) {
+                    console.error(`Error deleting Cloudinary asset ${story.cloudinaryPublicId}:`, err);
+                    errors++;
+                }
+            }
+
+            // 2. Delete from Mux
+            if (mux && story.muxAssetId) {
+                try {
+                    await mux.video.assets.delete(story.muxAssetId);
+                } catch (err) {
+                    console.error(`Error deleting Mux asset ${story.muxAssetId}:`, err);
+                    errors++;
+                }
+            }
+
+            // 3. Delete Firestore document
+            try {
+                await storyDoc.ref.delete();
+                deleted++;
+            } catch (err) {
+                console.error(`Error deleting story doc ${storyDoc.id}:`, err);
+                errors++;
+            }
+        }
+    }
+
+    console.log(`deleteExpiredStories: ${deleted} stories deleted, ${errors} errors.`);
+});
