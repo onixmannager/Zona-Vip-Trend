@@ -125,6 +125,7 @@ type Story = {
   brandImg: string;
   rentedBy: string;
   createdAt: number;
+  cloudinaryPublicId?: string; // Cloudinary public_id para borrado remoto
 };
 
 // -------------------------------------------------------------
@@ -204,11 +205,11 @@ function StoryViewer({
         </div>
         
         {(!story.mediaType || story.mediaType === 'image') ? (
-            <img src={story.image} className="w-full h-full object-cover" alt="Story" style={{ filter: story.filter || 'none' }} />
+            <img src={story.image} className="w-full h-full object-contain" alt="Story" style={{ filter: story.filter || 'none' }} />
         ) : (
             <video 
                src={story.image}
-               className="w-full h-full object-cover" 
+               className="w-full h-full object-contain" 
                autoPlay 
                playsInline 
                muted 
@@ -518,7 +519,7 @@ function Home({ user }: { user: FirebaseUser | null }) {
         <section className="bg-white w-full py-20 border-y border-gray-100">
           <div className="max-w-5xl mx-auto px-6">
             <div className="text-center mb-16">
-                <h3 className="text-3xl font-black text-gray-900 mb-4">Â¿QuÃ© es ZonaVip?</h3>
+                <h3 className="text-3xl font-black text-gray-900 mb-4">¿Qué es ZonaVip?</h3>
                 <p className="text-lg text-gray-500 max-w-2xl mx-auto">Es la plataforma definitiva para que los creadores de contenido gestionen y automaticen el alquiler de espacios publicitarios y menciones en sus perfiles, permitiendo a las marcas anunciarse directamente.</p>
             </div>
             
@@ -528,21 +529,21 @@ function Home({ user }: { user: FirebaseUser | null }) {
                         <LayoutDashboard className="w-8 h-8 text-pink-500" />
                     </div>
                     <h4 className="text-xl font-bold text-gray-900 mb-3">Escaparate Digital</h4>
-                    <p className="text-gray-600">Configura tu perfil pÃºblico con espacios publicitarios en forma de grilla, dividiendo posiciones fijas con sus respectivos precios por dÃ­a, semana, mes o aÃ±o.</p>
+                    <p className="text-gray-600">Configura tu perfil público con espacios publicitarios en forma de grilla, dividiendo posiciones fijas con sus respectivos precios por día, semana, mes o año.</p>
                 </div>
                 <div className="flex flex-col items-center text-center p-6 bg-purple-50 rounded-[2rem]">
                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-6">
                         <Wallet className="w-8 h-8 text-purple-500" />
                     </div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-3">Pagos AutomÃ¡ticos</h4>
-                    <p className="text-gray-600">Las marcas pueden comprar y reservar los activos en un par de clics. Los fondos se depositarÃ¡n directamente en tu cartera digital y podrÃ¡s retirarlos fÃ¡cilmente.</p>
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Pagos Automáticos</h4>
+                    <p className="text-gray-600">Las marcas pueden comprar y reservar los activos en un par de clics. Los fondos se depositarán directamente en tu cartera digital y podrás retirarlos fácilmente.</p>
                 </div>
                 <div className="flex flex-col items-center text-center p-6 bg-blue-50 rounded-[2rem]">
                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-6">
                         <ImageIcon className="w-8 h-8 text-blue-500" />
                     </div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-3">MÃ©tricas y Control</h4>
-                    <p className="text-gray-600">Alquila diferentes modalidades como posiciones fijas o modo historia tipo feed VIP. MantÃ©n control total y absoluto sobre lo que aparece en tu zona y cuÃ¡nto cobras.</p>
+                    <h4 className="text-xl font-bold text-gray-900 mb-3">Métricas y Control</h4>
+                    <p className="text-gray-600">Alquila diferentes modalidades como posiciones fijas o modo historia tipo feed VIP. Mantén control total y absoluto sobre lo que aparece en tu zona y cuánto cobras.</p>
                 </div>
             </div>
           </div>
@@ -550,7 +551,7 @@ function Home({ user }: { user: FirebaseUser | null }) {
       </main>
       
       <footer className="w-full bg-gray-50 py-8 text-center text-gray-400 font-medium">
-        <p>Â© {new Date().getFullYear()} ZonaVip. Todos los derechos reservados.</p>
+        <p>© {new Date().getFullYear()} ZonaVip. Todos los derechos reservados.</p>
       </footer>
     </div>
   );
@@ -584,7 +585,7 @@ function Login({ user }: { user: FirebaseUser | null }) {
       }
     } catch (err: any) {
       if (err.code === 'auth/operation-not-allowed') {
-         setError('Â¡El registro con email estÃ¡ deshabilitado! Ve a tu consola de Firebase -> Authentication -> Sign-in method y habilita "Email/Password". O usa Google.');
+         setError('¡El registro con email está deshabilitado! Ve a tu consola de Firebase -> Authentication -> Sign-in method y habilita "Email/Password". O usa Google.');
       } else {
          setError(err.message);
       }
@@ -603,9 +604,9 @@ function Login({ user }: { user: FirebaseUser | null }) {
     } catch (err: any) {
       if (err.code === 'auth/unauthorized-domain') {
         const domain = window.location.hostname;
-        setError(`Error de dominio: Ve a tu consola de Firebase -> Authentication -> Settings -> Authorized domains y aÃ±ade exactamente este dominio: ${domain}`);
+        setError(`Error de dominio: Ve a tu consola de Firebase -> Authentication -> Settings -> Authorized domains y añade exactamente este dominio: ${domain}`);
       } else if (err.code === 'auth/popup-closed-by-user') {
-        setError('El popup de Google se cerrÃ³ antes de terminar.');
+        setError('El popup de Google se cerró antes de terminar.');
       } else {
         setError(`Error de Google Auth: ${err.message || err.code}`);
       }
@@ -658,9 +659,9 @@ function Login({ user }: { user: FirebaseUser | null }) {
              <input type="text" placeholder="Nombre de usuario (ej. elrubius)" value={username} onChange={e=>setUsername(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-pink-500 focus:bg-white transition" />
           )}
           <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-pink-500 focus:bg-white transition" />
-          <input type="password" placeholder="ContraseÃ±a" value={password} onChange={e=>setPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-pink-500 focus:bg-white transition" />
+          <input type="password" placeholder="Contraseña" value={password} onChange={e=>setPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 outline-none focus:border-pink-500 focus:bg-white transition" />
           <button type="submit" className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold mt-2 shadow-md hover:bg-gray-800 transition">
-            {isRegister ? 'Registrarse' : 'Iniciar SesiÃ³n'}
+            {isRegister ? 'Registrarse' : 'Iniciar Sesión'}
           </button>
         </form>
         <div className="w-full flex items-center gap-4 my-6">
@@ -676,9 +677,9 @@ function Login({ user }: { user: FirebaseUser | null }) {
           Continuar con Google
         </button>
         <p className="mt-8 text-sm text-gray-500">
-          {isRegister ? 'Â¿Ya tienes cuenta?' : 'Â¿No tienes tu zona vip?'}
+          {isRegister ? '¿Ya tienes cuenta?' : '¿No tienes tu zona vip?'}
           <button type="button" onClick={()=>setIsRegister(!isRegister)} className="text-pink-500 font-bold ml-1 hover:underline">
-            {isRegister ? 'Iniciar SesiÃ³n' : 'RegÃ­strate'}
+            {isRegister ? 'Iniciar Sesión' : 'Regístrate'}
           </button>
         </p>
       </div>
@@ -773,12 +774,16 @@ const ProfileExploreCard: React.FC<{ p: CreatorProfile }> = ({ p }) => {
    );
 }
 
-function ExplorerView({ currentUser, userProfile, searchQuery }: { currentUser: FirebaseUser; userProfile: CreatorProfile | null; searchQuery: string }) {
+function ExplorerView({ currentUser, userProfile, searchQuery, onOverlayChange }: { currentUser: FirebaseUser; userProfile: CreatorProfile | null; searchQuery: string; onOverlayChange?: (active: boolean) => void }) {
    const [vipProfiles, setVipProfiles] = useState<CreatorProfile[]>([]);
    const [stories, setStories] = useState<Story[]>([]);
    const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
 
    useLockBodyScroll(selectedStoryIndex !== null);
+
+   useEffect(() => {
+     onOverlayChange?.(selectedStoryIndex !== null);
+   }, [selectedStoryIndex]);
 
    useEffect(() => {
        const qProfiles = query(collection(db, 'creatorProfiles'), limit(100)); // Fetch enough to filter, no index needed yet
@@ -793,10 +798,11 @@ function ExplorerView({ currentUser, userProfile, searchQuery }: { currentUser: 
        });
 
        const unsubStories = onSnapshot(collectionGroup(db, 'stories'), (snap) => {
+           const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
            const strs: Story[] = [];
            snap.forEach(d => strs.push({ id: d.id, ...d.data() } as Story));
            strs.sort((a, b) => b.createdAt - a.createdAt);
-           setStories(strs.slice(0, 30));
+           setStories(strs.filter(s => s.createdAt > oneDayAgo).slice(0, 30));
        }, (err) => {
            console.error("Error fetching stories:", err);
        });
@@ -822,7 +828,11 @@ function ExplorerView({ currentUser, userProfile, searchQuery }: { currentUser: 
                  <div className="flex gap-3 px-4 overflow-x-auto no-scrollbar pb-4">
                     {stories.map((s, idx) => (
                        <div key={s.id} onClick={() => setSelectedStoryIndex(idx)} className="w-[100px] h-[160px] shrink-0 rounded-2xl relative overflow-hidden bg-gray-900 shadow-sm cursor-pointer hover:shadow-md transition-all active:scale-95 group isolate transform-gpu [transform:translateZ(0)] block" style={{ WebkitMaskImage: '-webkit-radial-gradient(white, black)', WebkitBackfaceVisibility: 'hidden', transform: 'translateZ(0)', clipPath: 'inset(0 round 1rem)' }}>
-                          <img src={s.image} alt="story" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                          {s.mediaType === 'video' ? (
+                            <video src={s.image} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" muted playsInline preload="metadata" />
+                          ) : (
+                            <img src={s.image} alt="story" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
                           <div className="absolute inset-3 flex flex-col justify-between">
                              <div className="w-8 h-8 rounded-full border-2 border-pink-500 overflow-hidden shrink-0 shadow-lg">
@@ -1005,6 +1015,8 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
   const [activeTab, setActiveTab] = useState<'profile' | 'admin' | 'settings' | 'wallet' | 'explorer' | 'notifications'>(
     (location.state as any)?.tab || 'profile'
   );
+  const [explorerOverlayActive, setExplorerOverlayActive] = useState(false);
+  const [walletSubTab, setWalletSubTab] = useState<'balance' | 'tokens'>('balance');
   
   // Explorer state
   const [searchQuery, setSearchQuery] = useState('');
@@ -1115,10 +1127,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
     );
 
     const unsubStories = onSnapshot(collection(db, `creatorProfiles/${user.uid}/stories`), (snap) => {
+       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
        const fetchedStories: Story[] = [];
        snap.forEach(d => fetchedStories.push({ id: d.id, ...d.data() } as Story));
        fetchedStories.sort((a, b) => b.createdAt - a.createdAt);
-       setStories(fetchedStories);
+       setStories(fetchedStories.filter(s => s.createdAt > oneDayAgo));
     }, (err) => handleFirestoreError(err, OperationType.LIST, `creatorProfiles/${user.uid}/stories`));
 
     const unsubNotifs = onSnapshot(query(collection(db, `users/${user.uid}/notifications`)), (snap) => {
@@ -1199,7 +1212,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
       const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
       const siblings = slots.filter(s => s.id.startsWith(parentId + '-') && s.width === 25);
       if (siblings.length !== 4) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar las 4 piezas.'); }
-      if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte estÃ¡ alquilada.'); }
+      if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada.'); }
       
       const minOrder = Math.min(...siblings.map(s => s.order));
       const newSlot: AdSpace = { ...siblings[0], id: parentId, width: 50, order: minOrder };
@@ -1209,7 +1222,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
       const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
       const siblings = slots.filter(s => s.id.startsWith(parentId + '-') && s.width === 50);
       if (siblings.length !== 2) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar ambas mitades.'); }
-      if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte estÃ¡ alquilada.'); }
+      if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada.'); }
       
       const minOrder = Math.min(...siblings.map(s => s.order));
       const newSlot: AdSpace = { ...siblings[0], id: parentId, width: 100, order: minOrder };
@@ -1266,7 +1279,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
             forResale: tenantEditForResale,
             resalePrices: tenantEditForResale ? tenantEditResalePrices : deleteField()
         });
-        alert("Â¡Cambios guardados!");
+        alert("¡Cambios guardados!");
         setSelectedTenantSlot(null);
     } catch(e: any) { alert(e.message); }
     setIsProcessingSlot(false);
@@ -1289,7 +1302,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         setTenantEditCaption('');
         setTenantEditImage('');
         setTenantEditForResale(false);
-        alert("Â¡Anuncio borrado! El espacio estÃ¡ libre.");
+        alert("¡Anuncio borrado! El espacio está libre.");
         setSelectedTenantSlot(null);
     } catch(e: any) { alert('Error al liberar: ' + e.message); }
     setIsProcessingSlot(false);
@@ -1441,14 +1454,14 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         {profile.bannerURL ? <img src={profile.bannerURL} className="absolute inset-0 w-full h-full object-cover blur-3xl scale-110 opacity-35" alt="" /> : <div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-gray-950 to-purple-950" />}
         <div className="absolute inset-0 bg-gray-950/65" />
       </div>
-      <main className="w-full max-w-[500px] lg:max-w-none lg:w-full bg-white relative flex flex-col pb-[80px] min-h-[100dvh]">
+      <main className="w-full max-w-[500px] bg-white relative flex flex-col pb-[80px] min-h-[100dvh]">
         
         {/* TOP BAR IF NOT PROFILE VIEW */}
         {activeTab !== 'profile' && (
            <header className="px-6 h-[64px] border-b border-gray-100 flex items-center gap-4 sticky top-0 z-30 bg-white/90 backdrop-blur-md">
              <div className="flex items-center flex-1 gap-3 h-full overflow-hidden">
                 <h1 className="font-['Space_Grotesk'] text-xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent shrink-0">
-                   {activeTab === 'explorer' ? 'Explorar' : activeTab === 'admin' ? 'GestiÃ³n VIP' : activeTab === 'wallet' ? 'Billetera' : activeTab === 'notifications' ? 'Notificaciones' : 'Ajustes'}
+                   {activeTab === 'explorer' ? 'Explorar' : activeTab === 'admin' ? 'Gestión VIP' : activeTab === 'wallet' ? 'Billetera' : activeTab === 'notifications' ? 'Notificaciones' : 'Ajustes'}
                 </h1>
                 {activeTab === 'explorer' && (
                    <div className="relative flex-1 max-w-[200px]">
@@ -1487,8 +1500,8 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
               {adminViewTab === 'mine' ? (
                 <>
                   <div className="bg-pink-50 border border-pink-100 rounded-3xl p-6 text-center shadow-sm">
-                     <h3 className="font-black text-gray-900 text-xl mb-1">DistribuciÃ³n de ZonasVip</h3>
-                     <p className="text-sm text-gray-500">AquÃ­ puedes dividir (hasta 25%), unir ZonasVip o cambiar sus precios.</p>
+                     <h3 className="font-black text-gray-900 text-xl mb-1">Distribución de ZonasVip</h3>
+                     <p className="text-sm text-gray-500">Aquí puedes dividir (hasta 25%), unir ZonasVip o cambiar sus precios.</p>
                   </div>
                   
                   <div className="bg-gray-50 rounded-[32px] border border-gray-100 p-4 shrink-0">
@@ -1543,13 +1556,13 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                 <>
                   <div className="bg-purple-50 border border-purple-100 rounded-3xl p-6 text-center shadow-sm">
                      <h3 className="font-black text-gray-900 text-xl mb-1">Zonas Inquilino</h3>
-                     <p className="text-sm text-gray-500">Espacios que estÃ¡s patrocinando en perfiles de terceros.</p>
+                     <p className="text-sm text-gray-500">Espacios que estás patrocinando en perfiles de terceros.</p>
                   </div>
                   
                   <div className="bg-purple-50 rounded-[32px] border border-purple-100 p-4 shrink-0">
                      <div className="grid grid-cols-4 gap-2 md:gap-3 w-full bg-white rounded-3xl p-3 border border-purple-100 grid-flow-row-dense">
                         {rentedSlots.length === 0 ? (
-                           <p className="col-span-4 text-gray-500 text-center py-10">No estÃ¡s alquilando ZonasVip en otros perfiles.</p>
+                           <p className="col-span-4 text-gray-500 text-center py-10">No estás alquilando ZonasVip en otros perfiles.</p>
                         ) : (
                            rentedSlots.map(r => {
                               const gridClass = {
@@ -1605,7 +1618,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                         } catch (err) {
                            console.error('Error al copiar', err);
                         }
-                    }} className="text-pink-500 font-bold ml-2 shrink-0">{isCopied ? 'Â¡Copiado!' : 'Copiar enlace'}</button>
+                    }} className="text-pink-500 font-bold ml-2 shrink-0">{isCopied ? '¡Copiado!' : 'Copiar enlace'}</button>
                  </div>
               </div>
 
@@ -1630,7 +1643,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
         {/* --- VIEW: EXPLORER --- */}
         {activeTab === 'explorer' && user && (
-           <ExplorerView currentUser={user} userProfile={profile} searchQuery={searchQuery} />
+           <ExplorerView currentUser={user} userProfile={profile} searchQuery={searchQuery} onOverlayChange={setExplorerOverlayActive} />
         )}
 
         {/* --- VIEW: NOTIFICATIONS --- */}
@@ -1639,7 +1652,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                {notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500 min-h-[50vh]">
                      <Bell className="w-12 h-12 mb-4 text-gray-300" />
-                     <p className="font-medium">No tienes notificaciones aÃºn.</p>
+                     <p className="font-medium">No tienes notificaciones aún.</p>
                   </div>
                ) : (
                   <div className="flex flex-col">
@@ -1662,108 +1675,211 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
         {/* --- VIEW: WALLET --- */}
         {activeTab === 'wallet' && (
-           <div className="flex-1 p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24 bg-gray-50/50">
-              {/* Balance Card */}
-              <div className="bg-gray-900 rounded-[32px] p-6 border border-gray-800 shadow-xl relative overflow-hidden">
-                 
-                 <div className="flex items-center justify-between mb-2 relative z-10">
-                    <div className="flex items-center gap-2 text-gray-400">
-                       <Wallet className="w-5 h-5 text-gray-400" />
-                       <span className="font-bold text-sm">Balance Disponible</span>
-                    </div>
-                    <button className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors border border-gray-700">
-                       <History className="w-4 h-4 text-gray-300" />
-                    </button>
-                 </div>
-                 <div className="flex items-baseline gap-1 relative z-10">
-                    <span className="text-4xl md:text-5xl font-black text-white tracking-tight">${profile?.walletBalance?.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) || '0.00'}</span>
-                    <span className="text-gray-400 font-bold">USD</span>
-                 </div>
-                 
-                 <div className="mt-8 flex gap-3 relative z-10">
-                    <button onClick={async () => {
-                        if (!profile || profile.walletBalance <= 0) { alert("No tienes balance disponible para retirar."); return; }
-                        const amountStr = window.prompt(`Ingresa el monto a retirar (Max: $${profile.walletBalance}):`);
-                        if (!amountStr) return;
-                        const amount = parseFloat(amountStr);
-                        if (isNaN(amount) || amount <= 0 || amount > profile.walletBalance) { alert("Monto invÃ¡lido."); return; }
-                        try {
-                            await updateDoc(doc(db, `creatorProfiles/${user.uid}`), { walletBalance: increment(-amount) });
-                            alert(`Has retirado $${amount} exitosamente (Simulado).`);
-                        } catch(e: any) { alert(e.message); }
-                    }} className="flex-1 bg-white hover:bg-gray-100 text-gray-900 py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
-                       <ArrowUpRight className="w-5 h-5" />
-                       Retirar
-                    </button>
-                    <button onClick={() => alert("MÃ©todos de pago en desarrollo. Por ahora usamos pago simulado para hacer pruebas.")} className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-gray-700 shadow-sm">
-                       <CreditCard className="w-5 h-5" />
-                       <span className="truncate">MÃ©todos P.</span>
-                    </button>
+           <div className="flex-1 flex flex-col overflow-hidden bg-gray-50/50">
+              {/* Sub-tab selector */}
+              <div className="px-4 pt-4 pb-2 shrink-0">
+                 <div className="flex bg-gray-100 p-1 rounded-2xl">
+                    <button onClick={() => setWalletSubTab('balance')} className={cn("flex-1 py-2 font-bold text-sm rounded-xl transition-all", walletSubTab === 'balance' ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700")}>Mi Billetera</button>
+                    <button onClick={() => setWalletSubTab('tokens')} className={cn("flex-1 py-2 font-bold text-sm rounded-xl transition-all", walletSubTab === 'tokens' ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700")}>Wallet Tokens</button>
                  </div>
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                 <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm">
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-                       <TrendingUp className="w-5 h-5 text-gray-900" />
-                    </div>
-                    <p className="text-gray-500 text-xs font-bold mb-1 uppercase tracking-wider">Ventas (Mes)</p>
-                    <p className="text-2xl font-black text-gray-900">${((profile?.walletBalance || 0) * 0.4 + 195).toLocaleString('en-US', {minimumFractionDigits:2})}</p>
-                 </div>
-                 <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm">
-                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-                       <CheckCircle2 className="w-5 h-5 text-gray-900" />
-                    </div>
-                    <p className="text-gray-500 text-xs font-bold mb-1 uppercase tracking-wider">Zonas Activas</p>
-                    <p className="text-2xl font-black text-gray-900">{slots.filter(s => s.isRented).length} <span className="text-gray-300 text-lg font-medium">/ {slots.length}</span></p>
-                 </div>
-              </div>
-
-              {/* Transactions History */}
-              <div>
-                 <div className="flex items-center justify-between mb-4 px-1">
-                    <h3 className="font-black text-gray-900 text-lg">Historial Reciente</h3>
-                    <button className="text-gray-900 text-sm font-bold flex items-center gap-1 hover:text-gray-600 transition-colors">
-                       Ver todo <ArrowUpRight className="w-4 h-4" />
-                    </button>
-                 </div>
-                 
-                 <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm">
-                    {[
-                       { id: 1, type: 'sale', title: 'Alquiler: Zona Grande', brand: 'Nike Corp', amount: 150.00, date: 'Hoy, 14:30', status: 'completed' },
-                       { id: 2, type: 'withdraw', title: 'Retiro a Cuenta Bancaria', brand: '**** 4545', amount: -200.00, date: 'Ayer, 09:15', status: 'completed' },
-                       { id: 3, type: 'sale', title: 'Alquiler: Minizona', brand: 'Startup X', amount: 45.00, date: 'Mar 12, 18:40', status: 'completed' },
-                       { id: 4, type: 'sale', title: 'Alquiler: Subzona', brand: 'Adidas', amount: 100.00, date: 'Mar 10, 11:20', status: 'completed' },
-                       { id: 5, type: 'withdraw', title: 'Retiro a PayPal', brand: 'user@email.com', amount: -150.00, date: 'Mar 05, 10:00', status: 'completed' },
-                    ].map((tx, i) => (
-                       <div key={tx.id} className={cn("flex items-center justify-between p-4", i !== 0 && "border-t border-gray-100")}>
-                          <div className="flex items-center gap-4">
-                             <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm", 
-                                tx.type === 'sale' ? "bg-gray-50 text-gray-900 border border-gray-200" : "bg-white border text-gray-900 border-gray-200"
-                             )}>
-                                {tx.type === 'sale' ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
-                             </div>
-                             <div>
-                                <p className="font-bold text-gray-900 text-sm">{tx.title}</p>
-                                <p className="text-gray-500 text-xs mt-0.5">{tx.brand} â€¢ {tx.date}</p>
-                             </div>
+              {/* APARTADO 1: Billetera actual — sin tocar nada */}
+              {walletSubTab === 'balance' && (
+                 <div className="flex-1 p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
+                    {/* Balance Card */}
+                    <div className="bg-gray-900 rounded-[32px] p-6 border border-gray-800 shadow-xl relative overflow-hidden">
+                       
+                       <div className="flex items-center justify-between mb-2 relative z-10">
+                          <div className="flex items-center gap-2 text-gray-400">
+                             <Wallet className="w-5 h-5 text-gray-400" />
+                             <span className="font-bold text-sm">Balance Disponible</span>
                           </div>
-                          <div className="text-right">
-                             <p className={cn("font-black text-base", tx.type === 'sale' ? "text-gray-900" : "text-gray-500")}>
-                                {tx.type === 'sale' ? '+' : ''}{tx.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
-                             </p>
-                             <p className="text-gray-400 text-[10px] uppercase font-bold mt-1 tracking-wider text-right">Completado</p>
+                          <button className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center hover:bg-gray-700 transition-colors border border-gray-700">
+                             <History className="w-4 h-4 text-gray-300" />
+                          </button>
+                       </div>
+                       <div className="flex items-baseline gap-1 relative z-10">
+                          <span className="text-4xl md:text-5xl font-black text-white tracking-tight">${profile?.walletBalance?.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) || '0.00'}</span>
+                          <span className="text-gray-400 font-bold">USD</span>
+                       </div>
+                       
+                       <div className="mt-8 flex gap-3 relative z-10">
+                          <button onClick={async () => {
+                              if (!profile || profile.walletBalance <= 0) { alert("No tienes balance disponible para retirar."); return; }
+                              const amountStr = window.prompt(`Ingresa el monto a retirar (Max: $${profile.walletBalance}):`);
+                              if (!amountStr) return;
+                              const amount = parseFloat(amountStr);
+                              if (isNaN(amount) || amount <= 0 || amount > profile.walletBalance) { alert("Monto inválido."); return; }
+                              try {
+                                  await updateDoc(doc(db, `creatorProfiles/${user.uid}`), { walletBalance: increment(-amount) });
+                                  alert(`Has retirado $${amount} exitosamente (Simulado).`);
+                              } catch(e: any) { alert(e.message); }
+                          }} className="flex-1 bg-white hover:bg-gray-100 text-gray-900 py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
+                             <ArrowUpRight className="w-5 h-5" />
+                             Retirar
+                          </button>
+                          <button onClick={() => alert("Métodos de pago en desarrollo. Por ahora usamos pago simulado para hacer pruebas.")} className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-gray-700 shadow-sm">
+                             <CreditCard className="w-5 h-5" />
+                             <span className="truncate">Métodos P.</span>
+                          </button>
+                       </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 gap-3 md:gap-4">
+                       <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm">
+                          <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                             <TrendingUp className="w-5 h-5 text-gray-900" />
+                          </div>
+                          <p className="text-gray-500 text-xs font-bold mb-1 uppercase tracking-wider">Ventas (Mes)</p>
+                          <p className="text-2xl font-black text-gray-900">${((profile?.walletBalance || 0) * 0.4 + 195).toLocaleString('en-US', {minimumFractionDigits:2})}</p>
+                       </div>
+                       <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm">
+                          <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                             <CheckCircle2 className="w-5 h-5 text-gray-900" />
+                          </div>
+                          <p className="text-gray-500 text-xs font-bold mb-1 uppercase tracking-wider">Zonas Activas</p>
+                          <p className="text-2xl font-black text-gray-900">{slots.filter(s => s.isRented).length} <span className="text-gray-300 text-lg font-medium">/ {slots.length}</span></p>
+                       </div>
+                    </div>
+
+                    {/* Transactions History */}
+                    <div>
+                       <div className="flex items-center justify-between mb-4 px-1">
+                          <h3 className="font-black text-gray-900 text-lg">Historial Reciente</h3>
+                          <button className="text-gray-900 text-sm font-bold flex items-center gap-1 hover:text-gray-600 transition-colors">
+                             Ver todo <ArrowUpRight className="w-4 h-4" />
+                          </button>
+                       </div>
+                       
+                       <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm">
+                          {[
+                             { id: 1, type: 'sale', title: 'Alquiler: Zona Grande', brand: 'Nike Corp', amount: 150.00, date: 'Hoy, 14:30', status: 'completed' },
+                             { id: 2, type: 'withdraw', title: 'Retiro a Cuenta Bancaria', brand: '**** 4545', amount: -200.00, date: 'Ayer, 09:15', status: 'completed' },
+                             { id: 3, type: 'sale', title: 'Alquiler: Minizona', brand: 'Startup X', amount: 45.00, date: 'Mar 12, 18:40', status: 'completed' },
+                             { id: 4, type: 'sale', title: 'Alquiler: Subzona', brand: 'Adidas', amount: 100.00, date: 'Mar 10, 11:20', status: 'completed' },
+                             { id: 5, type: 'withdraw', title: 'Retiro a PayPal', brand: 'user@email.com', amount: -150.00, date: 'Mar 05, 10:00', status: 'completed' },
+                          ].map((tx, i) => (
+                             <div key={tx.id} className={cn("flex items-center justify-between p-4", i !== 0 && "border-t border-gray-100")}>
+                                <div className="flex items-center gap-4">
+                                   <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm", 
+                                      tx.type === 'sale' ? "bg-gray-50 text-gray-900 border border-gray-200" : "bg-white border text-gray-900 border-gray-200"
+                                   )}>
+                                      {tx.type === 'sale' ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                                   </div>
+                                   <div>
+                                      <p className="font-bold text-gray-900 text-sm">{tx.title}</p>
+                                      <p className="text-gray-500 text-xs mt-0.5">{tx.brand} "¢ {tx.date}</p>
+                                   </div>
+                                </div>
+                                <div className="text-right">
+                                   <p className={cn("font-black text-base", tx.type === 'sale' ? "text-gray-900" : "text-gray-500")}>
+                                      {tx.type === 'sale' ? '+' : ''}{tx.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
+                                   </p>
+                                   <p className="text-gray-400 text-[10px] uppercase font-bold mt-1 tracking-wider text-right">Completado</p>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                 </div>
+              )}
+
+              {/* APARTADO 2: Wallet de Tokens */}
+              {walletSubTab === 'tokens' && (
+                 <div className="flex-1 p-4 md:p-6 flex flex-col gap-6 overflow-y-auto pb-24">
+                    {/* Token Balance Card */}
+                    <div className="bg-gray-900 rounded-[32px] p-6 border border-gray-800 shadow-xl relative overflow-hidden">
+                       <div className="flex items-center justify-between mb-2 relative z-10">
+                          <div className="flex items-center gap-2 text-gray-400">
+                             <DollarSign className="w-5 h-5 text-gray-400" />
+                             <span className="font-bold text-sm">Tokens en Cartera</span>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center border border-gray-700">
+                             <TrendingUp className="w-4 h-4 text-gray-300" />
                           </div>
                        </div>
-                    ))}
+                       <div className="flex items-baseline gap-1 relative z-10 mb-1">
+                          <span className="text-4xl md:text-5xl font-black text-white tracking-tight">55</span>
+                          <span className="text-gray-400 font-bold">Tokens</span>
+                       </div>
+                       <p className="text-gray-500 text-xs font-medium relative z-10">Valor estimado: <span className="text-white font-bold">$137.50 USD</span></p>
+                    </div>
+
+                    {/* Token List */}
+                    <div>
+                       <div className="flex items-center justify-between mb-4 px-1">
+                          <h3 className="font-black text-gray-900 text-lg">Mis Tokens</h3>
+                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">2 activos</span>
+                       </div>
+                       <div className="flex flex-col gap-3">
+                          {[
+                             { name: 'Token Onix', symbol: 'ONIX', amount: 25, price: 2.50, change: +4.2 },
+                             { name: 'Token Rubius', symbol: 'RBIS', amount: 30, price: 3.75, change: -1.8 },
+                          ].map((token, i) => (
+                             <div key={i} className="bg-white rounded-[24px] border border-gray-100 p-4 shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center shrink-0 shadow-sm">
+                                   <span className="text-white font-black text-[10px] tracking-wider">{token.symbol}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                   <p className="font-black text-gray-900 text-sm">{token.name}</p>
+                                   <p className="text-gray-400 text-xs font-bold mt-0.5">${token.price.toFixed(2)} / token</p>
+                                </div>
+                                <div className="text-right shrink-0">
+                                   <p className="font-black text-gray-900 text-lg">{token.amount}</p>
+                                   <p className={cn("text-[11px] font-black", token.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                      {token.change >= 0 ? '+' : ''}{token.change}%
+                                   </p>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Token Transaction History — mismo diseño que apartado 1 */}
+                    <div>
+                       <div className="flex items-center justify-between mb-4 px-1">
+                          <h3 className="font-black text-gray-900 text-lg">Historial Reciente</h3>
+                          <button className="text-gray-900 text-sm font-bold flex items-center gap-1 hover:text-gray-600 transition-colors">
+                             Ver todo <ArrowUpRight className="w-4 h-4" />
+                          </button>
+                       </div>
+                       <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm">
+                          {[
+                             { id: 1, type: 'sale', title: 'Compra: Token Onix', brand: 'Exchange ZonaVip', amount: 62.50, date: 'Hoy, 11:05' },
+                             { id: 2, type: 'sale', title: 'Compra: Token Rubius', brand: 'Exchange ZonaVip', amount: 112.50, date: 'Ayer, 16:30' },
+                             { id: 3, type: 'withdraw', title: 'Venta: Token Onix', brand: 'Exchange ZonaVip', amount: -25.00, date: 'Mar 14, 09:10' },
+                          ].map((tx, i) => (
+                             <div key={tx.id} className={cn("flex items-center justify-between p-4", i !== 0 && "border-t border-gray-100")}>
+                                <div className="flex items-center gap-4">
+                                   <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm",
+                                      tx.type === 'sale' ? "bg-gray-50 text-gray-900 border border-gray-200" : "bg-white border text-gray-900 border-gray-200"
+                                   )}>
+                                      {tx.type === 'sale' ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
+                                   </div>
+                                   <div>
+                                      <p className="font-bold text-gray-900 text-sm">{tx.title}</p>
+                                      <p className="text-gray-500 text-xs mt-0.5">{tx.brand} · {tx.date}</p>
+                                   </div>
+                                </div>
+                                <div className="text-right">
+                                   <p className={cn("font-black text-base", tx.type === 'sale' ? "text-gray-900" : "text-gray-500")}>
+                                      {tx.type === 'sale' ? '+' : ''}{tx.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
+                                   </p>
+                                   <p className="text-gray-400 text-[10px] uppercase font-bold mt-1 tracking-wider text-right">Completado</p>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
                  </div>
-              </div>
+              )}
            </div>
         )}
 
         {/* BOTTOM NAVIGATION */}
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unreadCount={notifications.filter(n => !n.read).length} />
+        {!explorerOverlayActive && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unreadCount={notifications.filter(n => !n.read).length} />}
 
         {/* PRICE EDIT MODAL */}
         <AnimatePresence>
@@ -1774,9 +1890,9 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                       <Trash2 className="w-8 h-8 text-red-500" />
                    </div>
-                   <h3 className="font-black text-xl mb-2 text-center text-gray-900">Â¿Eliminar esta ZonaVip?</h3>
+                   <h3 className="font-black text-xl mb-2 text-center text-gray-900">¿Eliminar esta ZonaVip?</h3>
                    <p className="text-gray-500 text-center text-sm mb-6 leading-relaxed">
-                     Esta acciÃ³n no se puede deshacer. PerderÃ¡s este espacio publicitario de forma permanente.
+                     Esta acción no se puede deshacer. Perderás este espacio publicitario de forma permanente.
                    </p>
                    <div className="flex gap-3 w-full">
                       <button onClick={() => setDeletingSlot(null)} className="flex-1 py-3.5 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-2xl font-bold transition-colors active:scale-95">
@@ -1807,10 +1923,10 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                          }[editingSize as 25|50|75|100] || { border: 'border-gray-800', bg: 'bg-white', text: 'text-gray-900', tsub: 'text-gray-500', check: 'focus:border-gray-800' };
 
                          return [
-                            { d: 1, label: '1 DÃ­a', val: price1, set: setPrice1 },
+                            { d: 1, label: '1 Día', val: price1, set: setPrice1 },
                             { d: 7, label: '1 Semana', val: price7, set: setPrice7 },
                             { d: 30, label: '1 Mes', val: price30, set: setPrice30 },
-                            { d: 365, label: '1 AÃ±o', val: price365, set: setPrice365 }
+                            { d: 365, label: '1 Año', val: price365, set: setPrice365 }
                          ].map(item => (
                             <div key={item.d} className={cn("flex items-center justify-between p-3 rounded-2xl border transition-colors", colorTheme.bg, colorTheme.border)}>
                                <span className={cn("font-bold", colorTheme.text)}>{item.label}</span>
@@ -1831,7 +1947,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                       {isSavingPrices ? 'Guardando...' : saveSuccess ? (
                           <>
                              <CheckCircle2 className="w-5 h-5" />
-                             Â¡Guardado!
+                             ¡Guardado!
                           </>
                       ) : 'Guardar Precios'}
                    </button>
@@ -1850,8 +1966,8 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                       <h3 className="font-black text-xl text-gray-900">Editar ZonaVip</h3>
                       {confirmClearSlot ? (
                         <div className="flex gap-2 items-center">
-                          <span className="text-xs text-gray-500 font-medium">Â¿Seguro?</span>
-                          <button onClick={() => { setConfirmClearSlot(false); handleClearTenantData(); }} className="text-white text-xs font-bold bg-red-500 px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors">SÃ­, liberar</button>
+                          <span className="text-xs text-gray-500 font-medium">¿Seguro?</span>
+                          <button onClick={() => { setConfirmClearSlot(false); handleClearTenantData(); }} className="text-white text-xs font-bold bg-red-500 px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors">Sí, liberar</button>
                           <button onClick={() => setConfirmClearSlot(false)} className="text-gray-500 text-xs font-bold bg-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">No</button>
                         </div>
                       ) : (
@@ -1906,10 +2022,10 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                              <div className="bg-white border-2 border-green-500 rounded-2xl p-4 shadow-sm mb-4">
                                 <h4 className="font-black text-green-600 mb-3 text-sm">Configurar Precios de Reventa</h4>
                                 <div className="grid grid-cols-2 gap-3 mb-4">
-                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">1 DÃ­a (â‚¬)</label><input type="number" min="0" value={tenantEditResalePrices.price1} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price1: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
-                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">7 DÃ­as (â‚¬)</label><input type="number" min="0" value={tenantEditResalePrices.price7} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price7: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
-                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">1 Mes (â‚¬)</label><input type="number" min="0" value={tenantEditResalePrices.price30} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price30: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
-                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">1 AÃ±o (â‚¬)</label><input type="number" min="0" value={tenantEditResalePrices.price365} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price365: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
+                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">1 Día (€)</label><input type="number" min="0" value={tenantEditResalePrices.price1} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price1: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
+                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">7 Días (€)</label><input type="number" min="0" value={tenantEditResalePrices.price7} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price7: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
+                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">1 Mes (€)</label><input type="number" min="0" value={tenantEditResalePrices.price30} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price30: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
+                                   <div className="flex flex-col gap-1"><label className="text-xs font-bold text-gray-400 ml-1">1 Año (€)</label><input type="number" min="0" value={tenantEditResalePrices.price365} onChange={e => setTenantEditResalePrices({...tenantEditResalePrices, price365: Number(e.target.value)})} className="w-full px-3 py-2 bg-gray-50 rounded-xl outline-none font-black text-xl text-center border focus:border-green-500" /></div>
                                 </div>
                              </div>
                            )}
@@ -1917,8 +2033,8 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                      </>
                    ) : (
                      <div className="bg-blue-50 border border-blue-100 text-blue-800 p-4 rounded-2xl mb-6 text-sm">
-                       <strong className="block mb-1">Â¿Quieres revender, dividir o fusionar?</strong>
-                       Primero debes <b>Liberar Espacio</b> (botÃ³n superior derecho) para borrar tu anuncio actual. Tu espacio quedarÃ¡ en blanco pero seguirÃ¡s siendo el propietario.
+                       <strong className="block mb-1">¿Quieres revender, dividir o fusionar?</strong>
+                       Primero debes <b>Liberar Espacio</b> (botón superior derecho) para borrar tu anuncio actual. Tu espacio quedará en blanco pero seguirás siendo el propietario.
                      </div>
                    )}
 
@@ -1935,7 +2051,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                          
                          <div className="flex flex-col gap-1">
                             <label className="font-bold text-gray-700 ml-1 text-sm">Caption (Texto inferior)</label>
-                            <input type="text" value={tenantEditCaption} onChange={e => setTenantEditCaption(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="Texto que aparecerÃ¡..." />
+                            <input type="text" value={tenantEditCaption} onChange={e => setTenantEditCaption(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="Texto que aparecerá..." />
                          </div>
                      </div>
                    )}
@@ -1966,6 +2082,7 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [isProcessingSlot, setIsProcessingSlot] = useState(false);
+  const [storyOverlayActive, setStoryOverlayActive] = useState(false);
 
   const handleDivide = async (slotId: string) => {
     if (!currentUser || isProcessingSlot || !profileId) return;
@@ -2027,7 +2144,7 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
              setIsProcessingSlot(false); return alert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.');
          }
       } else {
-         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte estÃ¡ alquilada por otro.'); }
+         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada por otro.'); }
       }
       
       const minOrder = Math.min(...siblings.map(s => s.order));
@@ -2044,7 +2161,7 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
              setIsProcessingSlot(false); return alert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.');
          }
       } else {
-         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte estÃ¡ alquilada por otro.'); }
+         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada por otro.'); }
       }
       
       const minOrder = Math.min(...siblings.map(s => s.order));
@@ -2098,10 +2215,11 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
     }, (err) => handleFirestoreError(err, OperationType.LIST, `creatorProfiles/${profileId}/adSpaces`));
 
     const unsubStories = onSnapshot(collection(db, `creatorProfiles/${profileId}/stories`), (snap) => {
+       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
        const fetchedStories: Story[] = [];
        snap.forEach(d => fetchedStories.push({ id: d.id, ...d.data() } as Story));
        fetchedStories.sort((a, b) => b.createdAt - a.createdAt);
-       setStories(fetchedStories);
+       setStories(fetchedStories.filter(s => s.createdAt > oneDayAgo));
     }, (err) => handleFirestoreError(err, OperationType.LIST, `creatorProfiles/${profileId}/stories`));
 
     return () => { unsub(); unsubStories(); };
@@ -2116,11 +2234,11 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
         {profile.bannerURL ? <img src={profile.bannerURL} className="absolute inset-0 w-full h-full object-cover blur-3xl scale-110 opacity-35" alt="" /> : <div className="absolute inset-0 bg-gradient-to-br from-pink-950 via-gray-950 to-purple-950" />}
         <div className="absolute inset-0 bg-gray-950/65" />
       </div>
-      <main className={cn("w-full max-w-[500px] lg:max-w-none lg:w-full bg-white relative flex flex-col min-h-[100dvh]", currentUser ? "pb-[60px]" : "")}>
+      <main className={cn("w-full max-w-[500px] bg-white relative flex flex-col min-h-[100dvh]", currentUser ? "pb-[60px]" : "")}>
          <div id="profile-scroll-container" className="flex-1 overflow-y-auto w-full pb-10">
-            <ProfileView profile={profile} slots={slots} stories={stories} isOwnerPreview={false} profileId={profileId} currentUser={currentUser} onBack={currentUser ? () => navigate('/dashboard', { state: { tab: 'explorer' } }) : undefined} onDivide={handleDivide} onJoin={handleJoin} />
+            <ProfileView profile={profile} slots={slots} stories={stories} isOwnerPreview={false} profileId={profileId} currentUser={currentUser} onBack={currentUser ? () => navigate('/dashboard', { state: { tab: 'explorer' } }) : undefined} onDivide={handleDivide} onJoin={handleJoin} onOverlayChange={setStoryOverlayActive} />
          </div>
-         {currentUser && (
+         {currentUser && !storyOverlayActive && (
              <BottomNav activeTab="explorer" onTabChange={(tab) => navigate('/dashboard', { state: { tab } })} />
          )}
       </main>
@@ -2191,7 +2309,7 @@ function TransactionsModal({ transactions, onClose }: { transactions: Transactio
           </div>
           
           <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
-             {transactions.length === 0 ? <p className="text-gray-400 text-center py-10 text-sm">AÃºn no hay transacciones.</p> :
+             {transactions.length === 0 ? <p className="text-gray-400 text-center py-10 text-sm">Aún no hay transacciones.</p> :
                 <div className="flex flex-col gap-3">
                    {transactions.map(t => {
                       const p = profiles[t.buyerId];
@@ -2207,10 +2325,10 @@ function TransactionsModal({ transactions, onClose }: { transactions: Transactio
                              <div className="flex-1 min-w-0">
                                 <p className="font-bold text-gray-900 text-sm truncate">{t.brand}</p>
                                 <p className="text-xs text-gray-500 truncate mt-0.5">
-                                   Alquilado por: {p ? p.displayName : 'AnÃ³nimo'}
+                                   Alquilado por: {p ? p.displayName : 'Anónimo'}
                                 </p>
                                 <div className="flex items-center gap-2 mt-1">
-                                   <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">{t.duration} dÃ­as</span>
+                                   <span className="text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-0.5 rounded-full">{t.duration} días</span>
                                    <span className="text-[10px] text-gray-400">{new Date(t.createdAt).toLocaleDateString()}</span>
                                 </div>
                              </div>
@@ -2285,7 +2403,7 @@ function ChatModal({ connectionId, otherProfile, currentUser, onClose }: { conne
          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3">
             {messages.length === 0 ? (
                <div className="flex-1 flex items-center justify-center text-center px-4">
-                  <p className="text-xs text-gray-400 font-medium bg-gray-100 px-4 py-2 rounded-full">Este es el inicio de tu chat. Â¡Saluda!</p>
+                  <p className="text-xs text-gray-400 font-medium bg-gray-100 px-4 py-2 rounded-full">Este es el inicio de tu chat. ¡Saluda!</p>
                </div>
             ) : (
                messages.map(m => {
@@ -2361,7 +2479,7 @@ function ContactsModal({ connections, profileId, onClose, currentUser }: { conne
          const notifRef = doc(collection(db, `users/${otherUid}/notifications`));
          batch.set(notifRef, {
              type: 'contact_request',
-             message: `${myName} aceptÃ³ tu solicitud de contacto.`,
+             message: `${myName} aceptó tu solicitud de contacto.`,
              fromId: profileId,
              read: false,
              createdAt: Date.now(),
@@ -2386,7 +2504,7 @@ function ContactsModal({ connections, profileId, onClose, currentUser }: { conne
           </div>
           
           <div className="flex-1 overflow-y-auto no-scrollbar">
-             {connections.length === 0 ? <p className="text-gray-400 text-center py-6 text-sm">Sin contactos aÃºn.</p> :
+             {connections.length === 0 ? <p className="text-gray-400 text-center py-6 text-sm">Sin contactos aún.</p> :
              <div className="flex flex-col gap-3">
                 {connections.map(c => {
                    const otherUid = c.users.find(u => u !== profileId);
@@ -2406,8 +2524,8 @@ function ContactsModal({ connections, profileId, onClose, currentUser }: { conne
                              ) : (
                                 <span className="font-bold text-gray-900 text-sm truncate block">{displayName}</span>
                              )}
-                             {isAccepted && <p className="text-xs text-gray-500 truncate">{p ? `@${p.username}` : 'Sin perfil aÃºn'}</p>}
-                             {isPendingSent && <p className="text-xs text-pink-500 font-medium truncate">PeticiÃ³n enviada</p>}
+                             {isAccepted && <p className="text-xs text-gray-500 truncate">{p ? `@${p.username}` : 'Sin perfil aún'}</p>}
+                             {isPendingSent && <p className="text-xs text-pink-500 font-medium truncate">Petición enviada</p>}
                              {isPendingReceived && <p className="text-xs text-indigo-500 font-medium truncate">Quiere conectar</p>}
                           </div>
                           {isAccepted && currentUser && c.users.includes(currentUser.uid) && (
@@ -2417,7 +2535,7 @@ function ContactsModal({ connections, profileId, onClose, currentUser }: { conne
                             <button onClick={() => handleReject(c)} className="w-8 h-8 flex items-center justify-center bg-gray-200 text-gray-600 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                           )}
                           {isOwnerViewing && isPendingSent && (
-                            <button onClick={() => handleReject(c)} className="w-8 h-8 flex items-center justify-center bg-pink-100 text-pink-600 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors" title="Cancelar peticiÃ³n"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => handleReject(c)} className="w-8 h-8 flex items-center justify-center bg-pink-100 text-pink-600 rounded-full hover:bg-red-100 hover:text-red-500 transition-colors" title="Cancelar petición"><Trash2 className="w-4 h-4" /></button>
                           )}
                           {isOwnerViewing && isPendingReceived && (
                              <div className="flex gap-1">
@@ -2459,8 +2577,8 @@ const smoothScrollTo = (container: HTMLElement, targetPosition: number, duration
   requestAnimationFrame(animation);
 };
 
-function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (media: { url: string, type: 'image'|'video' }, overlays: StoryOverlay[], filter: string, clipStart: number, clipDuration: number) => void, onCancel: () => void, isProcessing: boolean }) {
-  const [media, setMedia] = useState<{url: string, type: 'image'|'video'} | null>(null);
+function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (media: { url: string, type: 'image'|'video', publicId?: string }, overlays: StoryOverlay[], filter: string, clipStart: number, clipDuration: number) => void, onCancel: () => void, isProcessing: boolean }) {
+  const [media, setMedia] = useState<{url: string, type: 'image'|'video', publicId?: string} | null>(null);
   const [overlays, setOverlays] = useState<StoryOverlay[]>([]);
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
@@ -2561,7 +2679,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
           <div className="flex gap-2">
              {media && (
                  <>
-                  <button onClick={() => setEditingOverlay('emoji' as any)} className="text-white p-2 text-xl rounded-full bg-black/40 backdrop-blur-sm">ðŸ˜Š</button>
+                  <button onClick={() => setEditingOverlay('emoji' as any)} className="text-white p-2 text-xl rounded-full bg-black/40 backdrop-blur-sm">😊</button>
                   <button onClick={() => setEditingOverlay('text' as any)} className="text-white p-2 font-black rounded-full bg-black/40 backdrop-blur-sm h-10 w-10">Aa</button>
                  </>
              )}
@@ -2576,7 +2694,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
                 ) : (
                    <label className="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-2xl cursor-pointer font-bold inline-flex items-center gap-3 transition">
                       <Camera className="w-6 h-6" />
-                      Subir Imagen o Video (MÃ¡x 10s)
+                      Subir Imagen o Video (Máx 10s)
                       <input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} />
                    </label>
                 )}
@@ -2584,9 +2702,9 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
           ) : (
              <div className="w-full h-full relative" style={{ overflow: 'hidden' }}>
                 {media.type === 'video' ? (
-                   <video ref={videoRef} src={media.url} className="w-full h-full object-cover pointer-events-none" autoPlay loop muted playsInline style={{ filter }} />
+                   <video ref={videoRef} src={media.url} className="w-full h-full object-contain pointer-events-none" autoPlay loop muted playsInline style={{ filter }} />
                 ) : (
-                   <img src={media.url} className="w-full h-full object-cover pointer-events-none" alt="Preview" style={{ filter }} />
+                   <img src={media.url} className="w-full h-full object-contain pointer-events-none" alt="Preview" style={{ filter }} />
                 )}
 
                 {/* Overlays Canvas */}
@@ -2655,7 +2773,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
           <div className="absolute inset-0 bg-black/80 z-[110] flex flex-col p-6 items-center justify-center backdrop-blur-sm">
              {editingOverlay === 'emoji' as any ? (
                  <div className="grid grid-cols-4 gap-4 bg-white/10 p-6 rounded-3xl">
-                     {['ðŸ”¥','âœ¨','â¤ï¸','ðŸ˜‚','ðŸ¥º','ðŸš€','ðŸ’Ž','ðŸ‘€','ðŸ’¯','ðŸ’€','ðŸŽ‰','ðŸ™Œ'].map(e => (
+                     {['🔥','✨','❤️','😂','🥺','🚀','💎','👀','💯','🎉','🙌','😊'].map(e => (
                          <button key={e} onClick={() => addOverlay('emoji', e)} className="text-4xl hover:scale-110 transition-transform">{e}</button>
                      ))}
                      <button onClick={() => setEditingOverlay(false)} className="col-span-4 mt-2 text-white/50 text-sm py-2">Cancelar</button>
@@ -2682,7 +2800,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
                      />
                      <div className="flex gap-2 mt-4">
                          <button onClick={() => setEditingOverlay(false)} className="flex-1 py-3 text-white/70 font-bold hover:text-white transition">Cancelar</button>
-                         <button onClick={() => { if (newOverlayText.trim()) addOverlay('text', newOverlayText); else setEditingOverlay(false); }} className="flex-1 py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-100 transition active:scale-95">AÃ±adir</button>
+                         <button onClick={() => { if (newOverlayText.trim()) addOverlay('text', newOverlayText); else setEditingOverlay(false); }} className="flex-1 py-3 bg-white text-black rounded-xl font-bold hover:bg-gray-100 transition active:scale-95">Añadir</button>
                      </div>
                  </div>
              )}
@@ -3052,7 +3170,7 @@ function TokenPriceStrip({ market, onOpen }: { market: TokenMarket; onOpen: () =
     </button>
   );
 }
-function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, currentUser, onDivide, onJoin, onBack }: { profile: CreatorProfile, slots: AdSpace[], stories?: Story[], isOwnerPreview: boolean, profileId?: string | null, currentUser?: FirebaseUser | null, onDivide?: (id: string) => void, onJoin?: (id: string) => void, onBack?: () => void }) {
+function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, currentUser, onDivide, onJoin, onBack, onOverlayChange }: { profile: CreatorProfile, slots: AdSpace[], stories?: Story[], isOwnerPreview: boolean, profileId?: string | null, currentUser?: FirebaseUser | null, onDivide?: (id: string) => void, onJoin?: (id: string) => void, onBack?: () => void, onOverlayChange?: (active: boolean) => void }) {
   const [selectedSlot, setSelectedSlot] = useState<AdSpace | null>(null);
   const [viewingTenantSlot, setViewingTenantSlot] = useState<AdSpace | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -3084,6 +3202,10 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const [isUploadingStory, setIsUploadingStory] = useState(false);
   const [storyImage, setStoryImage] = useState('');
   const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    onOverlayChange?.(isUploadingStory || selectedStoryIndex !== null);
+  }, [isUploadingStory, selectedStoryIndex]);
 
   const scanTriggeredRef = useRef(false);
   const txsCountRef = useRef<number | undefined>(undefined);
@@ -3190,7 +3312,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
          const notifRef = doc(collection(db, `users/${otherUid}/notifications`));
          batch.set(notifRef, {
              type: 'contact_request',
-             message: `${myName} aceptÃ³ tu solicitud de contacto.`,
+             message: `${myName} aceptó tu solicitud de contacto.`,
              fromId: currentUser.uid,
              read: false,
              createdAt: Date.now(),
@@ -3216,7 +3338,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
 
   const handleRent = async () => {
       if (!selectedSlot || !profileId) return;
-      if (isOwnerPreview || currentUser?.uid === profileId) { alert("El dueÃ±o del perfil no puede alquilar/publicar espacios en su propio perfil."); return; }
+      if (isOwnerPreview || currentUser?.uid === profileId) { alert("El dueño del perfil no puede alquilar/publicar espacios en su propio perfil."); return; }
       if (!rentImage.trim() || !rentBrand.trim()) { alert("Sube tu anuncio y pon el nombre de tu marca."); return; }
       
       setIsProcessing(true);
@@ -3246,7 +3368,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                  brand: rentBrand,
                  brandImg: rentBrandImg || currentUser?.photoURL || 'https://i.pravatar.cc/150?u=' + currentUser?.uid,
                  image: rentImage,
-                 caption: rentCaption || `Â¡Espacio patrocinado por ${selectedDuration} dÃ­as!`,
+                 caption: rentCaption || `¡Espacio patrocinado por ${selectedDuration} días!`,
                  pricePaid: price,
                  rentStart: Date.now(),
                  rentEnd: Date.now() + selectedDuration * 24 * 60 * 60 * 1000,
@@ -3276,7 +3398,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
              const notifRef = doc(collection(db, `users/${sellerId}/notifications`));
              batch.set(notifRef, {
                  type: 'sale',
-                 message: `Â¡Nueva venta! ${rentBrand} ha comprado un espacio VIP.`,
+                 message: `¡Nueva venta! ${rentBrand} ha comprado un espacio VIP.`,
                  fromId: currentUser?.uid || 'anonymous',
                  read: false,
                  createdAt: Date.now(),
@@ -3290,19 +3412,19 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
              setRentBrand('');
              setRentBrandImg('');
              setRentCaption('');
-             alert("Â¡Pago simulado con Ã©xito!");
+             alert("¡Pago simulado con éxito!");
       } catch(e: any) { alert(e.message); }
       setIsProcessing(false);
   };
 
-  const handlePublishStory = async (media: { url: string, type: 'image'|'video' }, overlays: StoryOverlay[], filter: string, clipStart: number, clipDuration: number) => {
+  const handlePublishStory = async (media: { url: string, type: 'image'|'video', publicId?: string }, overlays: StoryOverlay[], filter: string, clipStart: number, clipDuration: number) => {
       if (!profileId || !currentUser || !media.url.trim()) return;
       const isOwnerProfile = currentUser.uid === profileId;
       
       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
       const recentStoriesFromUser = stories?.filter(s => s.rentedBy === currentUser.uid && s.createdAt > oneDayAgo) || [];
       if (!isOwnerProfile && recentStoriesFromUser.length >= 1) {
-          alert('Solo puedes publicar 1 historia al dÃ­a como inquilino VIP.');
+          alert('Solo puedes publicar 1 historia al día como inquilino VIP.');
           return;
       }
 
@@ -3319,12 +3441,13 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
               brand: currentUser.displayName || 'Marca',
               brandImg: currentUser.photoURL || `https://i.pravatar.cc/150?u=${currentUser.uid}`,
               rentedBy: currentUser.uid,
-              createdAt: Date.now()
+              createdAt: Date.now(),
+              ...(media.publicId ? { cloudinaryPublicId: media.publicId } : {})
           };
           await setDoc(doc(db, `creatorProfiles/${profileId}/stories`, newStory.id), newStory);
           setIsUploadingStory(false);
           setStoryImage('');
-          alert('Â¡Historia publicada exitosamente!');
+          alert('¡Historia publicada exitosamente!');
       } catch(e: any) { alert(e.message); }
       setIsProcessing(false);
   };
@@ -3397,7 +3520,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                  </button>
               )}
               {!isOwnerPreview && currentUser && currentUser.uid !== profileId && contactStatus && contactStatus.status === 'pending' && (
-                 <button onClick={contactStatus.initiator === currentUser.uid ? () => setShowCancelConfirm(true) : handleCancelContact} className="absolute -bottom-2 -left-2 w-6 h-6 outline-none rounded-full flex items-center justify-center shadow-md border-[2px] border-white transition-all bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 cursor-pointer active:scale-90" title={contactStatus.initiator === currentUser.uid ? 'Cancelar peticiÃ³n' : 'Rechazar peticiÃ³n'}>
+                 <button onClick={contactStatus.initiator === currentUser.uid ? () => setShowCancelConfirm(true) : handleCancelContact} className="absolute -bottom-2 -left-2 w-6 h-6 outline-none rounded-full flex items-center justify-center shadow-md border-[2px] border-white transition-all bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 cursor-pointer active:scale-90" title={contactStatus.initiator === currentUser.uid ? 'Cancelar petición' : 'Rechazar petición'}>
                     <Clock className="w-3.5 h-3.5" />
                  </button>
               )}
@@ -3523,37 +3646,37 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                 <motion.div initial={{ opacity: 0, y: "100%" }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: "100%" }} className="fixed bottom-0 left-1/2 w-full max-w-[500px] -translate-x-1/2 bg-white rounded-t-[32px] z-50 shadow-2xl h-[85vh] overflow-hidden flex flex-col md:top-1/2 md:bottom-auto md:max-w-[760px] md:h-[82vh] md:-translate-y-1/2 md:rounded-[32px]"><div className="flex-1 overflow-y-auto p-6 pb-16">
                    <h2 className="text-2xl font-black tracking-tight text-center text-gray-900 mb-2">Alquilar ZonaVip</h2>
                    <p className="text-center text-gray-500 font-medium text-[15px] mb-2 leading-snug">
-                     Elige la duraciÃ³n para patrocinar a <strong className="text-gray-800">{profile.displayName}</strong>.
+                     Elige la duración para patrocinar a <strong className="text-gray-800">{profile.displayName}</strong>.
                    </p>
                    
                    {selectedSlot.width === 100 && (
                      <div className="bg-white border border-gray-800 rounded-xl p-3 mb-6">
                         <p className="text-xs text-gray-700 font-semibold text-center leading-relaxed">
-                          EstÃ¡s adquiriendo <strong className="font-black text-gray-900">1 Zona Grande (Premium)</strong> que contiene 2 Subzonas y 8 Minizonas en total, que podrÃ¡s realquilar o usar como quieras.
+                          Estás adquiriendo <strong className="font-black text-gray-900">1 Zona Grande (Premium)</strong> que contiene 2 Subzonas y 8 Minizonas en total, que podrás realquilar o usar como quieras.
                         </p>
                      </div>
                    )}
                    {selectedSlot.width === 50 && (
                      <div className="bg-white border border-gray-800 rounded-xl p-3 mb-6">
                         <p className="text-xs text-gray-700 font-semibold text-center leading-relaxed">
-                          EstÃ¡s adquiriendo <strong className="font-black text-gray-900">1 Subzona</strong> que contiene 4 Minizonas en total, que podrÃ¡s realquilar o usar como quieras.
+                          Estás adquiriendo <strong className="font-black text-gray-900">1 Subzona</strong> que contiene 4 Minizonas en total, que podrás realquilar o usar como quieras.
                         </p>
                      </div>
                    )}
                    {selectedSlot.width === 25 && (
                      <div className="bg-white border border-gray-800 rounded-xl p-3 mb-6">
                         <p className="text-xs text-gray-700 font-semibold text-center leading-relaxed">
-                          EstÃ¡s adquiriendo <strong className="font-black text-gray-900">1 Minizona</strong>, que podrÃ¡s realquilar o usar como quieras.
+                          Estás adquiriendo <strong className="font-black text-gray-900">1 Minizona</strong>, que podrás realquilar o usar como quieras.
                         </p>
                      </div>
                    )}
 
                    <div className="grid grid-cols-2 gap-3 mb-6">
                       {[
-                        { days: 1, label: '1 DÃ­a', price: selectedSlot.forResale && selectedSlot.resalePrices ? selectedSlot.resalePrices.price1 : selectedSlot.width === 100 ? (profile.prices100?.price1 || 15) : selectedSlot.width === 50 ? (profile.prices50?.price1 || 10) : (profile.prices25?.price1 || 5) },
+                        { days: 1, label: '1 Día', price: selectedSlot.forResale && selectedSlot.resalePrices ? selectedSlot.resalePrices.price1 : selectedSlot.width === 100 ? (profile.prices100?.price1 || 15) : selectedSlot.width === 50 ? (profile.prices50?.price1 || 10) : (profile.prices25?.price1 || 5) },
                         { days: 7, label: '1 Semana', price: selectedSlot.forResale && selectedSlot.resalePrices ? selectedSlot.resalePrices.price7 : selectedSlot.width === 100 ? (profile.prices100?.price7 || 45) : selectedSlot.width === 50 ? (profile.prices50?.price7 || 30) : (profile.prices25?.price7 || 15) },
                         { days: 30, label: '1 Mes', price: selectedSlot.forResale && selectedSlot.resalePrices ? selectedSlot.resalePrices.price30 : selectedSlot.width === 100 ? (profile.prices100?.price30 || 150) : selectedSlot.width === 50 ? (profile.prices50?.price30 || 100) : (profile.prices25?.price30 || 45) },
-                        { days: 365, label: '1 AÃ±o', price: selectedSlot.forResale && selectedSlot.resalePrices ? selectedSlot.resalePrices.price365 : selectedSlot.width === 100 ? (profile.prices100?.price365 || 600) : selectedSlot.width === 50 ? (profile.prices50?.price365 || 350) : (profile.prices25?.price365 || 200) }
+                        { days: 365, label: '1 Año', price: selectedSlot.forResale && selectedSlot.resalePrices ? selectedSlot.resalePrices.price365 : selectedSlot.width === 100 ? (profile.prices100?.price365 || 600) : selectedSlot.width === 50 ? (profile.prices50?.price365 || 350) : (profile.prices25?.price365 || 200) }
                       ].map(dur => {
                          const colorTheme = {
                            25: { border: 'border-gray-900', bg: 'bg-gray-50', text: 'text-gray-900' },
@@ -3587,7 +3710,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                        
                        <div className="flex flex-col gap-1">
                           <label className="font-bold text-gray-700 ml-1 text-sm">Caption (Opcional)</label>
-                          <input type="text" value={rentCaption} onChange={e => setRentCaption(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="Texto que aparecerÃ¡..." />
+                          <input type="text" value={rentCaption} onChange={e => setRentCaption(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="Texto que aparecerá..." />
                        </div>
                    </div>
                    
@@ -3647,11 +3770,11 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm" />
                   <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 z-50 flex items-center justify-center p-4 px-6">
                       <div className="bg-white rounded-[24px] p-6 w-full max-w-[320px] shadow-2xl flex flex-col">
-                          <h3 className="font-bold text-center text-lg text-gray-900 mb-2">Cancelar peticiÃ³n</h3>
-                          <p className="text-gray-500 text-center text-sm mb-6 leading-snug">Â¿Quieres cancelar la solicitud de contacto enviada?</p>
+                          <h3 className="font-bold text-center text-lg text-gray-900 mb-2">Cancelar petición</h3>
+                          <p className="text-gray-500 text-center text-sm mb-6 leading-snug">¿Quieres cancelar la solicitud de contacto enviada?</p>
                           <div className="flex gap-3">
                               <button onClick={() => setShowCancelConfirm(false)} className="flex-1 py-3 bg-gray-100 text-gray-900 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors">Volver</button>
-                              <button onClick={() => { handleCancelContact(); setShowCancelConfirm(false); }} className="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm hover:bg-pink-600 transition-colors">SÃ­, cancelar</button>
+                              <button onClick={() => { handleCancelContact(); setShowCancelConfirm(false); }} className="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm hover:bg-pink-600 transition-colors">Sí, cancelar</button>
                           </div>
                       </div>
                   </motion.div>
