@@ -49,8 +49,8 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
       const buyerProfileRef = doc(db, 'creatorProfiles', buyerId);
       const sellerProfileRef = doc(db, 'creatorProfiles', sellerId);
 
-      const [orderSnap, buyerHoldingSnap, sellerHoldingSnap, buyerProfileSnap] = await Promise.all([
-        t.get(orderRef), t.get(buyerHoldingRef), t.get(sellerHoldingRef), t.get(buyerProfileRef),
+      const [orderSnap, buyerHoldingSnap, sellerHoldingSnap, buyerProfileSnap, sellerProfileSnap] = await Promise.all([
+        t.get(orderRef), t.get(buyerHoldingRef), t.get(sellerHoldingRef), t.get(buyerProfileRef), t.get(sellerProfileRef),
       ]);
 
       if (!orderSnap.exists() || orderSnap.data()?.status !== 'open') throw new Error('La orden ya no está disponible.');
@@ -58,6 +58,7 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
       if (sellerBalance < fillAmount) throw new Error('El vendedor no tiene tokens suficientes.');
       const buyerWallet = buyerProfileSnap.exists() ? buyerProfileSnap.data()?.walletBalance || 0 : 0;
       if (buyerWallet < cost) throw new Error('Saldo insuficiente para ejecutar la compra.');
+      const sellerWallet = sellerProfileSnap.exists() ? sellerProfileSnap.data()?.walletBalance || 0 : 0;
 
       const remaining = (orderSnap.data()!.amount as number) - fillAmount;
       if (remaining > 0) {
@@ -72,7 +73,7 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
         t.set(buyerHoldingRef, { userId: buyerId, creatorId, balance: fillAmount, earned: 0, createdAt: now, updatedAt: now });
       }
       t.update(buyerProfileRef, { walletBalance: buyerWallet - cost });
-      t.update(sellerProfileRef, { walletBalance: increment(cost) });
+      t.update(sellerProfileRef, { walletBalance: sellerWallet + cost });
       t.set(doc(collection(db, 'tokenTrades')), { creatorId, buyerId, sellerId, price: fillPrice, amount: fillAmount, symbol, createdAt: now });
       t.set(doc(collection(db, `users/${matchOrder.userId}/notifications`)), {
         type: 'token_mint',
