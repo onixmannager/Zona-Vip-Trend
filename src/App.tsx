@@ -90,12 +90,31 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
   if (side === 'sell') {
     const holdingSnap = await getDoc(doc(db, 'creatorTokenHolders', `${userId}_${creatorId}`));
     const balance = holdingSnap.exists() ? holdingSnap.data()?.balance || 0 : 0;
-    if (balance < amount) throw new Error('No tienes tokens suficientes para vender.');
+    // Contabilizar tokens ya comprometidos en órdenes de venta abiertas para este creador
+    const openSellOrders = matchingOrders.filter(o => o.side === 'sell' && o.userId === userId);
+    const tokensCommitted = openSellOrders.reduce((sum, o) => sum + o.amount, 0);
+    if (balance < amount + tokensCommitted) {
+      throw new Error(
+        tokensCommitted > 0
+          ? `No tienes tokens suficientes. Ya tienes ${tokensCommitted.toFixed(2)} tokens comprometidos en órdenes abiertas.`
+          : 'No tienes tokens suficientes para vender.'
+      );
+    }
   }
   if (side === 'buy') {
     const profileSnap = await getDoc(doc(db, 'creatorProfiles', userId));
     const walletBalance = profileSnap.exists() ? profileSnap.data()?.walletBalance || 0 : 0;
-    if (walletBalance < amount * price) throw new Error('Saldo insuficiente para publicar esta orden de compra.');
+    // Contabilizar fondos ya comprometidos en órdenes de compra abiertas para este creador
+    const openBuyOrders = matchingOrders.filter(o => o.side === 'buy' && o.userId === userId);
+    const fundsCommitted = openBuyOrders.reduce((sum, o) => sum + o.amount * o.price, 0);
+    const totalRequired = amount * price + fundsCommitted;
+    if (walletBalance < totalRequired) {
+      throw new Error(
+        fundsCommitted > 0
+          ? `Saldo insuficiente. Ya tienes ${fundsCommitted.toFixed(2)}€ comprometidos en órdenes abiertas. Necesitas ${totalRequired.toFixed(2)}€ en total.`
+          : 'Saldo insuficiente para publicar esta orden de compra.'
+      );
+    }
   }
 
   await addDoc(collection(db, 'tokenOrders'), { creatorId, side, price, amount, symbol, userId, status: 'open', createdAt: now });
