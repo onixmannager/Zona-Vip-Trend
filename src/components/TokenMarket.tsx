@@ -41,7 +41,7 @@ const formatAgo = (timestamp: number) => {
   return `Hace ${Math.floor(hours / 24)}d`;
 };
 
-export type RealTokenOrder = { id: string; side: 'buy' | 'sell'; price: number; amount: number; userId: string };
+export type RealTokenOrder = { id: string; side: 'buy' | 'sell'; price: number; amount: number; userId: string; frozenBalance?: number; creatorId?: string; symbol?: string };
 export type TokenOrderType = 'market' | 'limit';
 
 export function buildTokenMarket(profile: CreatorProfile, transactions: { id: string; price: number; createdAt: number; duration?: number; tokensMinted?: number }[], slots: AdSpace[], creatorId?: string, realOrders?: RealTokenOrder[]): TokenMarket {
