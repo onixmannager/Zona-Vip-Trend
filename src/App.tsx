@@ -54,25 +54,45 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
       ]);
 
       if (!orderSnap.exists() || orderSnap.data()?.status !== 'open') throw new Error('La orden ya no está disponible.');
+      const orderData = orderSnap.data()!;
+      // makerHasEscrow: the maker pre-froze their funds/tokens when placing the order
+      const makerHasEscrow = orderData.frozenBalance !== undefined;
+      const makerIsSell = matchOrder.side === 'sell'; // side==='buy': taker buys, maker was selling
+
       const sellerBalance = sellerHoldingSnap.exists() ? sellerHoldingSnap.data()?.balance || 0 : 0;
-      if (sellerBalance < fillAmount) throw new Error('El vendedor no tiene tokens suficientes.');
+      // Skip seller token check if maker is seller with escrow (tokens already pre-deducted)
+      if (!makerHasEscrow || !makerIsSell) {
+        if (sellerBalance < fillAmount) throw new Error('El vendedor no tiene tokens suficientes.');
+      }
       const buyerWallet = buyerProfileSnap.exists() ? buyerProfileSnap.data()?.walletBalance || 0 : 0;
-      if (buyerWallet < cost) throw new Error('Saldo insuficiente para ejecutar la compra.');
+      // Skip buyer wallet check if maker is buyer with escrow (funds already pre-deducted)
+      if (!makerHasEscrow || makerIsSell) {
+        if (buyerWallet < cost) throw new Error('Saldo insuficiente para ejecutar la compra.');
+      }
       const sellerWallet = sellerProfileSnap.exists() ? sellerProfileSnap.data()?.walletBalance || 0 : 0;
 
-      const remaining = (orderSnap.data()!.amount as number) - fillAmount;
+      const remaining = (orderData.amount as number) - fillAmount;
       if (remaining > 0) {
-        t.update(orderRef, { amount: remaining, updatedAt: now });
+        // Reduce frozenBalance proportionally on partial fills so cancel returns correct amount
+        const updatedOrder: Record<string, unknown> = { amount: remaining, updatedAt: now };
+        if (makerHasEscrow) updatedOrder.frozenBalance = makerIsSell ? remaining : remaining * matchOrder.price;
+        t.update(orderRef, updatedOrder);
       } else {
         t.update(orderRef, { status: 'filled', filledAt: now, filledBy: userId });
       }
-      t.update(sellerHoldingRef, { balance: sellerBalance - fillAmount, updatedAt: now });
+      // Only deduct seller tokens if not pre-frozen (maker sell escrow already deducted them)
+      if (!makerHasEscrow || !makerIsSell) {
+        t.update(sellerHoldingRef, { balance: sellerBalance - fillAmount, updatedAt: now });
+      }
       if (buyerHoldingSnap.exists()) {
         t.update(buyerHoldingRef, { balance: (buyerHoldingSnap.data()?.balance || 0) + fillAmount, updatedAt: now });
       } else {
         t.set(buyerHoldingRef, { userId: buyerId, creatorId, balance: fillAmount, earned: 0, createdAt: now, updatedAt: now });
       }
-      t.update(buyerProfileRef, { walletBalance: buyerWallet - cost });
+      // Only deduct buyer wallet if not pre-frozen (maker buy escrow already deducted funds)
+      if (!makerHasEscrow || makerIsSell) {
+        t.update(buyerProfileRef, { walletBalance: buyerWallet - cost });
+      }
       t.update(sellerProfileRef, { walletBalance: sellerWallet + cost });
       t.set(doc(collection(db, 'tokenTrades')), { creatorId, buyerId, sellerId, price: fillPrice, amount: fillAmount, symbol, createdAt: now });
       t.set(doc(collection(db, `users/${matchOrder.userId}/notifications`)), {
@@ -87,37 +107,29 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
 
   if (orderType === 'market') throw new Error('No hay liquidez suficiente para ejecutar a mercado.');
 
-  if (side === 'sell') {
-    const holdingSnap = await getDoc(doc(db, 'creatorTokenHolders', `${userId}_${creatorId}`));
-    const balance = holdingSnap.exists() ? holdingSnap.data()?.balance || 0 : 0;
-    // Contabilizar tokens ya comprometidos en órdenes de venta abiertas para este creador
-    const openSellOrders = matchingOrders.filter(o => o.side === 'sell' && o.userId === userId);
-    const tokensCommitted = openSellOrders.reduce((sum, o) => sum + o.amount, 0);
-    if (balance < amount + tokensCommitted) {
-      throw new Error(
-        tokensCommitted > 0
-          ? `No tienes tokens suficientes. Ya tienes ${tokensCommitted.toFixed(2)} tokens comprometidos en órdenes abiertas.`
-          : 'No tienes tokens suficientes para vender.'
-      );
+  // Escrow: deduct funds/tokens immediately and store frozenBalance so cancel can return them
+  await runTransaction(db, async (t) => {
+    if (side === 'sell') {
+      const holdingRef = doc(db, 'creatorTokenHolders', `${userId}_${creatorId}`);
+      const holdingSnap = await t.get(holdingRef);
+      const balance = holdingSnap.exists() ? holdingSnap.data()?.balance || 0 : 0;
+      if (balance < amount) throw new Error('No tienes tokens suficientes para vender.');
+      t.update(holdingRef, { balance: balance - amount, updatedAt: now });
+    } else {
+      const profileRef = doc(db, 'creatorProfiles', userId);
+      const profileSnap = await t.get(profileRef);
+      const walletBalance = profileSnap.exists() ? profileSnap.data()?.walletBalance || 0 : 0;
+      const frozenFunds = amount * price;
+      if (walletBalance < frozenFunds) throw new Error('Saldo insuficiente para publicar esta orden de compra.');
+      t.update(profileRef, { walletBalance: walletBalance - frozenFunds });
     }
-  }
-  if (side === 'buy') {
-    const profileSnap = await getDoc(doc(db, 'creatorProfiles', userId));
-    const walletBalance = profileSnap.exists() ? profileSnap.data()?.walletBalance || 0 : 0;
-    // Contabilizar fondos ya comprometidos en órdenes de compra abiertas para este creador
-    const openBuyOrders = matchingOrders.filter(o => o.side === 'buy' && o.userId === userId);
-    const fundsCommitted = openBuyOrders.reduce((sum, o) => sum + o.amount * o.price, 0);
-    const totalRequired = amount * price + fundsCommitted;
-    if (walletBalance < totalRequired) {
-      throw new Error(
-        fundsCommitted > 0
-          ? `Saldo insuficiente. Ya tienes ${fundsCommitted.toFixed(2)}€ comprometidos en órdenes abiertas. Necesitas ${totalRequired.toFixed(2)}€ en total.`
-          : 'Saldo insuficiente para publicar esta orden de compra.'
-      );
-    }
-  }
-
-  await addDoc(collection(db, 'tokenOrders'), { creatorId, side, price, amount, symbol, userId, status: 'open', createdAt: now });
+    t.set(doc(collection(db, 'tokenOrders')), {
+      creatorId, side, price, amount, symbol, userId,
+      status: 'open',
+      frozenBalance: side === 'sell' ? amount : amount * price,
+      createdAt: now
+    });
+  });
 
   return {
     filled: false,
@@ -126,6 +138,37 @@ async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price
       : `Oferta de venta por ${amount} ${symbol} publicada en el order book.`,
   };
 }
+
+async function cancelTokenOrder(orderId: string) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Not authenticated');
+  const now = Date.now();
+  await runTransaction(db, async (t) => {
+    const orderRef = doc(db, 'tokenOrders', orderId);
+    const orderSnap = await t.get(orderRef);
+    if (!orderSnap.exists() || orderSnap.data()?.status !== 'open') throw new Error('La orden ya no está disponible.');
+    const orderData = orderSnap.data()!;
+    if (orderData.userId !== user.uid) throw new Error('No autorizado.');
+    t.update(orderRef, { status: 'cancelled', cancelledAt: now });
+    // Return pre-frozen funds or tokens (only if order used escrow)
+    if (orderData.frozenBalance !== undefined && orderData.frozenBalance > 0) {
+      if (orderData.side === 'buy') {
+        const profileRef = doc(db, 'creatorProfiles', user.uid);
+        const profileSnap = await t.get(profileRef);
+        t.update(profileRef, { walletBalance: (profileSnap.data()?.walletBalance || 0) + orderData.frozenBalance });
+      } else {
+        const holdingRef = doc(db, 'creatorTokenHolders', `${user.uid}_${orderData.creatorId}`);
+        const holdingSnap = await t.get(holdingRef);
+        if (holdingSnap.exists()) {
+          t.update(holdingRef, { balance: (holdingSnap.data()?.balance || 0) + orderData.frozenBalance, updatedAt: now });
+        } else {
+          t.set(holdingRef, { userId: user.uid, creatorId: orderData.creatorId, balance: orderData.frozenBalance, earned: 0, createdAt: now, updatedAt: now });
+        }
+      }
+    }
+  });
+}
+
 function AppModalOverlay() {
   const [modal, setModal] = useState<AppModalState>(null);
   useEffect(() => { _setAppModal = setModal; return () => { _setAppModal = null; }; }, []);
@@ -1088,6 +1131,9 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
   const [rentedSlots, setRentedSlots] = useState<{slot: AdSpace, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string}[]>([]);
   const [tokenTransactions, setTokenTransactions] = useState<{id: string, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string, price: number, tokensMinted?: number, createdAt: number}[]>([]);
   const [tokenHoldings, setTokenHoldings] = useState<{id: string, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string, balance: number}[]>([]);
+  const [myOpenTokenOrders, setMyOpenTokenOrders] = useState<RealTokenOrder[]>([]);
+  const [p2pTradesBuy, setP2pTradesBuy] = useState<{id: string; creatorId: string; symbol: string; price: number; amount: number; createdAt: number}[]>([]);
+  const [p2pTradesSell, setP2pTradesSell] = useState<{id: string; creatorId: string; symbol: string; price: number; amount: number; createdAt: number}[]>([]);
   const [walletOrderBook, setWalletOrderBook] = useState<TokenMarket | null>(null);
   const [walletOpenSellOffers, setWalletOpenSellOffers] = useState<MarketOrder[]>([]);
   const [walletBuyTokenAmount, setWalletBuyTokenAmount] = useState(1);
@@ -1346,7 +1392,27 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
        }
        setTokenHoldings(fetched.filter(h => h.balance > 0));
     }, (err) => console.log('Error fetching token holdings', err));
-    return () => { unsubProfile(); unsubSlots(); unsubRentedSlots(); unsubStories(); unsubNotifs(); unsubTokenTxs(); unsubTokenHoldings(); };
+
+    // Listener: current user's own open orders (for cancel button)
+    const unsubMyOrders = onSnapshot(
+      query(collection(db, 'tokenOrders'), where('userId', '==', user.uid), where('status', '==', 'open')),
+      (snap) => setMyOpenTokenOrders(snap.docs.map(d => ({ id: d.id, ...d.data() } as RealTokenOrder))),
+      (err) => console.log('myOrders error', err)
+    );
+
+    // P2P trade history: tokenTrades is a separate collection from creatorProfiles/X/transactions
+    const unsubP2pBuy = onSnapshot(
+      query(collection(db, 'tokenTrades'), where('buyerId', '==', user.uid)),
+      (snap) => setP2pTradesBuy(snap.docs.map(d => ({ id: d.id, ...d.data() } as any))),
+      (err) => console.log('p2pTrades buy error', err)
+    );
+    const unsubP2pSell = onSnapshot(
+      query(collection(db, 'tokenTrades'), where('sellerId', '==', user.uid)),
+      (snap) => setP2pTradesSell(snap.docs.map(d => ({ id: d.id, ...d.data() } as any))),
+      (err) => console.log('p2pTrades sell error', err)
+    );
+
+    return () => { unsubProfile(); unsubSlots(); unsubRentedSlots(); unsubStories(); unsubNotifs(); unsubTokenTxs(); unsubTokenHoldings(); unsubMyOrders(); unsubP2pBuy(); unsubP2pSell(); };
   }, [user, navigate]);
 
   const handleSaveProfile = async () => {
@@ -2113,42 +2179,112 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                        </div>
                     </div>
 
-                    {/* Token Transaction History */}
+                    {/* Open Limit Orders — with cancel button */}
+                    {myOpenTokenOrders.length > 0 && (
+                    <div>
+                       <div className="flex items-center justify-between mb-4 px-1">
+                          <h3 className="font-black text-gray-900 text-lg">Órdenes Abiertas</h3>
+                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{myOpenTokenOrders.length} activas</span>
+                       </div>
+                       <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm flex flex-col divide-y divide-gray-50">
+                          {myOpenTokenOrders.map(order => {
+                            const sym = (order.symbol || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase();
+                            const isBuy = order.side === 'buy';
+                            return (
+                              <div key={order.id} className="flex items-center gap-3 px-3 py-3">
+                                <div className={cn("w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-white font-black text-[9px]", isBuy ? "bg-gray-900" : "bg-pink-500")}>
+                                  {sym}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-gray-900 text-sm leading-tight">{isBuy ? 'Compra límite' : 'Venta límite'} · {sym}</p>
+                                  <p className="text-gray-400 text-xs">{formatTokenAmount(order.amount)} tokens @ {formatTokenPrice(order.price)}</p>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      await cancelTokenOrder(order.id);
+                                      showAlert('Orden cancelada. Los fondos han sido devueltos.', 'success');
+                                    } catch (e: any) { showAlert('Error al cancelar: ' + e.message, 'error'); }
+                                  }}
+                                  className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-[11px] font-black hover:bg-red-50 hover:text-red-500 transition-colors"
+                                >
+                                  Cancelar
+                                </button>
+                              </div>
+                            );
+                          })}
+                       </div>
+                    </div>
+                    )}
+
+                    {/* Token Transaction History — rentals + P2P trades merged */}
                     <div>
                        <div className="flex items-center justify-between mb-4 px-1">
                           <h3 className="font-black text-gray-900 text-lg">Historial Reciente</h3>
-                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{tokenTransactions.length} ops.</span>
+                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{tokenTransactions.length + p2pTradesBuy.length + p2pTradesSell.length} ops.</span>
                        </div>
                        <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm">
-                          {tokenTransactions.length === 0 ? (
+                          {tokenTransactions.length === 0 && p2pTradesBuy.length === 0 && p2pTradesSell.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400">
                                <History className="w-8 h-8 mb-2 text-gray-200" />
                                <p className="text-sm font-medium">No hay historial de tokens aún.</p>
                             </div>
-                          ) : (
-                            <div className="flex flex-col divide-y divide-gray-50">
-                              {tokenTransactions.slice(0, 20).map(tx => {
-                                const sym = (tx.profileUsername || tx.profileId || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase();
-                                const minted = tx.tokensMinted ?? tx.price ?? 0;
-                                const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : '';
-                                return (
-                                  <div key={tx.id} className="flex items-center gap-3 px-3 py-3">
-                                    <div className="w-9 h-9 rounded-full bg-gray-900 flex items-center justify-center shrink-0 overflow-hidden">
-                                      {tx.profilePhoto ? <img src={tx.profilePhoto} alt={sym} className="w-full h-full object-cover" /> : <span className="text-white font-black text-[9px]">{sym}</span>}
+                          ) : (() => {
+                            // Merge rental mints + P2P trades, sort by date
+                            const rentalItems = tokenTransactions.map(tx => ({
+                              id: tx.id, kind: 'rental' as const,
+                              sym: (tx.profileUsername || tx.profileId || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase(),
+                              label: tx.profileDisplayName || tx.profileUsername || tx.profileId,
+                              sub: 'Alquiler',
+                              photo: tx.profilePhoto,
+                              amount: tx.tokensMinted ?? tx.price ?? 0,
+                              sign: '+',
+                              createdAt: tx.createdAt || 0,
+                            }));
+                            const p2pBuyItems = p2pTradesBuy.map(t => ({
+                              id: `buy-${t.id}`, kind: 'p2p' as const,
+                              sym: (t.symbol || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase(),
+                              label: (t.symbol || t.creatorId || 'Token').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase(),
+                              sub: 'Compra P2P',
+                              photo: undefined,
+                              amount: t.amount,
+                              sign: '+',
+                              createdAt: t.createdAt || 0,
+                            }));
+                            const p2pSellItems = p2pTradesSell.map(t => ({
+                              id: `sell-${t.id}`, kind: 'p2p' as const,
+                              sym: (t.symbol || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase(),
+                              label: (t.symbol || t.creatorId || 'Token').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase(),
+                              sub: 'Venta P2P',
+                              photo: undefined,
+                              amount: t.amount,
+                              sign: '-',
+                              createdAt: t.createdAt || 0,
+                            }));
+                            const all = [...rentalItems, ...p2pBuyItems, ...p2pSellItems].sort((a, b) => b.createdAt - a.createdAt).slice(0, 25);
+                            return (
+                              <div className="flex flex-col divide-y divide-gray-50">
+                                {all.map(item => {
+                                  const dateStr = item.createdAt ? new Date(item.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : '';
+                                  return (
+                                    <div key={item.id} className="flex items-center gap-3 px-3 py-3">
+                                      <div className={cn("w-9 h-9 rounded-full flex items-center justify-center shrink-0 overflow-hidden", item.kind === 'p2p' && item.sign === '+' ? "bg-gray-900" : item.kind === 'p2p' ? "bg-pink-500" : "bg-gray-900")}>
+                                        {item.photo ? <img src={item.photo} alt={item.sym} className="w-full h-full object-cover" /> : <span className="text-white font-black text-[9px]">{item.sym}</span>}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-gray-900 text-sm leading-tight truncate">{item.label}</p>
+                                        <p className="text-gray-400 text-xs">{item.sub} · {dateStr}</p>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                        <p className={cn("font-black text-sm", item.sign === '+' ? "text-gray-900" : "text-pink-500")}>{item.sign}{formatTokenAmount(item.amount)}</p>
+                                        <p className="text-gray-400 text-[10px] font-bold">{item.sym} tokens</p>
+                                      </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-gray-900 text-sm leading-tight truncate">{tx.profileDisplayName || tx.profileUsername || tx.profileId}</p>
-                                      <p className="text-gray-400 text-xs">Alquiler · {dateStr}</p>
-                                    </div>
-                                    <div className="text-right shrink-0">
-                                      <p className="font-black text-gray-900 text-sm">+{formatTokenAmount(minted)}</p>
-                                      <p className="text-gray-400 text-[10px] font-bold">{sym} tokens</p>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
                        </div>
                     </div>
                  </div>
