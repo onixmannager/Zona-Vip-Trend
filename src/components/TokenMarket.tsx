@@ -216,7 +216,7 @@ export function TokenMarketPanel({
           </div>
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1 mb-2">
             <button onClick={() => setBuyOrderType('market')} className={cn("h-8 rounded-lg text-[11px] font-black", buyOrderType === 'market' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}>Mercado</button>
-            <button onClick={() => setBuyOrderType('limit')} className={cn("h-8 rounded-lg text-[11px] font-black", buyOrderType === 'limit' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}>Límite</button>
+            <button onClick={() => setBuyOrderType('limit')} className={cn("h-8 rounded-lg text-[11px] font-black", buyOrderType === 'limit' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}>LÃ­mite</button>
           </div>
           <input
             type="number"
@@ -236,7 +236,7 @@ export function TokenMarketPanel({
           )}
           <p className="text-xs text-gray-500 font-bold mt-2">Total estimado: <span className="text-gray-900">{formatTokenPrice(buyTotal)}</span></p>
           <button disabled={!canBuy} onClick={() => onConfirm('buy', buyOrderType, buyPrice)} className="w-full mt-3 h-11 rounded-xl bg-gray-900 text-white font-black active:scale-[0.98] transition disabled:opacity-40">
-            {buyOrderType === 'market' ? 'Comprar a mercado' : 'Publicar compra límite'}
+            {buyOrderType === 'market' ? 'Comprar a mercado' : 'Publicar compra lÃ­mite'}
           </button>
         </div>
         <div className="rounded-2xl border border-gray-100 p-3">
@@ -246,7 +246,7 @@ export function TokenMarketPanel({
           </div>
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1 mb-2">
             <button onClick={() => setSellOrderType('market')} className={cn("h-8 rounded-lg text-[11px] font-black", sellOrderType === 'market' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}>Mercado</button>
-            <button onClick={() => setSellOrderType('limit')} className={cn("h-8 rounded-lg text-[11px] font-black", sellOrderType === 'limit' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}>Límite</button>
+            <button onClick={() => setSellOrderType('limit')} className={cn("h-8 rounded-lg text-[11px] font-black", sellOrderType === 'limit' ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}>LÃ­mite</button>
           </div>
           <input
             type="number"
@@ -268,7 +268,7 @@ export function TokenMarketPanel({
             {sellOrderType === 'market' && !hasBid ? 'Sin bid disponible' : <>Recibirias: <span className="text-gray-900">{formatTokenPrice(sellTotal)}</span></>}
           </p>
           <button disabled={!canSell} onClick={() => onConfirm('sell', sellOrderType, sellPrice)} className="w-full mt-3 h-11 rounded-xl bg-pink-500 text-white font-black active:scale-[0.98] transition disabled:opacity-40">
-            {sellOrderType === 'market' ? 'Vender a mercado' : 'Publicar venta límite'}
+            {sellOrderType === 'market' ? 'Vender a mercado' : 'Publicar venta lÃ­mite'}
           </button>
         </div>
       </div>
