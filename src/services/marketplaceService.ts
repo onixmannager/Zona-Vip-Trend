@@ -188,26 +188,7 @@ export const marketplaceService = {
   // 3. RENT/LEASE -> Alquilar un zona específica
   async rentZone(zoneId: string, durationPeriod: 'day' | 'week' | 'month' | 'year') {
     if (!auth.currentUser) throw new Error("Not authenticated");
-    try {
-        const token = await auth.currentUser.getIdToken();
-        const response = await fetch('/api/rentZoneWithWallet', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ data: { zoneId, durationPeriod } })
-        });
-        
-        const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.error?.message || "Failed to rent zone");
-        }
-        return result.data;
-    } catch (error: any) {
-        console.error("Rent error:", error);
-        throw new Error(error.message || "Failed to rent zone");
-    }
+    throw new Error("Rent zone backend flow disabled. Use the in-app adSpace rental flow.");
   },
 
   // 4. FETCH DATA -> Obtener el mapa de zonas
@@ -312,9 +293,10 @@ export const marketplaceService = {
   async getMyWallet(userId: string) {
       if (!auth.currentUser || auth.currentUser.uid !== userId) throw new Error("Unauthorized");
       try {
-          const walletDoc = await getDoc(doc(db, 'wallets', userId));
-          if (walletDoc.exists()) {
-              return walletDoc.data();
+          const profileDoc = await getDoc(doc(db, 'creatorProfiles', userId));
+          if (profileDoc.exists()) {
+              const profileData = profileDoc.data();
+              return { balance: profileData.walletBalance || 0, pendingBalance: 0, totalEarnings: profileData.totalSales || 0, totalSpent: 0 };
           }
           return { balance: 0, pendingBalance: 0, totalEarnings: 0, totalSpent: 0 };
       } catch (error) {
