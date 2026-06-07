@@ -28,13 +28,83 @@ function normalizeUsername(value: string, fallback = 'user') {
 
 const TOKENS_PER_EURO = 10;
 
-async function placeOrFillTokenOrder({ userId: _userId, creatorId, side, orderType, price, amount, symbol }: { userId: string; creatorId: string; side: 'buy' | 'sell'; orderType: TokenOrderType; price: number; amount: number; symbol: string; matchingOrders: RealTokenOrder[] }) {
-  const executeTokenTrade = httpsCallable<
-    { creatorId: string; side: 'buy' | 'sell'; orderType: string; price: number; amount: number; symbol: string },
-    { filled: boolean; message: string }
-  >(functions, 'executeTokenTrade');
-  const result = await executeTokenTrade({ creatorId, side, orderType, price, amount, symbol });
-  return result.data;
+async function placeOrFillTokenOrder({ userId, creatorId, side, orderType, price, amount, symbol, matchingOrders }: { userId: string; creatorId: string; side: 'buy' | 'sell'; orderType: TokenOrderType; price: number; amount: number; symbol: string; matchingOrders: RealTokenOrder[] }) {
+  const now = Date.now();
+  const candidateOrders = matchingOrders.filter(o => o.side !== side && o.userId !== userId);
+  const matchOrder = side === 'buy'
+    ? candidateOrders.filter(o => o.price <= price).sort((a, b) => a.price - b.price)[0]
+    : candidateOrders.filter(o => o.price >= price).sort((a, b) => b.price - a.price)[0];
+
+  if (matchOrder) {
+    const fillAmount = Math.min(matchOrder.amount, amount);
+    const fillPrice = matchOrder.price;
+    const cost = fillAmount * fillPrice;
+    const buyerId = side === 'buy' ? userId : matchOrder.userId;
+    const sellerId = side === 'sell' ? userId : matchOrder.userId;
+
+    await runTransaction(db, async (t) => {
+      const orderRef = doc(db, 'tokenOrders', matchOrder.id);
+      const buyerHoldingRef = doc(db, 'creatorTokenHolders', `${buyerId}_${creatorId}`);
+      const sellerHoldingRef = doc(db, 'creatorTokenHolders', `${sellerId}_${creatorId}`);
+      const buyerProfileRef = doc(db, 'creatorProfiles', buyerId);
+      const sellerProfileRef = doc(db, 'creatorProfiles', sellerId);
+
+      const [orderSnap, buyerHoldingSnap, sellerHoldingSnap, buyerProfileSnap] = await Promise.all([
+        t.get(orderRef), t.get(buyerHoldingRef), t.get(sellerHoldingRef), t.get(buyerProfileRef),
+      ]);
+
+      if (!orderSnap.exists() || orderSnap.data()?.status !== 'open') throw new Error('La orden ya no está disponible.');
+      const sellerBalance = sellerHoldingSnap.exists() ? sellerHoldingSnap.data()?.balance || 0 : 0;
+      if (sellerBalance < fillAmount) throw new Error('El vendedor no tiene tokens suficientes.');
+      const buyerWallet = buyerProfileSnap.exists() ? buyerProfileSnap.data()?.walletBalance || 0 : 0;
+      if (buyerWallet < cost) throw new Error('Saldo insuficiente para ejecutar la compra.');
+
+      const remaining = (orderSnap.data()!.amount as number) - fillAmount;
+      if (remaining > 0) {
+        t.update(orderRef, { amount: remaining, updatedAt: now });
+      } else {
+        t.update(orderRef, { status: 'filled', filledAt: now, filledBy: userId });
+      }
+      t.update(sellerHoldingRef, { balance: sellerBalance - fillAmount, updatedAt: now });
+      if (buyerHoldingSnap.exists()) {
+        t.update(buyerHoldingRef, { balance: (buyerHoldingSnap.data()?.balance || 0) + fillAmount, updatedAt: now });
+      } else {
+        t.set(buyerHoldingRef, { userId: buyerId, creatorId, balance: fillAmount, earned: 0, createdAt: now, updatedAt: now });
+      }
+      t.update(buyerProfileRef, { walletBalance: buyerWallet - cost });
+      t.update(sellerProfileRef, { walletBalance: increment(cost) });
+      t.set(doc(collection(db, 'tokenTrades')), { creatorId, buyerId, sellerId, price: fillPrice, amount: fillAmount, symbol, createdAt: now });
+      t.set(doc(collection(db, `users/${matchOrder.userId}/notifications`)), {
+        type: 'token_mint',
+        message: `Tu orden de ${matchOrder.side === 'sell' ? 'venta' : 'compra'} de ${fillAmount.toFixed(2)} ${symbol} tokens ha sido ejecutada a ${fillPrice.toFixed(2)} euros.`,
+        fromId: userId, read: false, createdAt: now,
+      });
+    });
+
+    return { filled: true, message: `Orden ejecutada: ${fillAmount.toFixed(2)} ${symbol} a ${fillPrice.toFixed(2)} euros.` };
+  }
+
+  if (orderType === 'market') throw new Error('No hay liquidez suficiente para ejecutar a mercado.');
+
+  if (side === 'sell') {
+    const holdingSnap = await getDoc(doc(db, 'creatorTokenHolders', `${userId}_${creatorId}`));
+    const balance = holdingSnap.exists() ? holdingSnap.data()?.balance || 0 : 0;
+    if (balance < amount) throw new Error('No tienes tokens suficientes para vender.');
+  }
+  if (side === 'buy') {
+    const profileSnap = await getDoc(doc(db, 'creatorProfiles', userId));
+    const walletBalance = profileSnap.exists() ? profileSnap.data()?.walletBalance || 0 : 0;
+    if (walletBalance < amount * price) throw new Error('Saldo insuficiente para publicar esta orden de compra.');
+  }
+
+  await addDoc(collection(db, 'tokenOrders'), { creatorId, side, price, amount, symbol, userId, status: 'open', createdAt: now });
+
+  return {
+    filled: false,
+    message: side === 'buy'
+      ? `Oferta de compra por ${amount} ${symbol} publicada en el order book.`
+      : `Oferta de venta por ${amount} ${symbol} publicada en el order book.`,
+  };
 }
 function AppModalOverlay() {
   const [modal, setModal] = useState<AppModalState>(null);
