@@ -20,6 +20,13 @@ service cloud.firestore {
         && data.updatedAt is timestamp;
     }
 
+    match /usernames/{username} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().keys().hasOnly(['uid']) && incoming().uid == request.auth.uid;
+      allow delete: if isSignedIn() && existing().uid == request.auth.uid;
+      allow update: if false;
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isValidId(userId) && isOwner(userId)
@@ -36,7 +43,7 @@ service cloud.firestore {
 
     function isValidNotification(data) {
       return data.keys().hasAll(['type', 'message', 'read', 'createdAt'])
-        && data.type in ['contact_request', 'sale', 'general']
+        && data.type in ['contact_request', 'sale', 'token_mint', 'general']
         && data.message is string
         && data.read is bool
         && data.createdAt is number;
@@ -67,7 +74,7 @@ service cloud.firestore {
         && incoming().updatedAt == request.time;
       allow update: if (isOwner(profileId)
         && isValidCreatorProfile(incoming())
-        && incoming().diff(existing()).affectedKeys().hasOnly(['username', 'displayName', 'photoURL', 'bannerURL', 'prices100', 'prices50', 'prices25', 'customCard', 'updatedAt', 'views', 'totalSales', 'lastSaleAt'])
+        && incoming().diff(existing()).affectedKeys().hasOnly(['username', 'displayName', 'photoURL', 'bannerURL', 'prices100', 'prices50', 'prices25', 'customCard', 'updatedAt', 'views', 'totalSales', 'lastSaleAt', 'profileBio', 'profileLinks'])
         && incoming().updatedAt == request.time
         && incoming().createdAt == existing().createdAt) || 
         (incoming().diff(existing()).affectedKeys().hasOnly(['views']) && incoming().views is number && incoming().views > existing().get('views', 0)) ||
@@ -146,7 +153,8 @@ service cloud.firestore {
         && data.price is number
         && data.duration is number
         && data.createdAt is number
-        && (!('sellerId' in data) || data.sellerId is string);
+        && (!('sellerId' in data) || data.sellerId is string)
+        && (!('tokensMinted' in data) || data.tokensMinted is number);
     }
 
     match /creatorProfiles/{profileId}/transactions/{txId} {
@@ -156,6 +164,10 @@ service cloud.firestore {
         && isValidTransaction(incoming());
       allow update: if false;
       allow delete: if false;
+    }
+
+    match /{path=**}/transactions/{txId} {
+      allow list: if isSignedIn() && resource.data.buyerId == request.auth.uid;
     }
 
     match /creatorProfiles/{profileId}/adSpaces/{spaceId} {
@@ -168,15 +180,67 @@ service cloud.firestore {
         && (
             (isOwner(profileId)) || 
             (isSignedIn() && existing().isRented && existing().rentedBy == request.auth.uid) ||
-            (isSignedIn() && existing().get('forResale', false) == true && incoming().isRented && incoming().rentedBy == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['isRented', 'brand', 'brandImg', 'caption', 'image', 'linkTitle', 'linkUrl', 'rentedBy', 'rentStart', 'rentEnd', 'pricePaid', 'forResale', 'resalePrices'])) ||
-            (isSignedIn() && existing().isRented && existing().get('rentEnd', 9999999999999) < request.time.toMillis() && !incoming().isRented && incoming().diff(existing()).affectedKeys().hasOnly(['isRented', 'brand', 'brandImg', 'caption', 'image', 'linkTitle', 'linkUrl', 'rentedBy', 'rentStart', 'rentEnd', 'pricePaid', 'forResale', 'resalePrices'])) ||
-            (isSignedIn() && (!existing().isRented || (existing().isRented && existing().get('rentEnd', 9999999999999) < request.time.toMillis())) && incoming().isRented && incoming().diff(existing()).affectedKeys().hasOnly(['isRented', 'width', 'order', 'brand', 'brandImg', 'caption', 'image', 'linkTitle', 'linkUrl', 'rentedBy', 'rentStart', 'rentEnd', 'pricePaid', 'forResale', 'resalePrices'])) ||
-            (isSignedIn() && !existing().isRented && !incoming().isRented && incoming().diff(existing()).affectedKeys().hasOnly(['width', 'order']))
+            (isSignedIn() && existing().get('forResale', false) == true && incoming().isRented && incoming().rentedBy == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['isRented', 'brand', 'brandImg', 'caption', 'image', 'link', 'linkTitle', 'linkUrl', 'rentedBy', 'rentStart', 'rentEnd', 'pricePaid', 'forResale', 'resalePrices'])) ||
+            (isSignedIn() && existing().get('isRented', false) == true && existing().get('rentEnd', 9999999999999) < request.time.toMillis() && !incoming().isRented && incoming().diff(existing()).affectedKeys().hasOnly(['isRented', 'brand', 'brandImg', 'caption', 'image', 'link', 'linkTitle', 'linkUrl', 'rentedBy', 'rentStart', 'rentEnd', 'pricePaid', 'forResale', 'resalePrices'])) ||
+            (isSignedIn() && (existing().get('isRented', false) == false || (existing().get('isRented', false) == true && existing().get('rentEnd', 9999999999999) < request.time.toMillis())) && incoming().isRented && incoming().rentedBy == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['isRented', 'width', 'order', 'brand', 'brandImg', 'caption', 'image', 'link', 'linkTitle', 'linkUrl', 'rentedBy', 'rentStart', 'rentEnd', 'pricePaid', 'forResale', 'resalePrices'])) ||
+            (isSignedIn() && existing().get('isRented', false) == false && !incoming().isRented && incoming().diff(existing()).affectedKeys().hasOnly(['width', 'order']))
         );
     }
 
     match /{path=**}/adSpaces/{spaceId} {
       allow list: if true; // Ad spaces are public, users need to see them on profiles.
+    }
+
+    function isValidTokenOrder(data) {
+      return data.keys().hasAll(['creatorId', 'side', 'price', 'amount', 'userId', 'status', 'createdAt'])
+        && data.creatorId is string
+        && data.side in ['buy', 'sell']
+        && data.price is number && data.price > 0
+        && data.amount is number && data.amount > 0
+        && data.userId is string
+        && data.status in ['open', 'filled', 'cancelled']
+        && data.createdAt is number;
+    }
+
+    match /tokenOrders/{orderId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && isValidTokenOrder(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().status == 'open';
+      allow update: if isSignedIn()
+        && (
+          (existing().userId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status == 'cancelled') ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'filledAt', 'filledBy']) && incoming().status == 'filled')
+        );
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid && existing().status == 'open';
+    }
+
+    match /tokenTrades/{tradeId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    function isValidTokenHolding(data) {
+      return data.keys().hasAll(['userId', 'creatorId', 'balance', 'createdAt', 'updatedAt'])
+        && data.userId is string
+        && data.creatorId is string
+        && data.balance is number && data.balance >= 0
+        && data.createdAt is number
+        && data.updatedAt is number;
+    }
+
+    match /creatorTokenHolders/{holdingId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+        && isValidTokenHolding(incoming())
+        && incoming().userId == request.auth.uid;
+      allow update: if isSignedIn()
+        && incoming().diff(existing()).affectedKeys().hasOnly(['balance', 'earned', 'updatedAt'])
+        && incoming().balance >= 0
+        && request.auth.uid == existing().userId;
+      allow delete: if false;
     }
 
     match /{path=**}/stories/{storyId} {
