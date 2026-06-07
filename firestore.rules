@@ -78,7 +78,9 @@ service cloud.firestore {
         && incoming().updatedAt == request.time
         && incoming().createdAt == existing().createdAt) || 
         (incoming().diff(existing()).affectedKeys().hasOnly(['views']) && incoming().views is number && incoming().views > existing().get('views', 0)) ||
-        (incoming().diff(existing()).affectedKeys().hasOnly(['totalSales', 'walletBalance', 'lastSaleAt']) && incoming().totalSales > existing().get('totalSales', 0) && incoming().walletBalance > existing().get('walletBalance', 0));
+        (incoming().diff(existing()).affectedKeys().hasOnly(['totalSales', 'walletBalance', 'lastSaleAt']) && incoming().totalSales > existing().get('totalSales', 0) && incoming().walletBalance > existing().get('walletBalance', 0)) ||
+        (isOwner(profileId) && incoming().diff(existing()).affectedKeys().hasOnly(['walletBalance']) && incoming().walletBalance >= 0) ||
+        (isSignedIn() && incoming().diff(existing()).affectedKeys().hasOnly(['walletBalance']) && incoming().walletBalance > existing().get('walletBalance', 0));
     }
 
     function isValidAdSpace(data) {
@@ -211,7 +213,8 @@ service cloud.firestore {
       allow update: if isSignedIn()
         && (
           (existing().userId == request.auth.uid && incoming().diff(existing()).affectedKeys().hasOnly(['status']) && incoming().status == 'cancelled') ||
-          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'filledAt', 'filledBy']) && incoming().status == 'filled')
+          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'filledAt', 'filledBy']) && incoming().status == 'filled') ||
+          (incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'updatedAt']) && incoming().amount > 0 && incoming().amount < existing().amount)
         );
       allow delete: if isSignedIn() && existing().userId == request.auth.uid && existing().status == 'open';
     }
@@ -239,7 +242,7 @@ service cloud.firestore {
       allow update: if isSignedIn()
         && incoming().diff(existing()).affectedKeys().hasOnly(['balance', 'earned', 'updatedAt'])
         && incoming().balance >= 0
-        && request.auth.uid == existing().userId;
+        && (request.auth.uid == existing().userId || incoming().balance < existing().balance);
       allow delete: if false;
     }
 
