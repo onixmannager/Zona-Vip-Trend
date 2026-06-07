@@ -2,16 +2,66 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { auth, db, handleFirestoreError, OperationType, googleProvider } from './firebase';
+import { auth, db, handleFirestoreError, OperationType, googleProvider, functions } from './firebase';
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp, increment, collectionGroup, orderBy, limit, arrayUnion, arrayRemove, writeBatch, addDoc, deleteField } from 'firebase/firestore';
-import { Wallet, LogOut, LayoutDashboard, Share2, PlusSquare, Image as ImageIcon, Settings, User, Plus, Trash2, Loader2, UploadCloud, Eye, Compass, ArrowUpRight, ArrowDownLeft, History, TrendingUp, Clock, CheckCircle2, DollarSign, CreditCard, Heart, MessageCircle, ChevronLeft, Bell, Search, Camera } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { doc, getDoc, setDoc, onSnapshot, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp, increment, collectionGroup, orderBy, limit, startAfter, arrayUnion, arrayRemove, writeBatch, addDoc, deleteField, runTransaction } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
+import { Wallet, LogOut, LayoutDashboard, Share2, PlusSquare, Image as ImageIcon, Settings, User, Plus, Trash2, Loader2, UploadCloud, Eye, Compass, ArrowUpRight, ArrowDownLeft, History, TrendingUp, Clock, CheckCircle2, DollarSign, CreditCard, Heart, MessageCircle, ChevronLeft, Bell, Search, Camera, Sun, Moon, X } from 'lucide-react';
 import { uploadToCloudinary, processMediaFile } from './lib/cloudinary';
+import { cn } from './lib/cn';
+import type { AdSpace, Connection, CreatorProfile, Notification, ProfileCard, ProfileLink, Story, StoryOverlay, TransactionType } from './types';
+import { buildTokenMarket, formatTokenAmount, formatTokenPrice, TokenMarketPanel, TokenPriceStrip, type MarketOrder, type RealTokenOrder, type TokenMarket, type TokenOrderType } from './components/TokenMarket';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+// -------------------------------------------------------------
+// GLOBAL MODAL SYSTEM
+// -------------------------------------------------------------
+type AppModalState = { id: number; message: string; type: 'success' | 'error' | 'info' } | null;
+let _setAppModal: ((s: AppModalState) => void) | null = null;
+
+function showAlert(message: string, type: 'success' | 'error' | 'info' = 'info') {
+  _setAppModal?.({ id: Date.now(), message, type });
+}
+
+function normalizeUsername(value: string, fallback = 'user') {
+  return value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, '') || fallback;
+}
+
+const TOKENS_PER_EURO = 10;
+
+async function placeOrFillTokenOrder({ userId: _userId, creatorId, side, orderType, price, amount, symbol }: { userId: string; creatorId: string; side: 'buy' | 'sell'; orderType: TokenOrderType; price: number; amount: number; symbol: string; matchingOrders: RealTokenOrder[] }) {
+  const executeTokenTrade = httpsCallable<
+    { creatorId: string; side: 'buy' | 'sell'; orderType: string; price: number; amount: number; symbol: string },
+    { filled: boolean; message: string }
+  >(functions, 'executeTokenTrade');
+  const result = await executeTokenTrade({ creatorId, side, orderType, price, amount, symbol });
+  return result.data;
+}
+function AppModalOverlay() {
+  const [modal, setModal] = useState<AppModalState>(null);
+  useEffect(() => { _setAppModal = setModal; return () => { _setAppModal = null; }; }, []);
+
+  const iconMap = { success: <CheckCircle2 className="w-10 h-10 text-teal-500" />, error: <X className="w-10 h-10 text-pink-500" />, info: <Settings className="w-10 h-10 text-indigo-600" /> };
+  const borderMap = { success: 'border-teal-500/30', error: 'border-pink-500/30', info: 'border-indigo-600/30' };
+  const btnMap = { success: 'bg-teal-500 hover:bg-teal-600 text-white', error: 'bg-pink-500 hover:bg-pink-600 text-white', info: 'bg-gray-800 hover:bg-gray-700 text-white' };
+
+  return (
+    <AnimatePresence>
+      {modal && (
+        <>
+          <motion.div key={`bd-${modal.id}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setModal(null)} className="fixed inset-0 bg-black/60 z-[999] backdrop-blur-sm" />
+          <motion.div key={`md-${modal.id}`} initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }} transition={{ type: 'spring', stiffness: 400, damping: 28 }} className="fixed inset-0 z-[999] flex items-center justify-center p-6">
+            <div className={cn("bg-gray-100 rounded-[28px] p-7 w-full max-w-[320px] shadow-2xl flex flex-col items-center gap-4 border", borderMap[modal.type])}>
+              {iconMap[modal.type]}
+              <p className="text-gray-900 text-center text-[15px] font-semibold leading-snug">{modal.message}</p>
+              <button onClick={() => setModal(null)} className={cn("w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95", btnMap[modal.type])}>
+                Entendido
+              </button>
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
 }
 
 let bodyScrollLockCount = 0;
@@ -32,101 +82,6 @@ function useLockBodyScroll(isLocked: boolean | null | undefined) {
     }
   }, [isLocked]);
 }
-
-// -------------------------------------------------------------
-// TYPES
-// -------------------------------------------------------------
-type SizePrices = { price1: number; price7: number; price30: number; price365: number; };
-
-
-type Notification = {
-  id: string;
-  type: 'contact_request' | 'sale' | 'general';
-  message: string;
-  fromId: string;
-  read: boolean;
-  createdAt: number;
-  link?: string;
-};
-
-type ProfileCard = {
-  enabled?: boolean;
-  title?: string;
-  subtitle?: string;
-  description?: string;
-  image?: string;
-  imageUrl?: string;
-  linkTitle?: string;
-  linkUrl?: string;
-  backgroundColor?: string;
-  textColor?: string;
-};
-
-type CreatorProfile = {
-  id?: string;
-  username: string;
-  displayName: string;
-  photoURL: string;
-  bannerURL: string;
-  customCard?: ProfileCard | string;
-  walletBalance: number;
-  prices100?: SizePrices;
-  prices50?: SizePrices;
-  prices25?: SizePrices;
-  views?: number;
-  totalSales?: number;
-  createdAt: any;
-  updatedAt: any;
-};
-
-type AdSpace = {
-  id: string; 
-  width: number; // 25, 50, 75, or 100
-  order: number; // For correct sorting
-  isRented: boolean;
-  pricePaid?: number;
-  brand?: string;
-  brandImg?: string;
-  caption?: string;
-  image?: string;
-  rentedBy?: string;
-  rentStart?: number;
-  rentEnd?: number;
-  forResale?: boolean;
-  resalePrices?: {
-    price1: number;
-    price7: number;
-    price30: number;
-    price365: number;
-  };
-};
-
-type StoryOverlay = {
-  type: 'text' | 'emoji';
-  content: string;
-  x: number;
-  y: number;
-  scale: number;
-  rotation: number;
-  color?: string;
-  fontFamily?: string;
-  textStyle?: 'normal' | 'neon' | 'bordered' | 'bubble';
-};
-
-type Story = {
-  id: string;
-  image: string;
-  mediaType?: 'image' | 'video';
-  overlays?: string; // JSON string of StoryOverlay[]
-  filter?: string;
-  clipStart?: number;
-  clipDuration?: number;
-  brand: string;
-  brandImg: string;
-  rentedBy: string;
-  createdAt: number;
-  cloudinaryPublicId?: string; // Cloudinary public_id para borrado remoto
-};
 
 // -------------------------------------------------------------
 // STORY VIEWER COMPONENT
@@ -282,7 +237,7 @@ function ImageUpload({ value, onChange, label, className, variant = 'banner' }: 
        const url = await uploadToCloudinary(file);
        onChange(url);
     } catch (e: any) {
-       alert("Error subiendo imagen. Verifica Cloudinary config.");
+       showAlert("Error subiendo imagen. Verifica Cloudinary config.", 'error');
     }
     setIsUploading(false);
   };
@@ -485,6 +440,7 @@ export default function App() {
         <Route path="/vip/:username" element={<PublicProfile currentUser={user} />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <AppModalOverlay />
     </BrowserRouter>
   );
 }
@@ -578,8 +534,12 @@ function Login({ user }: { user: FirebaseUser | null }) {
     try {
       if (isRegister) {
         if (!username) return setError('El nombre de usuario es obligatorio');
+        const cleanUsername = normalizeUsername(username);
+        const usernameQuery = query(collection(db, 'creatorProfiles'), where('username', '==', cleanUsername));
+        const usernameSnap = await getDocs(usernameQuery);
+        if (!usernameSnap.empty) return setError('Ese nombre de usuario ya está en uso. Elige otro.');
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await initUser(cred.user, username);
+        await initUser(cred.user, cleanUsername);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
       }
@@ -598,7 +558,10 @@ function Login({ user }: { user: FirebaseUser | null }) {
       const docRef = doc(db, 'users', cred.user.uid);
       const snap = await getDoc(docRef);
       if (!snap.exists()) {
-        const generatedUsername = cred.user.email?.split('@')[0] || `user_${Date.now()}`;
+        let generatedUsername = normalizeUsername(cred.user.email?.split('@')[0] || 'user', `user-${cred.user.uid.slice(0, 6)}`);
+        const googleUsernameQuery = query(collection(db, 'creatorProfiles'), where('username', '==', generatedUsername));
+        const googleUsernameSnap = await getDocs(googleUsernameQuery);
+        if (!googleUsernameSnap.empty) generatedUsername = `${generatedUsername}${cred.user.uid.slice(0, 4)}`;
         await initUser(cred.user, generatedUsername);
       }
     } catch (err: any) {
@@ -614,39 +577,44 @@ function Login({ user }: { user: FirebaseUser | null }) {
   };
 
   const initUser = async (u: FirebaseUser, baseUsername: string) => {
-    await setDoc(doc(db, 'users', u.uid), {
-      email: u.email,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    }).catch(e => handleFirestoreError(e, OperationType.CREATE, 'users'));
+    const cleanUsername = normalizeUsername(baseUsername, `user-${u.uid.slice(0, 6)}`);
+    const usernameRef = doc(db, 'usernames', cleanUsername);
+    const userRef = doc(db, 'users', u.uid);
+    const profileRef = doc(db, 'creatorProfiles', u.uid);
 
-    const profile = {
-      username: baseUsername.toLowerCase().replace(/[^a-z0-9-]/g, ''),
-      displayName: baseUsername,
-      photoURL: u.photoURL || 'https://i.pravatar.cc/150?u=' + u.uid,
-      bannerURL: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80',
-      walletBalance: 0,
-      prices100: { price1: 15, price7: 45, price30: 150, price365: 600 },
-      prices50: { price1: 10, price7: 30, price30: 100, price365: 350 },
-      prices25: { price1: 5, price7: 15, price30: 45, price365: 200 },
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-    await setDoc(doc(db, 'creatorProfiles', u.uid), profile)
-      .catch(e => handleFirestoreError(e, OperationType.CREATE, 'creatorProfiles'));
+    await runTransaction(db, async (transaction) => {
+      const usernameSnap = await transaction.get(usernameRef);
+      if (usernameSnap.exists()) throw new Error('El nombre de usuario ya esta en uso. Elige otro.');
+      transaction.set(usernameRef, { uid: u.uid });
+      transaction.set(userRef, {
+        email: u.email,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      transaction.set(profileRef, {
+        username: cleanUsername,
+        displayName: baseUsername,
+        photoURL: u.photoURL || 'https://i.pravatar.cc/150?u=' + u.uid,
+        bannerURL: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80',
+        walletBalance: 0,
+        prices100: { price1: 15, price7: 45, price30: 150, price365: 600 },
+        prices50: { price1: 10, price7: 30, price30: 100, price365: 350 },
+        prices25: { price1: 5, price7: 15, price30: 45, price365: 200 },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
 
-    for (let i=1; i<=5; i++) {
-      const space: AdSpace = {
-        id: `slot-${i}`,
-        width: 100,
-        order: i * 1000,
-        isRented: false
-      };
-      await setDoc(doc(db, `creatorProfiles/${u.uid}/adSpaces`, space.id), space)
-        .catch(e => handleFirestoreError(e, OperationType.CREATE, `creatorProfiles/${u.uid}/adSpaces`));
-    }
+      for (let i = 1; i <= 5; i++) {
+        const space: AdSpace = {
+          id: `slot-${i}`,
+          width: 100,
+          order: i * 1000,
+          isRented: false
+        };
+        transaction.set(doc(db, `creatorProfiles/${u.uid}/adSpaces`, space.id), space);
+      }
+    });
   };
-
   return (
     <div className="min-h-[100dvh] bg-gray-50 flex items-center justify-center px-4 font-sans">
       <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl flex flex-col items-center">
@@ -778,6 +746,9 @@ function ExplorerView({ currentUser, userProfile, searchQuery, onOverlayChange }
    const [vipProfiles, setVipProfiles] = useState<CreatorProfile[]>([]);
    const [stories, setStories] = useState<Story[]>([]);
    const [selectedStoryIndex, setSelectedStoryIndex] = useState<number | null>(null);
+   const [lastProfileDoc, setLastProfileDoc] = useState<any>(null);
+   const [hasMoreProfiles, setHasMoreProfiles] = useState(true);
+   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
 
    useLockBodyScroll(selectedStoryIndex !== null);
 
@@ -785,17 +756,28 @@ function ExplorerView({ currentUser, userProfile, searchQuery, onOverlayChange }
      onOverlayChange?.(selectedStoryIndex !== null);
    }, [selectedStoryIndex]);
 
+   const loadProfiles = async () => {
+       if (isLoadingProfiles || !hasMoreProfiles) return;
+       setIsLoadingProfiles(true);
+       try {
+          const qProfiles = lastProfileDoc
+             ? query(collection(db, 'creatorProfiles'), orderBy('username'), startAfter(lastProfileDoc), limit(24))
+             : query(collection(db, 'creatorProfiles'), orderBy('username'), limit(24));
+          const snap = await getDocs(qProfiles);
+          const profiles: CreatorProfile[] = [];
+          snap.forEach(d => profiles.push({ id: d.id, ...d.data() } as any));
+          profiles.sort((a, b) => (b.views || 0) - (a.views || 0));
+          setVipProfiles(current => [...current, ...profiles].filter((v, i, a) => a.findIndex(t => t.username === v.username) === i));
+          setLastProfileDoc(snap.docs[snap.docs.length - 1] || null);
+          setHasMoreProfiles(snap.docs.length === 24);
+       } catch (err) {
+          console.error("Error fetching profiles:", err);
+       }
+       setIsLoadingProfiles(false);
+   };
+
    useEffect(() => {
-       const qProfiles = query(collection(db, 'creatorProfiles'), limit(100)); // Fetch enough to filter, no index needed yet
-       const unsubProfiles = onSnapshot(qProfiles, (snap) => {
-           const profiles: CreatorProfile[] = [];
-           snap.forEach(d => profiles.push({ id: d.id, ...d.data() } as any));
-           // Ordenar por views de mayor a menor (o 0 si no existe)
-           profiles.sort((a, b) => (b.views || 0) - (a.views || 0));
-           setVipProfiles(profiles);
-       }, (err) => {
-           console.error("Error fetching profiles:", err);
-       });
+       loadProfiles();
 
        const unsubStories = onSnapshot(collectionGroup(db, 'stories'), (snap) => {
            const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
@@ -807,7 +789,7 @@ function ExplorerView({ currentUser, userProfile, searchQuery, onOverlayChange }
            console.error("Error fetching stories:", err);
        });
 
-       return () => { unsubProfiles(); unsubStories(); };
+       return () => { unsubStories(); };
    }, []);
 
    const filteredProfiles = vipProfiles
@@ -857,11 +839,18 @@ function ExplorerView({ currentUser, userProfile, searchQuery, onOverlayChange }
                     <p className="text-sm">Intenta buscar con otras palabras.</p>
                  </div>
              ) : (
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {filteredProfiles.map((p) => (
-                       <ProfileExploreCard key={p.username} p={p} />
-                    ))}
-                 </div>
+                 <>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                       {filteredProfiles.map((p) => (
+                          <ProfileExploreCard key={p.username} p={p} />
+                       ))}
+                    </div>
+                    {hasMoreProfiles && !searchQuery && (
+                       <button onClick={loadProfiles} disabled={isLoadingProfiles} className="mt-4 w-full py-3 rounded-2xl bg-gray-100 text-gray-900 font-bold text-sm disabled:opacity-50">
+                          {isLoadingProfiles ? 'Cargando...' : 'Cargar m?s'}
+                       </button>
+                    )}
+                 </>
              )}
           </div>
           
@@ -1006,7 +995,17 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<CreatorProfile | null>(null);
   const [slots, setSlots] = useState<AdSpace[]>([]);
-  const [rentedSlots, setRentedSlots] = useState<{slot: AdSpace, profileId: string, profileUsername?: string}[]>([]);
+  const [rentedSlots, setRentedSlots] = useState<{slot: AdSpace, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string}[]>([]);
+  const [tokenTransactions, setTokenTransactions] = useState<{id: string, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string, price: number, tokensMinted?: number, createdAt: number}[]>([]);
+  const [tokenHoldings, setTokenHoldings] = useState<{id: string, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string, balance: number}[]>([]);
+  const [walletOrderBook, setWalletOrderBook] = useState<TokenMarket | null>(null);
+  const [walletOpenSellOffers, setWalletOpenSellOffers] = useState<MarketOrder[]>([]);
+  const [walletBuyTokenAmount, setWalletBuyTokenAmount] = useState(1);
+  const [walletSellTokenAmount, setWalletSellTokenAmount] = useState(1);
+  const [walletCreatorId, setWalletCreatorId] = useState<string>('');
+  const [walletCreatorOrders, setWalletCreatorOrders] = useState<RealTokenOrder[]>([]);
+  const [walletMarketData, setWalletMarketData] = useState<{ profile: CreatorProfile; txs: { id: string; price: number; createdAt: number; tokensMinted?: number }[] } | null>(null);
+  const [walletDefaultSide, setWalletDefaultSide] = useState<'buy' | 'sell'>('buy');
   const [adminViewTab, setAdminViewTab] = useState<'mine' | 'rented'>('mine');
   const [stories, setStories] = useState<Story[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -1029,12 +1028,15 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
   const [tenantEditCaption, setTenantEditCaption] = useState('');
   const [tenantEditForResale, setTenantEditForResale] = useState(false);
   const [tenantEditResalePrices, setTenantEditResalePrices] = useState({ price1: 0, price7: 0, price30: 0, price365: 0 });
+  const [tenantEditLink, setTenantEditLink] = useState('');
   
   // Settings state
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [editPhoto, setEditPhoto] = useState('');
   const [editBanner, setEditBanner] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [editProfileLinks, setEditProfileLinks] = useState<ProfileLink[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState<'photo' | 'banner' | null>(null);
 
@@ -1051,7 +1053,41 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
   const [isProcessingSlot, setIsProcessingSlot] = useState(false);
   const [confirmClearSlot, setConfirmClearSlot] = useState(false);
 
-  useLockBodyScroll(editingSize !== null || deletingSlot !== null);
+  // Light mode state
+  const [lightMode, setLightMode] = useState(() => localStorage.getItem('zona-vip-theme') === 'light');
+  useEffect(() => {
+    document.documentElement.dataset.theme = lightMode ? 'light' : '';
+    localStorage.setItem('zona-vip-theme', lightMode ? 'light' : 'dark');
+  }, [lightMode]);
+
+  // Withdraw modal state
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawInput, setWithdrawInput] = useState('');
+
+  useLockBodyScroll(editingSize !== null || deletingSlot !== null || !!walletOrderBook);
+
+  // Subscribe to real orders for the wallet order book
+  useEffect(() => {
+    if (!walletCreatorId) { setWalletCreatorOrders([]); return; }
+    const q = query(
+      collection(db, 'tokenOrders'),
+      where('creatorId', '==', walletCreatorId),
+      where('status', '==', 'open')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setWalletCreatorOrders(snap.docs.map(d => ({ id: d.id, ...d.data() } as RealTokenOrder)));
+    }, (err) => console.log('tokenOrders wallet error', err));
+    return () => unsub();
+  }, [walletCreatorId]);
+
+  useEffect(() => {
+    if (!walletCreatorId || !walletMarketData) return;
+    setWalletOrderBook(buildTokenMarket(walletMarketData.profile, walletMarketData.txs, [], walletCreatorId, walletCreatorOrders));
+  }, [walletCreatorOrders, walletMarketData, walletCreatorId]);
+
+  useEffect(() => {
+    setWalletOpenSellOffers(walletCreatorOrders.filter(o => o.side === 'sell' && o.userId === user?.uid).map(o => ({ price: o.price, amount: o.amount })));
+  }, [walletCreatorOrders, user?.uid]);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -1065,6 +1101,8 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
            setEditUsername(data.username || '');
            setEditPhoto(data.photoURL || '');
            setEditBanner(data.bannerURL || '');
+           setEditBio(data.profileBio || '');
+           setEditProfileLinks(data.profileLinks || []);
         }
       } else {
         // Fallback if profile is somehow missing (e.g., interrupted registration)
@@ -1093,7 +1131,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
     const unsubSlots = onSnapshot(collection(db, `creatorProfiles/${user.uid}/adSpaces`), (snap) => {
        const fetchedSlots: AdSpace[] = [];
-       snap.forEach(d => fetchedSlots.push(d.data() as AdSpace));
+       snap.forEach(d => fetchedSlots.push({ id: d.id, ...d.data() } as AdSpace));
        fetchedSlots.sort((a,b) => (a.order || 0) - (b.order || 0) || a.id.localeCompare(b.id));
        setSlots(checkAndCleanExpiredSlots(fetchedSlots, user.uid, true));
     }, (err) => handleFirestoreError(err, OperationType.LIST, `creatorProfiles/${user.uid}/adSpaces`));
@@ -1101,7 +1139,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
    const unsubRentedSlots = onSnapshot(
       query(collectionGroup(db, 'adSpaces'), where('rentedBy', '==', user.uid)),
       async (snap) => {
-        const fetched: {slot: AdSpace, profileId: string, profileUsername?: string}[] = [];
+        const fetched: {slot: AdSpace, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string}[] = [];
         const now = Date.now();
         for (const d of snap.docs) {
            const data = d.data() as AdSpace;
@@ -1110,15 +1148,19 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                if (parts.length >= 4) {
                   const profileId = parts[1];
                   let profileUsername = profileId;
+                  let profilePhoto: string | undefined;
+                  let profileDisplayName: string | undefined;
                   try {
                     const profileSnap = await getDoc(doc(db, 'creatorProfiles', profileId));
                     if (profileSnap.exists()) {
                        profileUsername = profileSnap.data().username || profileId;
+                       profilePhoto = profileSnap.data().photoURL;
+                       profileDisplayName = profileSnap.data().displayName;
                     }
                   } catch (e) {
                     console.error("Error fetching creator profile", e);
                   }
-                  fetched.push({ slot: data, profileId, profileUsername });
+                  fetched.push({ slot: data, profileId, profileUsername, profilePhoto, profileDisplayName });
                }
         }
         setRentedSlots(fetched);
@@ -1141,22 +1183,110 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
        setNotifications(fetchedNotifs);
     }, (err) => console.log('Error fetching notifs', err));
 
-    return () => { unsubProfile(); unsubSlots(); unsubRentedSlots(); unsubStories(); unsubNotifs(); };
+    const unsubTokenTxs = onSnapshot(query(collectionGroup(db, 'transactions'), where('buyerId', '==', user.uid)), async (snap) => {
+       const fetched: {id: string, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string, price: number, tokensMinted?: number, createdAt: number}[] = [];
+       for (const d of snap.docs) {
+          const data = d.data() as { price: number, tokensMinted?: number, createdAt: number };
+          const parts = d.ref.path.split('/');
+          if (parts.length >= 4) {
+             const profileId = parts[1];
+             let profileUsername = profileId;
+             let profilePhoto: string | undefined;
+             let profileDisplayName: string | undefined;
+             try {
+               const profileSnap = await getDoc(doc(db, 'creatorProfiles', profileId));
+               if (profileSnap.exists()) {
+                  profileUsername = profileSnap.data().username || profileId;
+                  profilePhoto = profileSnap.data().photoURL;
+                  profileDisplayName = profileSnap.data().displayName;
+               }
+             } catch (e) {
+               console.error("Error fetching token creator profile", e);
+             }
+             fetched.push({ id: d.id, profileId, profileUsername, profilePhoto, profileDisplayName, price: data.price || 0, tokensMinted: data.tokensMinted, createdAt: data.createdAt || 0 });
+          }
+       }
+       fetched.sort((a, b) => b.createdAt - a.createdAt);
+       setTokenTransactions(fetched);
+
+       const legacyByProfile: Record<string, { balance: number; username?: string }> = {};
+       fetched.forEach(t => {
+          const minted = t.tokensMinted ?? t.price ?? 0;
+          if (minted <= 0) return;
+          if (!legacyByProfile[t.profileId]) legacyByProfile[t.profileId] = { balance: 0, username: t.profileUsername };
+          legacyByProfile[t.profileId].balance += minted;
+       });
+       await Promise.all(Object.entries(legacyByProfile).map(async ([creatorId, holding]) => {
+          const holdingRef = doc(db, 'creatorTokenHolders', `${user.uid}_${creatorId}`);
+          const holdingSnap = await getDoc(holdingRef);
+          if (!holdingSnap.exists()) {
+             const now = Date.now();
+             await setDoc(holdingRef, {
+                userId: user.uid,
+                creatorId,
+                creatorUsername: holding.username || creatorId,
+                balance: holding.balance,
+                earned: 0,
+                createdAt: now,
+                updatedAt: now
+             });
+          }
+       }));
+    }, (err) => console.log('Error fetching token transactions', err));
+
+
+    const unsubTokenHoldings = onSnapshot(query(collection(db, 'creatorTokenHolders'), where('userId', '==', user.uid)), async (snap) => {
+       const fetched: {id: string, profileId: string, profileUsername?: string, profilePhoto?: string, profileDisplayName?: string, balance: number}[] = [];
+       for (const d of snap.docs) {
+          const data = d.data() as { creatorId: string, balance: number };
+          let profileUsername = data.creatorId;
+          let profilePhoto: string | undefined;
+          let profileDisplayName: string | undefined;
+          try {
+            const profileSnap = await getDoc(doc(db, 'creatorProfiles', data.creatorId));
+            if (profileSnap.exists()) {
+               profileUsername = profileSnap.data().username || data.creatorId;
+               profilePhoto = profileSnap.data().photoURL;
+               profileDisplayName = profileSnap.data().displayName;
+            }
+          } catch (e) {
+            console.error("Error fetching token holding profile", e);
+          }
+          fetched.push({ id: d.id, profileId: data.creatorId, profileUsername, profilePhoto, profileDisplayName, balance: data.balance || 0 });
+       }
+       setTokenHoldings(fetched.filter(h => h.balance > 0));
+    }, (err) => console.log('Error fetching token holdings', err));
+    return () => { unsubProfile(); unsubSlots(); unsubRentedSlots(); unsubStories(); unsubNotifs(); unsubTokenTxs(); unsubTokenHoldings(); };
   }, [user, navigate]);
 
   const handleSaveProfile = async () => {
      if (!user) return;
      setIsSaving(true);
      try {
+         const cleanNewUsername = editUsername.toLowerCase().replace(/[^a-z0-9-]/g, '');
+         const oldUsername = profile?.username;
+
+         if (cleanNewUsername !== oldUsername) {
+           await runTransaction(db, async (transaction) => {
+             const newUsernameRef = doc(db, 'usernames', cleanNewUsername);
+             const newUsernameSnap = await transaction.get(newUsernameRef);
+             if (newUsernameSnap.exists()) throw new Error('Ese nombre de usuario ya está en uso. Elige otro.');
+             transaction.set(newUsernameRef, { uid: user.uid });
+             if (oldUsername) transaction.delete(doc(db, 'usernames', oldUsername));
+           });
+         }
+
          await updateDoc(doc(db, 'creatorProfiles', user.uid), {
              displayName: editName,
-             username: editUsername.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+             username: cleanNewUsername,
              photoURL: editPhoto,
              bannerURL: editBanner,
+             profileBio: editBio,
+             profileLinks: editProfileLinks.filter(l => l.url.trim()),
              updatedAt: serverTimestamp()
          });
-         alert('Guardado');
-     } catch (err: any) { alert(err.message); }
+         showAlert('¡Perfil guardado correctamente!', 'success');
+     } catch (err: any) { showAlert(err.message, 'error'); }
      setIsSaving(false);
   };
 
@@ -1191,10 +1321,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
     try {
       await batch.commit();
-    } catch(e) {
-      handleFirestoreError(e, OperationType.WRITE, path);
+    } catch(e: any) {
+      showAlert(e.message || 'No se pudo dividir el espacio.', 'error');
+    } finally {
+      setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const handleJoin = async (slotId: string) => {
@@ -1211,31 +1342,38 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
     if (slot.width === 25) {
       const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
       const siblings = slots.filter(s => s.id.startsWith(parentId + '-') && s.width === 25);
-      if (siblings.length !== 4) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar las 4 piezas.'); }
-      if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada.'); }
+      if (siblings.length !== 4) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar las 4 piezas.', 'error'); return; }
+      const freshSnap = await getDocs(collection(db, path));
+      const freshSiblings = freshSnap.docs.map(d => d.data() as AdSpace).filter(s => s.id.startsWith(parentId + '-') && s.width === 25);
+      if (freshSiblings.length !== 4) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar las 4 piezas.', 'error'); return; }
+      if (freshSiblings.some(s => s.isRented)) { setIsProcessingSlot(false); showAlert('No puedes unir si alguna parte est? alquilada.', 'error'); return; }
       
-      const minOrder = Math.min(...siblings.map(s => s.order));
-      const newSlot: AdSpace = { ...siblings[0], id: parentId, width: 50, order: minOrder };
-      for (const s of siblings) batch.delete(doc(db, path, s.id));
+      const minOrder = Math.min(...freshSiblings.map(s => s.order));
+      const newSlot: AdSpace = { ...freshSiblings[0], id: parentId, width: 50, order: minOrder };
+      for (const s of freshSiblings) batch.delete(doc(db, path, s.id));
       batch.set(doc(db, path, parentId), newSlot);
     } else if (slot.width === 50) {
       const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
       const siblings = slots.filter(s => s.id.startsWith(parentId + '-') && s.width === 50);
-      if (siblings.length !== 2) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar ambas mitades.'); }
-      if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada.'); }
+      if (siblings.length !== 2) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar ambas mitades.', 'error'); return; }
+      const freshSnap = await getDocs(collection(db, path));
+      const freshSiblings = freshSnap.docs.map(d => d.data() as AdSpace).filter(s => s.id.startsWith(parentId + '-') && s.width === 50);
+      if (freshSiblings.length !== 2) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar ambas mitades.', 'error'); return; }
+      if (freshSiblings.some(s => s.isRented)) { setIsProcessingSlot(false); showAlert('No puedes unir si alguna parte est? alquilada.', 'error'); return; }
       
-      const minOrder = Math.min(...siblings.map(s => s.order));
-      const newSlot: AdSpace = { ...siblings[0], id: parentId, width: 100, order: minOrder };
-      for (const s of siblings) batch.delete(doc(db, path, s.id));
+      const minOrder = Math.min(...freshSiblings.map(s => s.order));
+      const newSlot: AdSpace = { ...freshSiblings[0], id: parentId, width: 100, order: minOrder };
+      for (const s of freshSiblings) batch.delete(doc(db, path, s.id));
       batch.set(doc(db, path, parentId), newSlot);
     }
 
     try {
        await batch.commit();
-    } catch(e) {
-       handleFirestoreError(e, OperationType.WRITE, path);
+    } catch(e: any) {
+       showAlert(e.message || 'No se pudieron unir los espacios.', 'error');
+    } finally {
+       setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const handleResetSlots = async () => {
@@ -1261,10 +1399,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
     try {
        await batch.commit();
-    } catch(e) {
-       console.error(e);
+    } catch(e: any) {
+       showAlert(e.message || 'No se pudo reiniciar la distribucion.', 'error');
+    } finally {
+       setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const handleSaveTenantEdit = async () => {
@@ -1276,13 +1415,14 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
             brand: tenantEditBrand,
             brandImg: tenantEditBrandImg,
             caption: tenantEditCaption,
+            link: tenantEditLink,
             forResale: tenantEditForResale,
             resalePrices: tenantEditForResale ? tenantEditResalePrices : deleteField()
         });
-        alert("¡Cambios guardados!");
+        showAlert('Cambios guardados.', 'success');
         setSelectedTenantSlot(null);
-    } catch(e: any) { alert(e.message); }
-    setIsProcessingSlot(false);
+    } catch(e: any) { showAlert(e.message, 'error'); }
+    finally { setIsProcessingSlot(false); }
   };
 
   const handleClearTenantData = async () => {
@@ -1294,6 +1434,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
             brandImg: '',
             caption: '',
             image: '',
+            link: '',
             forResale: deleteField(),
             resalePrices: deleteField()
         });
@@ -1301,11 +1442,12 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         setTenantEditBrandImg('');
         setTenantEditCaption('');
         setTenantEditImage('');
+        setTenantEditLink('');
         setTenantEditForResale(false);
-        alert("¡Anuncio borrado! El espacio está libre.");
+        showAlert('Anuncio borrado. El espacio queda limpio.', 'success');
         setSelectedTenantSlot(null);
-    } catch(e: any) { alert('Error al liberar: ' + e.message); }
-    setIsProcessingSlot(false);
+    } catch(e: any) { showAlert('Error al liberar: ' + e.message, 'error'); }
+    finally { setIsProcessingSlot(false); }
   };
 
   const handleTenantDivide = async () => {
@@ -1337,12 +1479,13 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
     try {
       await batch.commit();
-      alert('Espacio dividido exitosamente.');
+      showAlert('Espacio dividido exitosamente.', 'success');
       setSelectedTenantSlot(null);
-    } catch(e) {
-      handleFirestoreError(e, OperationType.WRITE, path);
+    } catch(e: any) {
+      showAlert(e.message || 'No se pudo dividir el espacio.', 'error');
+    } finally {
+      setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const handleTenantJoin = async () => {
@@ -1362,9 +1505,9 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         if (slot.width === 25) {
           const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
           const siblings = allSlots.filter(s => s.id.startsWith(parentId + '-') && s.width === 25);
-          if (siblings.length !== 4) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar las 4 piezas.'); }
+          if (siblings.length !== 4) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar las 4 piezas.', 'error'); return; }
           if (siblings.some(s => !s.isRented || s.rentedBy !== user.uid)) {
-              setIsProcessingSlot(false); return alert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.');
+              setIsProcessingSlot(false); showAlert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.', 'error'); return;
           }
           
           const minOrder = Math.min(...siblings.map(s => s.order));
@@ -1374,9 +1517,9 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         } else if (slot.width === 50) {
           const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
           const siblings = allSlots.filter(s => s.id.startsWith(parentId + '-') && s.width === 50);
-          if (siblings.length !== 2) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar ambas mitades.'); }
+          if (siblings.length !== 2) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar ambas mitades.', 'error'); return; }
           if (siblings.some(s => !s.isRented || s.rentedBy !== user.uid)) {
-              setIsProcessingSlot(false); return alert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.');
+              setIsProcessingSlot(false); showAlert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.', 'error'); return;
           }
           
           const minOrder = Math.min(...siblings.map(s => s.order));
@@ -1386,12 +1529,13 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         }
 
         await batch.commit();
-        alert('Espacios unidos exitosamente.');
+        showAlert('Espacios unidos exitosamente.', 'success');
         setSelectedTenantSlot(null);
-    } catch(e) {
-        handleFirestoreError(e, OperationType.WRITE, path);
+    } catch(e: any) {
+        showAlert(e.message || 'No se pudieron unir los espacios.', 'error');
+    } finally {
+        setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const handleCreateSlot = async () => {
@@ -1404,9 +1548,13 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         order: maxOrder + 1000,
         isRented: false
     };
-    await setDoc(doc(db, `creatorProfiles/${user.uid}/adSpaces`, newSlot.id), newSlot)
-      .catch(e => handleFirestoreError(e, OperationType.CREATE, `creatorProfiles/${user.uid}/adSpaces`));
-    setIsProcessingSlot(false);
+    try {
+      await setDoc(doc(db, `creatorProfiles/${user.uid}/adSpaces`, newSlot.id), newSlot);
+    } catch(e: any) {
+      showAlert(e.message || 'No se pudo crear el espacio.', 'error');
+    } finally {
+      setIsProcessingSlot(false);
+    }
   };
 
   const handleDeleteSlot = (slotId: string) => {
@@ -1415,8 +1563,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
 
   const handleDeleteSlotConfirm = async (slotId: string) => {
     if (!user) return;
-    await deleteDoc(doc(db, `creatorProfiles/${user.uid}/adSpaces`, slotId))
-      .catch(e => handleFirestoreError(e, OperationType.DELETE, `creatorProfiles/${user.uid}/adSpaces`));
+    try {
+      await deleteDoc(doc(db, `creatorProfiles/${user.uid}/adSpaces`, slotId));
+    } catch(e: any) {
+      showAlert(e.message || 'No se pudo borrar el espacio.', 'error');
+    }
   };
 
   const openPricesModal = (s: AdSpace) => {
@@ -1433,17 +1584,21 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
       if (!user || !editingSize) return;
       setIsSavingPrices(true);
       const key = `prices${editingSize}`;
-      await updateDoc(doc(db, 'creatorProfiles', user.uid), {
+      try {
+        await updateDoc(doc(db, 'creatorProfiles', user.uid), {
           [key]: { price1, price7, price30, price365 },
           updatedAt: serverTimestamp()
-      }).catch(e => handleFirestoreError(e, OperationType.UPDATE, 'creatorProfiles'));
-      
-      setIsSavingPrices(false);
-      setSaveSuccess(true);
-      setTimeout(() => {
+        });
+        setSaveSuccess(true);
+        setTimeout(() => {
           setSaveSuccess(false);
           setEditingSize(null);
-      }, 1000);
+        }, 1000);
+      } catch(e: any) {
+        showAlert(e.message || 'No se pudieron guardar los precios.', 'error');
+      } finally {
+        setIsSavingPrices(false);
+      }
   };
 
   if (!user || loading || !profile) return <div className="min-h-[100dvh] flex items-center justify-center font-sans tracking-wide">Cargando...</div>;
@@ -1578,6 +1733,7 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                                     setTenantEditBrand(r.slot.brand || '');
                                     setTenantEditBrandImg(r.slot.brandImg || '');
                                     setTenantEditCaption(r.slot.caption || '');
+                                    setTenantEditLink(r.slot.link || '');
                                     setTenantEditForResale(r.slot.forResale || false);
                                     const def = r.slot.width === 100 ? {p1:15, p7:45, p30:150, p365:600} : r.slot.width === 50 ? {p1:10, p7:30, p30:100, p365:350} : {p1:5, p7:15, p30:45, p365:200};
                                     setTenantEditResalePrices({
@@ -1635,9 +1791,51 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
               </div>
               <ImageUpload label="Banner URL" value={editBanner} onChange={setEditBanner} variant="banner" />
 
+              <div className="flex flex-col gap-1">
+                 <label className="font-bold text-gray-700 ml-1 text-sm">Presentación (Bio)</label>
+                 <textarea value={editBio} onChange={e => setEditBio(e.target.value)} rows={3} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500 resize-none text-sm" placeholder="Cuéntale algo a tu audiencia..." />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                 <div className="flex items-center justify-between ml-1">
+                    <label className="font-bold text-gray-700 text-sm">Mis Enlaces</label>
+                    <button onClick={() => setEditProfileLinks(prev => [...prev, { title: '', url: '' }])} className="text-pink-500 font-bold text-xs flex items-center gap-1 hover:text-pink-600 transition-colors">
+                       <Plus className="w-3.5 h-3.5" /> Añadir
+                    </button>
+                 </div>
+                 {editProfileLinks.length === 0 && (
+                    <p className="text-gray-400 text-xs ml-1">Sin enlaces todavía. Pulsa «Añadir» para crear uno.</p>
+                 )}
+                 {editProfileLinks.map((lnk, i) => (
+                    <div key={i} className="flex gap-2 items-start">
+                       <div className="flex flex-col gap-1.5 flex-1">
+                          <input type="text" value={lnk.title} onChange={e => { const n = [...editProfileLinks]; n[i] = { ...n[i], title: e.target.value }; setEditProfileLinks(n); }} className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-pink-500 text-sm" placeholder="Título del enlace" />
+                          <input type="url" value={lnk.url} onChange={e => { const n = [...editProfileLinks]; n[i] = { ...n[i], url: e.target.value }; setEditProfileLinks(n); }} className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-pink-500 text-sm" placeholder="https://..." />
+                       </div>
+                       <button onClick={() => setEditProfileLinks(prev => prev.filter((_, j) => j !== i))} className="mt-1 p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0">
+                          <Trash2 className="w-4 h-4" />
+                       </button>
+                    </div>
+                 ))}
+              </div>
+
               <button disabled={isSaving} onClick={handleSaveProfile} className="mt-4 w-full py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition active:scale-95">
                  {isSaving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
+
+              {/* Light / Dark mode toggle */}
+              <div className="flex items-center justify-between px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl">
+                <div className="flex items-center gap-3">
+                  {lightMode ? <Sun className="w-5 h-5 text-pink-500" /> : <Moon className="w-5 h-5 text-gray-500" />}
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">{lightMode ? 'Modo Claro' : 'Modo Oscuro'}</p>
+                    <p className="text-gray-500 text-xs">{lightMode ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro'}</p>
+                  </div>
+                </div>
+                <button onClick={() => setLightMode(v => !v)} className={cn("relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none", lightMode ? "bg-pink-500" : "bg-gray-300")}>
+                  <span className={cn("absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300", lightMode ? "translate-x-6" : "translate-x-0")} />
+                </button>
+              </div>
            </div>
         )}
 
@@ -1705,21 +1903,15 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                        </div>
                        
                        <div className="mt-8 flex gap-3 relative z-10">
-                          <button onClick={async () => {
-                              if (!profile || profile.walletBalance <= 0) { alert("No tienes balance disponible para retirar."); return; }
-                              const amountStr = window.prompt(`Ingresa el monto a retirar (Max: $${profile.walletBalance}):`);
-                              if (!amountStr) return;
-                              const amount = parseFloat(amountStr);
-                              if (isNaN(amount) || amount <= 0 || amount > profile.walletBalance) { alert("Monto inválido."); return; }
-                              try {
-                                  await updateDoc(doc(db, `creatorProfiles/${user.uid}`), { walletBalance: increment(-amount) });
-                                  alert(`Has retirado $${amount} exitosamente (Simulado).`);
-                              } catch(e: any) { alert(e.message); }
+                          <button onClick={() => {
+                              if (!profile || profile.walletBalance <= 0) { showAlert("No tienes balance disponible para retirar.", 'error'); return; }
+                              setWithdrawInput('');
+                              setShowWithdrawModal(true);
                           }} className="flex-1 bg-white hover:bg-gray-100 text-gray-900 py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 shadow-sm">
                              <ArrowUpRight className="w-5 h-5" />
                              Retirar
                           </button>
-                          <button onClick={() => alert("Métodos de pago en desarrollo. Por ahora usamos pago simulado para hacer pruebas.")} className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-gray-700 shadow-sm">
+                          <button onClick={() => showAlert("Métodos de pago en desarrollo. Por ahora usamos pago simulado para hacer pruebas.", 'info')} className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-3.5 rounded-[16px] font-bold flex items-center justify-center gap-2 transition-all active:scale-95 border border-gray-700 shadow-sm">
                              <CreditCard className="w-5 h-5" />
                              <span className="truncate">Métodos P.</span>
                           </button>
@@ -1732,8 +1924,8 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                           <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
                              <TrendingUp className="w-5 h-5 text-gray-900" />
                           </div>
-                          <p className="text-gray-500 text-xs font-bold mb-1 uppercase tracking-wider">Ventas (Mes)</p>
-                          <p className="text-2xl font-black text-gray-900">${((profile?.walletBalance || 0) * 0.4 + 195).toLocaleString('en-US', {minimumFractionDigits:2})}</p>
+                          <p className="text-gray-500 text-xs font-bold mb-1 uppercase tracking-wider">Ventas Totales</p>
+                          <p className="text-2xl font-black text-gray-900">${(profile?.totalSales || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</p>
                        </div>
                        <div className="bg-white p-4 rounded-[24px] border border-gray-100 shadow-sm">
                           <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center mb-3">
@@ -1754,33 +1946,10 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                        </div>
                        
                        <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm">
-                          {[
-                             { id: 1, type: 'sale', title: 'Alquiler: Zona Grande', brand: 'Nike Corp', amount: 150.00, date: 'Hoy, 14:30', status: 'completed' },
-                             { id: 2, type: 'withdraw', title: 'Retiro a Cuenta Bancaria', brand: '**** 4545', amount: -200.00, date: 'Ayer, 09:15', status: 'completed' },
-                             { id: 3, type: 'sale', title: 'Alquiler: Minizona', brand: 'Startup X', amount: 45.00, date: 'Mar 12, 18:40', status: 'completed' },
-                             { id: 4, type: 'sale', title: 'Alquiler: Subzona', brand: 'Adidas', amount: 100.00, date: 'Mar 10, 11:20', status: 'completed' },
-                             { id: 5, type: 'withdraw', title: 'Retiro a PayPal', brand: 'user@email.com', amount: -150.00, date: 'Mar 05, 10:00', status: 'completed' },
-                          ].map((tx, i) => (
-                             <div key={tx.id} className={cn("flex items-center justify-between p-4", i !== 0 && "border-t border-gray-100")}>
-                                <div className="flex items-center gap-4">
-                                   <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm", 
-                                      tx.type === 'sale' ? "bg-gray-50 text-gray-900 border border-gray-200" : "bg-white border text-gray-900 border-gray-200"
-                                   )}>
-                                      {tx.type === 'sale' ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
-                                   </div>
-                                   <div>
-                                      <p className="font-bold text-gray-900 text-sm">{tx.title}</p>
-                                      <p className="text-gray-500 text-xs mt-0.5">{tx.brand} "¢ {tx.date}</p>
-                                   </div>
-                                </div>
-                                <div className="text-right">
-                                   <p className={cn("font-black text-base", tx.type === 'sale' ? "text-gray-900" : "text-gray-500")}>
-                                      {tx.type === 'sale' ? '+' : ''}{tx.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
-                                   </p>
-                                   <p className="text-gray-400 text-[10px] uppercase font-bold mt-1 tracking-wider text-right">Completado</p>
-                                </div>
-                             </div>
-                          ))}
+                          <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400">
+                             <History className="w-8 h-8 mb-2 text-gray-200" />
+                             <p className="text-sm font-medium">No hay transacciones aún.</p>
+                          </div>
                        </div>
                     </div>
                  </div>
@@ -1801,82 +1970,150 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                           </div>
                        </div>
                        <div className="flex items-baseline gap-1 relative z-10 mb-1">
-                          <span className="text-4xl md:text-5xl font-black text-white tracking-tight">55</span>
+                          <span className="text-4xl md:text-5xl font-black text-white tracking-tight">{formatTokenAmount(tokenHoldings.reduce((sum, h) => sum + h.balance, 0))}</span>
                           <span className="text-gray-400 font-bold">Tokens</span>
                        </div>
-                       <p className="text-gray-500 text-xs font-medium relative z-10">Valor estimado: <span className="text-white font-bold">$137.50 USD</span></p>
+                       <p className="text-gray-500 text-xs font-medium relative z-10">Balance real tras alquileres, compras y ventas</p>
                     </div>
 
                     {/* Token List */}
                     <div>
                        <div className="flex items-center justify-between mb-4 px-1">
                           <h3 className="font-black text-gray-900 text-lg">Mis Tokens</h3>
-                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">2 activos</span>
+                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{tokenHoldings.length} activos</span>
                        </div>
                        <div className="flex flex-col gap-3">
-                          {[
-                             { name: 'Token Onix', symbol: 'ONIX', amount: 25, price: 2.50, change: +4.2 },
-                             { name: 'Token Rubius', symbol: 'RBIS', amount: 30, price: 3.75, change: -1.8 },
-                          ].map((token, i) => (
-                             <div key={i} className="bg-white rounded-[24px] border border-gray-100 p-4 shadow-sm flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center shrink-0 shadow-sm">
-                                   <span className="text-white font-black text-[10px] tracking-wider">{token.symbol}</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                   <p className="font-black text-gray-900 text-sm">{token.name}</p>
-                                   <p className="text-gray-400 text-xs font-bold mt-0.5">${token.price.toFixed(2)} / token</p>
-                                </div>
-                                <div className="text-right shrink-0">
-                                   <p className="font-black text-gray-900 text-lg">{token.amount}</p>
-                                   <p className={cn("text-[11px] font-black", token.change >= 0 ? "text-green-500" : "text-red-500")}>
-                                      {token.change >= 0 ? '+' : ''}{token.change}%
-                                   </p>
-                                </div>
-                             </div>
-                          ))}
+                          {(() => {
+                             const byProfile: Record<string, {count: number, profileUsername: string, profilePhoto?: string, profileDisplayName?: string, txs: { id: string; price: number; createdAt: number; duration?: number; tokensMinted?: number }[]}> = {};
+                             tokenHoldings.forEach(r => {
+                                if (!byProfile[r.profileId]) byProfile[r.profileId] = {
+                                   count: 0,
+                                   profileUsername: r.profileUsername || r.profileId,
+                                   profilePhoto: r.profilePhoto,
+                                   profileDisplayName: r.profileDisplayName,
+                                   txs: tokenTransactions.filter(tx => tx.profileId === r.profileId).map(tx => ({ id: tx.id, price: tx.price || 1, createdAt: tx.createdAt || Date.now(), tokensMinted: tx.tokensMinted ?? tx.price ?? 1 }))
+                                };
+                                byProfile[r.profileId].count += r.balance;
+                             });                             const tokenList = Object.entries(byProfile);
+                             if (tokenList.length === 0) return <p className="text-gray-400 text-sm text-center py-6">No tienes tokens en cartera.</p>;
+                             return tokenList.map(([pid, t]) => {
+                                const symbol = (t.profileUsername || t.profileDisplayName || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase() || 'VIP';
+                                const marketProfile = { username: t.profileUsername, displayName: t.profileDisplayName || t.profileUsername, photoURL: t.profilePhoto || '', bannerURL: '', walletBalance: 0, prices25: { price1: t.txs[0]?.price || 1, price7: 0, price30: 0, price365: 0 }, createdAt: null, updatedAt: null } as CreatorProfile;
+                                return (
+                                   <div key={pid} className="bg-white rounded-[24px] border border-gray-100 p-4 shadow-sm flex items-center gap-4">
+                                      <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                                         {t.profilePhoto ? <img src={t.profilePhoto} alt={symbol} className="w-full h-full object-cover" /> : <span className="text-white font-black text-[10px] tracking-wider">{symbol}</span>}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                         <p className="font-black text-gray-900 text-sm">{t.profileDisplayName || t.profileUsername || 'Perfil'}</p>
+                                         <p className="text-gray-400 text-xs font-bold mt-0.5">@{t.profileUsername}</p>
+                                         <div className="flex gap-2 mt-2">
+                                            <button onClick={() => { setWalletCreatorId(pid); setWalletDefaultSide('buy'); setWalletMarketData({ profile: marketProfile, txs: t.txs }); }} className="px-3 py-1.5 rounded-lg bg-gray-900 text-white text-[11px] font-black">Comprar</button>
+                                            <button onClick={() => { setWalletCreatorId(pid); setWalletDefaultSide('sell'); setWalletMarketData({ profile: marketProfile, txs: t.txs }); }} className="px-3 py-1.5 rounded-lg bg-pink-500 text-white text-[11px] font-black">Vender</button>
+                                         </div>
+                                      </div>
+                                      <div className="text-right shrink-0">
+                                         <p className="font-black text-gray-900 text-lg">{formatTokenAmount(t.count)}</p>
+                                         <p className="text-gray-400 text-[11px] font-bold">tokens</p>
+                                      </div>
+                                   </div>
+                                );
+                             });
+                          })()}
                        </div>
                     </div>
 
-                    {/* Token Transaction History — mismo diseño que apartado 1 */}
+                    {/* Token Transaction History */}
                     <div>
                        <div className="flex items-center justify-between mb-4 px-1">
                           <h3 className="font-black text-gray-900 text-lg">Historial Reciente</h3>
-                          <button className="text-gray-900 text-sm font-bold flex items-center gap-1 hover:text-gray-600 transition-colors">
-                             Ver todo <ArrowUpRight className="w-4 h-4" />
-                          </button>
+                          <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{tokenTransactions.length} ops.</span>
                        </div>
                        <div className="bg-white rounded-[24px] border border-gray-100 p-2 overflow-hidden shadow-sm">
-                          {[
-                             { id: 1, type: 'sale', title: 'Compra: Token Onix', brand: 'Exchange ZonaVip', amount: 62.50, date: 'Hoy, 11:05' },
-                             { id: 2, type: 'sale', title: 'Compra: Token Rubius', brand: 'Exchange ZonaVip', amount: 112.50, date: 'Ayer, 16:30' },
-                             { id: 3, type: 'withdraw', title: 'Venta: Token Onix', brand: 'Exchange ZonaVip', amount: -25.00, date: 'Mar 14, 09:10' },
-                          ].map((tx, i) => (
-                             <div key={tx.id} className={cn("flex items-center justify-between p-4", i !== 0 && "border-t border-gray-100")}>
-                                <div className="flex items-center gap-4">
-                                   <div className={cn("w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm",
-                                      tx.type === 'sale' ? "bg-gray-50 text-gray-900 border border-gray-200" : "bg-white border text-gray-900 border-gray-200"
-                                   )}>
-                                      {tx.type === 'sale' ? <ArrowDownLeft className="w-6 h-6" /> : <ArrowUpRight className="w-6 h-6" />}
-                                   </div>
-                                   <div>
-                                      <p className="font-bold text-gray-900 text-sm">{tx.title}</p>
-                                      <p className="text-gray-500 text-xs mt-0.5">{tx.brand} · {tx.date}</p>
-                                   </div>
-                                </div>
-                                <div className="text-right">
-                                   <p className={cn("font-black text-base", tx.type === 'sale' ? "text-gray-900" : "text-gray-500")}>
-                                      {tx.type === 'sale' ? '+' : ''}{tx.amount.toLocaleString('en-US', {style: 'currency', currency: 'USD'})}
-                                   </p>
-                                   <p className="text-gray-400 text-[10px] uppercase font-bold mt-1 tracking-wider text-right">Completado</p>
-                                </div>
-                             </div>
-                          ))}
+                          {tokenTransactions.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400">
+                               <History className="w-8 h-8 mb-2 text-gray-200" />
+                               <p className="text-sm font-medium">No hay historial de tokens aún.</p>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col divide-y divide-gray-50">
+                              {tokenTransactions.slice(0, 20).map(tx => {
+                                const sym = (tx.profileUsername || tx.profileId || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase();
+                                const minted = tx.tokensMinted ?? tx.price ?? 0;
+                                const dateStr = tx.createdAt ? new Date(tx.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }) : '';
+                                return (
+                                  <div key={tx.id} className="flex items-center gap-3 px-3 py-3">
+                                    <div className="w-9 h-9 rounded-full bg-gray-900 flex items-center justify-center shrink-0 overflow-hidden">
+                                      {tx.profilePhoto ? <img src={tx.profilePhoto} alt={sym} className="w-full h-full object-cover" /> : <span className="text-white font-black text-[9px]">{sym}</span>}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-bold text-gray-900 text-sm leading-tight truncate">{tx.profileDisplayName || tx.profileUsername || tx.profileId}</p>
+                                      <p className="text-gray-400 text-xs">Alquiler · {dateStr}</p>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                      <p className="font-black text-gray-900 text-sm">+{formatTokenAmount(minted)}</p>
+                                      <p className="text-gray-400 text-[10px] font-bold">{sym} tokens</p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                        </div>
                     </div>
                  </div>
               )}
            </div>
         )}
+
+        <AnimatePresence>
+          {walletOrderBook && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setWalletOrderBook(null)} className="fixed inset-0 bg-black/55 z-50 backdrop-blur-sm" />
+              <motion.div initial={{ opacity: 0, y: 28, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 28, scale: 0.98 }} className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-h-[92dvh] overflow-hidden rounded-t-[28px] bg-white shadow-2xl md:inset-6 md:bottom-auto md:max-w-none md:rounded-[28px]">
+                <div className="flex h-full max-h-[92dvh] flex-col">
+                  <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 md:px-7">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">Order book</p>
+                      <h2 className="text-xl font-black text-gray-900 md:text-2xl">{walletOrderBook.symbol} Market</h2>
+                    </div>
+                    <button onClick={() => setWalletOrderBook(null)} className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-gray-900">
+                      <PlusSquare className="h-5 w-5 rotate-45" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 md:p-7">
+                    <TokenMarketPanel
+                      market={walletOrderBook}
+                      openSellOffers={walletOpenSellOffers}
+                      buyAmount={walletBuyTokenAmount}
+                      sellAmount={walletSellTokenAmount}
+                      onBuyAmountChange={setWalletBuyTokenAmount}
+                      onSellAmountChange={setWalletSellTokenAmount}
+                      onConfirm={async (side, orderType, price) => {
+                        if (!user || !walletOrderBook.creatorId) return;
+                        const amount = side === 'buy' ? walletBuyTokenAmount : walletSellTokenAmount;
+                        if (amount <= 0) { showAlert('Introduce una cantidad mayor que cero.', 'error'); return; }
+                        try {
+                          const result = await placeOrFillTokenOrder({
+                            userId: user.uid,
+                            creatorId: walletOrderBook.creatorId,
+                            side,
+                            orderType,
+                            price,
+                            amount,
+                            symbol: walletOrderBook.symbol,
+                            matchingOrders: walletCreatorOrders
+                          });
+                          showAlert(result.message, result.filled ? 'success' : 'info');
+                        } catch (e: any) { showAlert('Error al ejecutar la orden: ' + e.message, 'error'); }
+                      }}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* BOTTOM NAVIGATION */}
         {!explorerOverlayActive && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} unreadCount={notifications.filter(n => !n.read).length} />}
@@ -2053,6 +2290,11 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
                             <label className="font-bold text-gray-700 ml-1 text-sm">Caption (Texto inferior)</label>
                             <input type="text" value={tenantEditCaption} onChange={e => setTenantEditCaption(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="Texto que aparecerá..." />
                          </div>
+
+                         <div className="flex flex-col gap-1">
+                            <label className="font-bold text-gray-700 ml-1 text-sm">Enlace (Opcional)</label>
+                            <input type="url" value={tenantEditLink} onChange={e => setTenantEditLink(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="https://tusitio.com" />
+                         </div>
                      </div>
                    )}
 
@@ -2066,13 +2308,49 @@ function Dashboard({ user }: { user: FirebaseUser | null }) {
         </AnimatePresence>
 
       </main>
+
+      {/* Withdraw Modal */}
+      <AnimatePresence>
+        {showWithdrawModal && profile && (
+          <>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowWithdrawModal(false)} className="fixed inset-0 bg-black/60 z-[200] backdrop-blur-sm" />
+            <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }} transition={{ type: 'spring', stiffness: 400, damping: 28 }} className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+              <div className="bg-gray-100 rounded-[28px] p-7 w-full max-w-[340px] shadow-2xl flex flex-col gap-5 border border-teal-500/20">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-xl text-gray-900">Retirar fondos</h3>
+                  <button onClick={() => setShowWithdrawModal(false)} className="p-1.5 rounded-full bg-gray-200 hover:bg-gray-300 transition"><X className="w-4 h-4 text-gray-600" /></button>
+                </div>
+                <p className="text-gray-500 text-sm">Máximo disponible: <span className="font-black text-gray-900">${profile.walletBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span></p>
+                <input
+                  type="number"
+                  min="0"
+                  max={profile.walletBalance}
+                  step="0.01"
+                  value={withdrawInput}
+                  onChange={e => setWithdrawInput(e.target.value)}
+                  placeholder="0.00"
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500 text-gray-900 font-black text-xl text-center"
+                />
+                <div className="flex gap-3">
+                  <button onClick={() => setShowWithdrawModal(false)} className="flex-1 py-3 bg-gray-200 text-gray-900 rounded-xl font-bold text-sm hover:bg-gray-300 transition-colors">Cancelar</button>
+                  <button onClick={async () => {
+                    const amount = parseFloat(withdrawInput);
+                    if (isNaN(amount) || amount <= 0 || amount > profile.walletBalance) { showAlert('Monto inválido.', 'error'); return; }
+                    try {
+                      await updateDoc(doc(db, `creatorProfiles/${user!.uid}`), { walletBalance: increment(-amount) });
+                      setShowWithdrawModal(false);
+                      showAlert(`Has retirado $${amount} exitosamente (Simulado).`, 'success');
+                    } catch(e: any) { showAlert(e.message, 'error'); }
+                  }} className="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold text-sm hover:bg-pink-600 transition-colors">Confirmar</button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-
-// -------------------------------------------------------------
-// PUBLIC PROFILE
-// -------------------------------------------------------------
 function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
   const { username } = useParams();
   const navigate = useNavigate();
@@ -2116,10 +2394,11 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
 
     try {
       await batch.commit();
-    } catch(e) {
-      handleFirestoreError(e, OperationType.WRITE, path);
+    } catch(e: any) {
+      showAlert(e.message || 'No se pudo dividir el espacio.', 'error');
+    } finally {
+      setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const handleJoin = async (slotId: string) => {
@@ -2137,14 +2416,14 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
     if (slot.width === 25) {
       const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
       const siblings = slots.filter(s => s.id.startsWith(parentId + '-') && s.width === 25);
-      if (siblings.length !== 4) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar las 4 piezas.'); }
+      if (siblings.length !== 4) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar las 4 piezas.', 'error'); return; }
       
       if (slot.isRented) {
          if (siblings.some(s => !s.isRented || s.rentedBy !== currentUser.uid)) {
-             setIsProcessingSlot(false); return alert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.');
+             setIsProcessingSlot(false); showAlert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.', 'error'); return;
          }
       } else {
-         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada por otro.'); }
+         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); showAlert('No puedes unir si alguna parte está alquilada por otro.', 'error'); return; }
       }
       
       const minOrder = Math.min(...siblings.map(s => s.order));
@@ -2154,14 +2433,14 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
     } else if (slot.width === 50) {
       const parentId = slot.id.substring(0, slot.id.lastIndexOf('-'));
       const siblings = slots.filter(s => s.id.startsWith(parentId + '-') && s.width === 50);
-      if (siblings.length !== 2) { setIsProcessingSlot(false); return alert('Faltan partes para unir. Deben estar ambas mitades.'); }
+      if (siblings.length !== 2) { setIsProcessingSlot(false); showAlert('Faltan partes para unir. Deben estar ambas mitades.', 'error'); return; }
       
       if (slot.isRented) {
          if (siblings.some(s => !s.isRented || s.rentedBy !== currentUser.uid)) {
-             setIsProcessingSlot(false); return alert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.');
+             setIsProcessingSlot(false); showAlert('Para unir, debes ser el inquilino de TODAS las sub-partes que quieres unir.', 'error'); return;
          }
       } else {
-         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); return alert('No puedes unir si alguna parte está alquilada por otro.'); }
+         if (siblings.some(s => s.isRented)) { setIsProcessingSlot(false); showAlert('No puedes unir si alguna parte está alquilada por otro.', 'error'); return; }
       }
       
       const minOrder = Math.min(...siblings.map(s => s.order));
@@ -2172,10 +2451,11 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
 
     try {
        await batch.commit();
-    } catch(e) {
-       handleFirestoreError(e, OperationType.WRITE, path);
+    } catch(e: any) {
+       showAlert(e.message || 'No se pudieron unir los espacios.', 'error');
+    } finally {
+       setIsProcessingSlot(false);
     }
-    setIsProcessingSlot(false);
   };
 
   const viewIncrementedRef = useRef<string | null>(null);
@@ -2208,7 +2488,7 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
     if (!profileId) return;
     const unsub = onSnapshot(collection(db, `creatorProfiles/${profileId}/adSpaces`), (snap) => {
        const fetchedSlots: AdSpace[] = [];
-       snap.forEach(d => fetchedSlots.push(d.data() as AdSpace));
+       snap.forEach(d => fetchedSlots.push({ id: d.id, ...d.data() } as AdSpace));
        fetchedSlots.sort((a,b) => (a.order || 0) - (b.order || 0) || a.id.localeCompare(b.id));
        const isOwner = currentUser?.uid === profileId;
        setSlots(checkAndCleanExpiredSlots(fetchedSlots, profileId, isOwner));
@@ -2236,7 +2516,7 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
       </div>
       <main className={cn("w-full max-w-[500px] bg-white relative flex flex-col min-h-[100dvh]", currentUser ? "pb-[60px]" : "")}>
          <div id="profile-scroll-container" className="flex-1 overflow-y-auto w-full pb-10">
-            <ProfileView profile={profile} slots={slots} stories={stories} isOwnerPreview={false} profileId={profileId} currentUser={currentUser} onBack={currentUser ? () => navigate('/dashboard', { state: { tab: 'explorer' } }) : undefined} onDivide={handleDivide} onJoin={handleJoin} onOverlayChange={setStoryOverlayActive} />
+            <ProfileView profile={profile} slots={slots} stories={stories} isOwnerPreview={false} profileId={profileId} currentUser={currentUser} onBack={currentUser ? () => navigate('/dashboard', { state: { tab: 'explorer' } }) : undefined} onOverlayChange={setStoryOverlayActive} />
          </div>
          {currentUser && !storyOverlayActive && (
              <BottomNav activeTab="explorer" onTabChange={(tab) => navigate('/dashboard', { state: { tab } })} />
@@ -2249,24 +2529,6 @@ function PublicProfile({ currentUser }: { currentUser: FirebaseUser | null }) {
 // -------------------------------------------------------------
 // PROFILE LOGIC (USED IN BOTH PUBLIC TRULY AND ADMIN TEST)
 // -------------------------------------------------------------
-type Connection = {
-  id: string;
-  users: string[];
-  status: 'pending' | 'accepted';
-  initiator: string;
-  createdAt: number;
-}
-
-type TransactionType = {
-  id: string;
-  slotId: string;
-  buyerId: string;
-  brand: string;
-  price: number;
-  duration: number;
-  createdAt: number;
-};
-
 function TransactionsModal({ transactions, onClose }: { transactions: TransactionType[], onClose: () => void }) {
   const [profiles, setProfiles] = useState<Record<string, CreatorProfile>>({});
 
@@ -2381,7 +2643,7 @@ function ChatModal({ connectionId, otherProfile, currentUser, onClose }: { conne
         createdAt: Date.now()
       });
       // Optionally update notification for otherProfile... (omitted to keep simple, since task only says "they can send direct private messages")
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { showAlert(e.message, 'error'); }
   };
 
   return (
@@ -2487,7 +2749,7 @@ function ContactsModal({ connections, profileId, onClose, currentUser }: { conne
          });
       }
       await batch.commit();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { showAlert(e.message, 'error'); }
   };
 
   const handleReject = async (c: Connection) => {
@@ -2528,7 +2790,7 @@ function ContactsModal({ connections, profileId, onClose, currentUser }: { conne
                              {isPendingSent && <p className="text-xs text-pink-500 font-medium truncate">Petición enviada</p>}
                              {isPendingReceived && <p className="text-xs text-indigo-500 font-medium truncate">Quiere conectar</p>}
                           </div>
-                          {isAccepted && currentUser && c.users.includes(currentUser.uid) && (
+                          {isAccepted && currentUser && c.users.includes(currentUser.uid) && otherUid !== currentUser.uid && (
                             <button onClick={() => setSelectedChat({ connectionId: c.id, otherProfile: p || null })} className="w-8 h-8 flex items-center justify-center bg-pink-100 text-pink-600 rounded-full hover:bg-pink-200 transition-colors" title="Enviar mensaje"><MessageCircle className="w-4 h-4" /></button>
                           )}
                           {isOwnerViewing && isAccepted && (
@@ -2619,7 +2881,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
             const m = await processMediaFile(f);
             setMedia(m);
         } catch(err) {
-            alert("Error procesando archivo.");
+            showAlert('Error procesando archivo.', 'error');
         }
         setIsUploadingMedia(false);
     }
@@ -2679,7 +2941,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
           <div className="flex gap-2">
              {media && (
                  <>
-                  <button onClick={() => setEditingOverlay('emoji' as any)} className="text-white p-2 text-xl rounded-full bg-black/40 backdrop-blur-sm">😊</button>
+                  <button onClick={() => setEditingOverlay('emoji' as any)} className="text-white p-2 text-xl rounded-full bg-black/40 backdrop-blur-sm">??</button>
                   <button onClick={() => setEditingOverlay('text' as any)} className="text-white p-2 font-black rounded-full bg-black/40 backdrop-blur-sm h-10 w-10">Aa</button>
                  </>
              )}
@@ -2773,7 +3035,7 @@ function StoryUploader({ onPublish, onCancel, isProcessing }: { onPublish: (medi
           <div className="absolute inset-0 bg-black/80 z-[110] flex flex-col p-6 items-center justify-center backdrop-blur-sm">
              {editingOverlay === 'emoji' as any ? (
                  <div className="grid grid-cols-4 gap-4 bg-white/10 p-6 rounded-3xl">
-                     {['🔥','✨','❤️','😂','🥺','🚀','💎','👀','💯','🎉','🙌','😊'].map(e => (
+                     {['??','?','??','??','??','??','??','??','??','??','??','??'].map(e => (
                          <button key={e} onClick={() => addOverlay('emoji', e)} className="text-4xl hover:scale-110 transition-transform">{e}</button>
                      ))}
                      <button onClick={() => setEditingOverlay(false)} className="col-span-4 mt-2 text-white/50 text-sm py-2">Cancelar</button>
@@ -2860,338 +3122,23 @@ function ProfileCustomCard({ card }: { card?: CreatorProfile['customCard'] }) {
   );
 }
 
-type MarketOrder = {
-  price: number;
-  amount: number;
-};
-
-type MarketTrade = {
-  id: string;
-  price: number;
-  amount: number;
-  createdAt: number;
-};
-
-type TokenMarket = {
-  symbol: string;
-  lastPrice: number;
-  bestAsk: number;
-  bestBid: number;
-  change24h: number;
-  volume24h: number;
-  asks: MarketOrder[];
-  bids: MarketOrder[];
-  trades: MarketTrade[];
-  history: Record<'24h' | '7d' | '30d', number[]>;
-};
-
-const formatTokenPrice = (value: number) => `$${value.toFixed(2)}`;
-const formatTokenAmount = (value: number) => value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
-
-const formatAgo = (timestamp: number) => {
-  const diff = Math.max(1, Date.now() - timestamp);
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Ahora';
-  if (mins < 60) return `Hace ${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `Hace ${hours}h`;
-  return `Hace ${Math.floor(hours / 24)}d`;
-};
-
-function buildTokenMarket(profile: CreatorProfile, transactions: { id: string; price: number; createdAt: number; duration?: number }[], slots: AdSpace[]): TokenMarket {
-  const basePrice = Math.max(
-    1,
-    transactions[0]?.price ||
-      profile.prices25?.price1 ||
-      profile.prices50?.price1 ||
-      profile.prices100?.price1 ||
-      5
-  );
-  const rentedSlots = Math.max(1, slots.filter(s => s.isRented).length);
-  const symbol = (profile.username || profile.displayName || 'VIP').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase() || 'VIP';
-  const asks = Array.from({ length: 6 }, (_, i) => ({
-    price: Number((basePrice * (1.025 + i * 0.018)).toFixed(2)),
-    amount: Number((8 + rentedSlots * 1.35 + i * 3.15).toFixed(2))
-  })).sort((a, b) => a.price - b.price);
-  const bids = Array.from({ length: 6 }, (_, i) => ({
-    price: Number((basePrice * (0.985 - i * 0.018)).toFixed(2)),
-    amount: Number((7 + rentedSlots * 1.1 + i * 2.75).toFixed(2))
-  })).sort((a, b) => b.price - a.price);
-  const trades = transactions
-    .slice(0, 15)
-    .map((tx, i) => ({
-      id: tx.id,
-      price: Number((tx.price || basePrice).toFixed(2)),
-      amount: Number(Math.max(1, (tx.duration || 7) / 2).toFixed(2)),
-      createdAt: tx.createdAt || Date.now() - i * 18 * 60000
-    }));
-  if (trades.length === 0) {
-    for (let i = 0; i < 10; i++) {
-      trades.push({
-        id: `demo-trade-${i}`,
-        price: Number((basePrice * (1 + Math.sin(i + rentedSlots) * 0.035)).toFixed(2)),
-        amount: Number((3 + i * 1.4).toFixed(2)),
-        createdAt: Date.now() - (i + 1) * 22 * 60000
-      });
-    }
-  }
-  const previous = trades[trades.length - 1]?.price || basePrice * 0.96;
-  const lastPrice = trades[0]?.price || basePrice;
-  const change24h = previous ? ((lastPrice - previous) / previous) * 100 : 0;
-  const volume24h = trades
-    .filter(t => Date.now() - t.createdAt < 24 * 60 * 60 * 1000)
-    .reduce((sum, t) => sum + t.amount, 0);
-  const makeHistory = (points: number, waveSize: number, trendSize: number) =>
-    Array.from({ length: points }, (_, i) => {
-      const wave = Math.sin((i + rentedSlots) / 2.7) * waveSize;
-      const trend = (i - points / 2) * (change24h / trendSize);
-      return Number((basePrice * (1 + wave + trend)).toFixed(2));
-    });
-
-  return {
-    symbol,
-    lastPrice,
-    bestAsk: asks[0].price,
-    bestBid: bids[0].price,
-    change24h,
-    volume24h,
-    asks,
-    bids,
-    trades,
-    history: {
-      '24h': makeHistory(24, 0.045, 1000),
-      '7d': makeHistory(28, 0.07, 850),
-      '30d': makeHistory(30, 0.11, 700)
-    }
-  };
-}
-
-function PriceSparkline({ points }: { points: number[] }) {
-  const min = Math.min(...points);
-  const max = Math.max(...points);
-  const range = Math.max(0.01, max - min);
-  const d = points.map((point, i) => {
-    const x = (i / Math.max(1, points.length - 1)) * 100;
-    const y = 42 - ((point - min) / range) * 34;
-    return `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(' ');
-
-  return (
-    <svg viewBox="0 0 100 46" className="w-full h-28 overflow-visible" preserveAspectRatio="none" aria-hidden="true">
-      <path d={d} fill="none" stroke="#ff2a85" strokeWidth="2.2" vectorEffect="non-scaling-stroke" />
-      <path d={`${d} L 100 46 L 0 46 Z`} fill="rgba(255,42,133,0.08)" />
-    </svg>
-  );
-}
-
-function TokenMarketPanel({
-  market,
-  openSellOffers,
-  buyAmount,
-  sellAmount,
-  onBuyAmountChange,
-  onSellAmountChange,
-  onConfirm
-}: {
-  market: TokenMarket;
-  openSellOffers: MarketOrder[];
-  buyAmount: number;
-  sellAmount: number;
-  onBuyAmountChange: (value: number) => void;
-  onSellAmountChange: (value: number) => void;
-  onConfirm: (side: 'buy' | 'sell') => void;
-}) {
-  const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d'>('24h');
-  const isPositive = market.change24h >= 0;
-  const buyTotal = buyAmount * market.bestAsk;
-  const sellTotal = sellAmount * market.bestBid;
-  const hasBid = market.bids.length > 0 && market.bestBid > 0;
-  const canBuy = buyAmount > 0 && market.bestAsk > 0;
-  const canSell = sellAmount > 0;
-
-  return (
-    <section className="w-full rounded-[24px] border border-gray-100 bg-white shadow-sm overflow-hidden shrink-0">
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{market.symbol} Token</p>
-            <div className="flex items-end gap-2 mt-1">
-              <h2 className="text-3xl font-black text-gray-900 leading-none">{formatTokenPrice(market.lastPrice)}</h2>
-              <span className={cn("text-xs font-black pb-1", isPositive ? "text-green-500" : "text-red-500")}>
-                {isPositive ? '+' : ''}{market.change24h.toFixed(2)}%
-              </span>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Vol 24h</p>
-            <p className="text-sm font-black text-gray-900">{formatTokenAmount(market.volume24h)}</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <div className="rounded-2xl bg-red-500/10 border border-red-500/20 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-red-500">Mejor ask</p>
-            <p className="text-lg font-black text-gray-900">{formatTokenPrice(market.bestAsk)}</p>
-          </div>
-          <div className="rounded-2xl bg-green-500/10 border border-green-500/20 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-green-500">Mejor bid</p>
-            <p className="text-lg font-black text-gray-900">{formatTokenPrice(market.bestBid)}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-black text-gray-900">Precio</h3>
-          <div className="flex bg-gray-100 p-1 rounded-full">
-            {(['24h', '7d', '30d'] as const).map(label => (
-              <button
-                key={label}
-                onClick={() => setTimeframe(label)}
-                className={cn("px-3 py-1 rounded-full text-[11px] font-black", timeframe === label ? "bg-white text-gray-900 shadow-sm" : "text-gray-500")}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <PriceSparkline points={market.history[timeframe]} />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 p-4 border-b border-gray-100">
-        <div className="rounded-2xl border border-gray-100 p-3">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-black text-gray-900">Comprar</h3>
-            <span className="text-[11px] font-bold text-gray-400">Ask {formatTokenPrice(market.bestAsk)}</span>
-          </div>
-          <input
-            type="number"
-            min="0"
-            value={buyAmount}
-            onChange={e => onBuyAmountChange(Math.max(0, Number(e.target.value) || 0))}
-            className="w-full h-11 rounded-xl bg-gray-50 border border-gray-100 px-3 text-gray-900 font-bold outline-none focus:border-pink-500"
-          />
-          <p className="text-xs text-gray-500 font-bold mt-2">Total estimado: <span className="text-gray-900">{formatTokenPrice(buyTotal)}</span></p>
-          <button disabled={!canBuy} onClick={() => onConfirm('buy')} className="w-full mt-3 h-11 rounded-xl bg-gray-900 text-white font-black active:scale-[0.98] transition disabled:opacity-40">
-            Comprar al mercado
-          </button>
-        </div>
-        <div className="rounded-2xl border border-gray-100 p-3">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-black text-gray-900">Vender</h3>
-            <span className="text-[11px] font-bold text-gray-400">{hasBid ? `Bid ${formatTokenPrice(market.bestBid)}` : 'Sin bid'}</span>
-          </div>
-          <input
-            type="number"
-            min="0"
-            value={sellAmount}
-            onChange={e => onSellAmountChange(Math.max(0, Number(e.target.value) || 0))}
-            className="w-full h-11 rounded-xl bg-gray-50 border border-gray-100 px-3 text-gray-900 font-bold outline-none focus:border-pink-500"
-          />
-          <p className="text-xs text-gray-500 font-bold mt-2">
-            {hasBid ? <>Recibirias: <span className="text-gray-900">{formatTokenPrice(sellTotal)}</span></> : 'Quedara como oferta abierta'}
-          </p>
-          <button disabled={!canSell} onClick={() => onConfirm('sell')} className="w-full mt-3 h-11 rounded-xl bg-pink-500 text-white font-black active:scale-[0.98] transition disabled:opacity-40">
-            Vender al mercado
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
-        <div>
-          <h3 className="text-sm font-black text-gray-900 mb-2">Libro de ordenes</h3>
-          <div className="space-y-1">
-            {market.asks.slice(0, 8).map((order, i) => (
-              <div key={`ask-${i}`} className="grid grid-cols-2 text-xs font-bold bg-red-500/5 rounded-lg px-2 py-1.5">
-                <span className="text-red-500">{formatTokenPrice(order.price)}</span>
-                <span className="text-right text-gray-500">{formatTokenAmount(order.amount)}</span>
-              </div>
-            ))}
-            {market.bids.slice(0, 8).map((order, i) => (
-              <div key={`bid-${i}`} className="grid grid-cols-2 text-xs font-bold bg-green-500/5 rounded-lg px-2 py-1.5">
-                <span className="text-green-500">{formatTokenPrice(order.price)}</span>
-                <span className="text-right text-gray-500">{formatTokenAmount(order.amount)}</span>
-              </div>
-            ))}
-            {openSellOffers.map((order, i) => (
-              <div key={`open-sell-${i}`} className="grid grid-cols-2 text-xs font-bold bg-gray-100 rounded-lg px-2 py-1.5">
-                <span className="text-gray-900">Oferta {formatTokenPrice(order.price)}</span>
-                <span className="text-right text-gray-500">{formatTokenAmount(order.amount)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h3 className="text-sm font-black text-gray-900 mb-2">Trades</h3>
-          <div className="space-y-1">
-            {market.trades.slice(0, 15).map(trade => (
-              <div key={trade.id} className="grid grid-cols-[1fr_0.8fr_1fr] gap-2 text-xs font-bold rounded-lg bg-gray-50 px-2 py-1.5">
-                <span className="text-gray-900">{formatTokenPrice(trade.price)}</span>
-                <span className="text-gray-500 text-right">{formatTokenAmount(trade.amount)}</span>
-                <span className="text-gray-400 text-right">{formatAgo(trade.createdAt)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TokenPriceStrip({ market, onOpen }: { market: TokenMarket; onOpen: () => void }) {
-  const isPositive = market.change24h >= 0;
-
-  return (
-    <button onClick={onOpen} className="sticky top-0 z-30 mx-4 mb-4 rounded-2xl border border-gray-100 bg-white/95 backdrop-blur-md shadow-sm p-3 text-left w-[calc(100%-2rem)] transition active:scale-[0.99] lg:static lg:mx-8 lg:mb-8 lg:w-[calc(100%-4rem)] lg:p-5 lg:hover:border-pink-200 lg:hover:shadow-md">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">{market.symbol} Token</p>
-          <div className="flex items-end gap-2">
-            <span className="text-2xl lg:text-3xl font-black text-gray-900 leading-none">{formatTokenPrice(market.lastPrice)}</span>
-            <span className={cn("text-xs font-black pb-0.5", isPositive ? "text-green-500" : "text-red-500")}>
-              {isPositive ? '+' : ''}{market.change24h.toFixed(2)}%
-            </span>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-right shrink-0">
-          <div>
-            <p className="text-[9px] font-black uppercase text-red-500">Ask</p>
-            <p className="text-xs lg:text-sm font-black text-gray-900">{formatTokenPrice(market.bestAsk)}</p>
-          </div>
-          <div>
-            <p className="text-[9px] font-black uppercase text-green-500">Bid</p>
-            <p className="text-xs lg:text-sm font-black text-gray-900">{formatTokenPrice(market.bestBid)}</p>
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 lg:mt-4">
-        <span className="text-[11px] font-black uppercase tracking-wider text-gray-400">Mercado del creador</span>
-        <span className="text-xs font-black text-pink-500">Abrir exchange</span>
-      </div>
-    </button>
-  );
-}
 function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, currentUser, onDivide, onJoin, onBack, onOverlayChange }: { profile: CreatorProfile, slots: AdSpace[], stories?: Story[], isOwnerPreview: boolean, profileId?: string | null, currentUser?: FirebaseUser | null, onDivide?: (id: string) => void, onJoin?: (id: string) => void, onBack?: () => void, onOverlayChange?: (active: boolean) => void }) {
   const [selectedSlot, setSelectedSlot] = useState<AdSpace | null>(null);
   const [viewingTenantSlot, setViewingTenantSlot] = useState<AdSpace | null>(null);
+  const [showProfileCard, setShowProfileCard] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<number>(7);
   
-  type TransactionType = {
-     id: string;
-     slotId: string;
-     buyerId: string;
-     brand: string;
-     price: number;
-     duration: number;
-     createdAt: number;
-  };
   const [transactions, setTransactions] = useState<TransactionType[]>([]);
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [buyTokenAmount, setBuyTokenAmount] = useState(10);
   const [sellTokenAmount, setSellTokenAmount] = useState(5);
   const [confirmMarketAction, setConfirmMarketAction] = useState<'buy' | 'sell' | null>(null);
+  const [marketOrderType, setMarketOrderType] = useState<TokenOrderType>('market');
+  const [marketOrderPrice, setMarketOrderPrice] = useState(0);
   const [showMarketModal, setShowMarketModal] = useState(false);
   const [openSellOffers, setOpenSellOffers] = useState<MarketOrder[]>([]);
+  const [realTokenOrders, setRealTokenOrders] = useState<RealTokenOrder[]>([]);
 
   // Connections state
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -3210,7 +3157,25 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const scanTriggeredRef = useRef(false);
   const txsCountRef = useRef<number | undefined>(undefined);
 
-  useLockBodyScroll(!!selectedSlot || !!viewingTenantSlot || showTransactionsModal || showContactsModal || showCancelConfirm || !!confirmMarketAction || showMarketModal || isUploadingStory || selectedStoryIndex !== null);
+  useLockBodyScroll(!!selectedSlot || !!viewingTenantSlot || showProfileCard || showTransactionsModal || showContactsModal || showCancelConfirm || !!confirmMarketAction || showMarketModal || isUploadingStory || selectedStoryIndex !== null);
+
+  // Subscribe to real token orders for this creator's order book
+  useEffect(() => {
+    if (!profileId) return;
+    const q = query(
+      collection(db, 'tokenOrders'),
+      where('creatorId', '==', profileId),
+      where('status', '==', 'open')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setRealTokenOrders(snap.docs.map(d => ({ id: d.id, ...d.data() } as RealTokenOrder)));
+    }, (err) => console.log('tokenOrders profile error', err));
+    return () => unsub();
+  }, [profileId]);
+
+  useEffect(() => {
+    setOpenSellOffers(realTokenOrders.filter(o => o.side === 'sell' && o.userId === currentUser?.uid).map(o => ({ price: o.price, amount: o.amount })));
+  }, [realTokenOrders, currentUser?.uid]);
 
   useEffect(() => {
      if (!profileId) return;
@@ -3294,7 +3259,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
          link: `/vip/${myUsername}` 
        });
        await batch.commit();
-     } catch (e: any) { alert(e.message); }
+     } catch (e: any) { showAlert(e.message, 'error'); }
   }
 
   const handleAcceptContact = async () => {
@@ -3320,14 +3285,14 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
          });
       }
       await batch.commit();
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { showAlert(e.message, 'error'); }
   }
 
   const handleCancelContact = async () => {
     if (!contactStatus) return;
     try {
       await deleteDoc(doc(db, 'connections', contactStatus.id));
-    } catch (e: any) { alert(e.message); }
+    } catch (e: any) { showAlert(e.message, 'error'); }
   }
 
   // Rent state
@@ -3335,11 +3300,13 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
   const [rentBrand, setRentBrand] = useState('');
   const [rentBrandImg, setRentBrandImg] = useState('');
   const [rentCaption, setRentCaption] = useState('');
+  const [rentLink, setRentLink] = useState('');
 
   const handleRent = async () => {
       if (!selectedSlot || !profileId) return;
-      if (isOwnerPreview || currentUser?.uid === profileId) { alert("El dueño del perfil no puede alquilar/publicar espacios en su propio perfil."); return; }
-      if (!rentImage.trim() || !rentBrand.trim()) { alert("Sube tu anuncio y pon el nombre de tu marca."); return; }
+      if (!currentUser) { showAlert("Inicia sesión para alquilar y recibir tokens.", 'error'); return; }
+      if (isOwnerPreview || currentUser?.uid === profileId) { showAlert("El dueño del perfil no puede alquilar/publicar espacios en su propio perfil.", 'error'); return; }
+      if (!rentImage.trim() || !rentBrand.trim()) { showAlert("Sube tu anuncio y pon el nombre de tu marca.", 'error'); return; }
       
       setIsProcessing(true);
       
@@ -3361,75 +3328,152 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
       }
 
       try {
-             const batch = writeBatch(db);
-             batch.update(doc(db, `creatorProfiles/${profileId}/adSpaces`, selectedSlot.id), {
+             const now = Date.now();
+             const tokensToMint = Math.floor(price * TOKENS_PER_EURO);
+             const slotRef = doc(db, `creatorProfiles/${profileId}/adSpaces`, selectedSlot.id);
+             const sellerId = selectedSlot.forResale && selectedSlot.rentedBy ? selectedSlot.rentedBy : profileId;
+             const holdingRef = doc(db, 'creatorTokenHolders', `${currentUser.uid}_${profileId}`);
+
+             await runTransaction(db, async (transaction) => {
+               const slotSnap = await transaction.get(slotRef);
+               if (!slotSnap.exists()) throw new Error('Este espacio ya no existe.');
+               const liveSlot = slotSnap.data() as AdSpace;
+               const liveIsRented = liveSlot.isRented === true && (liveSlot.rentEnd || 9999999999999) > now;
+               if (liveIsRented && liveSlot.rentedBy !== currentUser.uid) throw new Error('Este espacio ya ha sido alquilado por otra persona.');
+
+               const myRentSnap = await transaction.get(doc(db, 'creatorProfiles', currentUser.uid));
+               const myRentData = myRentSnap.exists() ? myRentSnap.data() : null;
+               const tenantBalance = myRentData?.walletBalance || 0;
+               if (tenantBalance < price) throw new Error('Saldo insuficiente para alquilar este espacio.');
+               const holdingSnap = await transaction.get(holdingRef);
+
+               transaction.update(slotRef, {
                  isRented: true,
-                 rentedBy: currentUser?.uid || 'anonymous',
+                 rentedBy: currentUser.uid,
                  brand: rentBrand,
-                 brandImg: rentBrandImg || currentUser?.photoURL || 'https://i.pravatar.cc/150?u=' + currentUser?.uid,
+                 brandImg: rentBrandImg || myRentData?.photoURL || currentUser.photoURL || 'https://i.pravatar.cc/150?u=' + currentUser.uid,
                  image: rentImage,
-                 caption: rentCaption || `¡Espacio patrocinado por ${selectedDuration} días!`,
+                 caption: rentCaption || `?Espacio patrocinado por ${selectedDuration} d?as!`,
+                 link: rentLink,
                  pricePaid: price,
-                 rentStart: Date.now(),
-                 rentEnd: Date.now() + selectedDuration * 24 * 60 * 60 * 1000,
+                 rentStart: now,
+                 rentEnd: now + selectedDuration * 24 * 60 * 60 * 1000,
                  forResale: deleteField(),
                  resalePrices: deleteField()
-             });
-             
-             const sellerId = selectedSlot.forResale ? selectedSlot.rentedBy : profileId;
-             
-             batch.set(doc(collection(db, `creatorProfiles/${profileId}/transactions`)), {
+               });
+
+               transaction.set(doc(collection(db, `creatorProfiles/${profileId}/transactions`)), {
                  slotId: selectedSlot.id,
-                 buyerId: currentUser?.uid || 'anonymous',
+                 buyerId: currentUser.uid,
                  sellerId: sellerId,
                  brand: rentBrand,
                  price: price,
+                 tokensMinted: tokensToMint,
                  duration: selectedDuration,
-                 createdAt: Date.now()
-             });
-             
-             if (sellerId) {
-                batch.update(doc(db, `creatorProfiles/${sellerId}`), {
-                    totalSales: increment(price),
-                    walletBalance: increment(price)
-                });
-             }
+                 createdAt: now
+               });
 
-             const notifRef = doc(collection(db, `users/${sellerId}/notifications`));
-             batch.set(notifRef, {
+               transaction.update(doc(db, `creatorProfiles/${sellerId}`), {
+                 totalSales: increment(price),
+                 walletBalance: increment(price)
+               });
+
+               transaction.update(doc(db, `creatorProfiles/${currentUser.uid}`), {
+                 walletBalance: increment(-price)
+               });
+
+               transaction.set(doc(collection(db, `users/${sellerId}/notifications`)), {
                  type: 'sale',
-                 message: `¡Nueva venta! ${rentBrand} ha comprado un espacio VIP.`,
-                 fromId: currentUser?.uid || 'anonymous',
+                 message: `?Nueva venta! ${rentBrand} ha comprado un espacio VIP.`,
+                 fromId: currentUser.uid,
                  read: false,
-                 createdAt: Date.now(),
+                 createdAt: now,
                  link: `/vip/${profile?.username}`
+               });
+
+               transaction.set(doc(collection(db, `users/${currentUser.uid}/notifications`)), {
+                 type: 'token_mint',
+                 message: `Has recibido ${tokensToMint} ${tokenMarket.symbol} tokens por alquilar en el perfil de ${profile.displayName}.`,
+                 fromId: profileId,
+                 read: false,
+                 createdAt: now,
+                 link: `/vip/${profile?.username}`
+               });
+
+               if (holdingSnap.exists()) {
+                 transaction.update(holdingRef, {
+                   balance: increment(tokensToMint),
+                   updatedAt: now
+                 });
+               } else {
+                 transaction.set(holdingRef, {
+                   userId: currentUser.uid,
+                   creatorId: profileId,
+                   creatorUsername: profile.username || profileId,
+                   balance: tokensToMint,
+                   earned: 0,
+                   createdAt: now,
+                   updatedAt: now
+                 });
+               }
              });
 
-             await batch.commit();
-
+             try {
+               const holdersSnap = await getDocs(
+                 query(collection(db, 'creatorTokenHolders'),
+                   where('creatorId', '==', profileId),
+                   where('userId', '!=', currentUser.uid))
+               );
+               if (!holdersSnap.empty) {
+                 const totalHeld = holdersSnap.docs.reduce((s, d) => s + (d.data().balance || 0), 0) + price;
+                 const notifBatch = writeBatch(db);
+                 holdersSnap.docs.forEach(d => {
+                   const holderData = d.data();
+                   const holderShare = totalHeld > 0 ? ((holderData.balance / totalHeld) * price).toFixed(2) : '0.00';
+                   notifBatch.set(doc(collection(db, `users/${holderData.userId}/notifications`)), {
+                     type: 'token_mint',
+                     message: `Nueva renta en el perfil de ${profile.displayName || profile.username}: ${rentBrand} alquil? por ${price}?. Tienes ${holderData.balance} ${tokenMarket.symbol} tokens. Beneficio estimado: ${holderShare}?.`,
+                     fromId: profileId,
+                     read: false,
+                     createdAt: Date.now(),
+                     link: `/vip/${profile?.username}`
+                   });
+                 });
+                 await notifBatch.commit();
+               }
+             } catch (holdingErr) {
+               console.error('Error notifying token holders:', holdingErr);
+             }
              setSelectedSlot(null);
              setRentImage('');
              setRentBrand('');
              setRentBrandImg('');
              setRentCaption('');
-             alert("¡Pago simulado con éxito!");
-      } catch(e: any) { alert(e.message); }
+             setRentLink('');
+             showAlert(`Alquiler confirmado. Se han minteado ${tokensToMint} ${tokenMarket.symbol} tokens en tu wallet.`, 'success');
+      } catch(e: any) { showAlert(e.message, 'error'); }
       setIsProcessing(false);
   };
 
   const handlePublishStory = async (media: { url: string, type: 'image'|'video', publicId?: string }, overlays: StoryOverlay[], filter: string, clipStart: number, clipDuration: number) => {
       if (!profileId || !currentUser || !media.url.trim()) return;
       const isOwnerProfile = currentUser.uid === profileId;
-      
+      if (isOwnerProfile) return;
+
+      const isTenantActive = slots.some(s => s.isRented && s.rentedBy === currentUser.uid);
+      if (!isTenantActive) return;
+
       const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
       const recentStoriesFromUser = stories?.filter(s => s.rentedBy === currentUser.uid && s.createdAt > oneDayAgo) || [];
-      if (!isOwnerProfile && recentStoriesFromUser.length >= 1) {
-          alert('Solo puedes publicar 1 historia al día como inquilino VIP.');
+      if (recentStoriesFromUser.length >= 1) {
+          showAlert('Solo puedes publicar 1 historia al día como inquilino VIP.', 'error');
           return;
       }
 
       setIsProcessing(true);
       try {
+          const myStorySnap = await getDoc(doc(db, 'creatorProfiles', currentUser.uid));
+          const myStoryData = myStorySnap.exists() ? myStorySnap.data() : null;
           const newStory: Story = {
               id: `story-${Date.now()}`,
               image: media.url,
@@ -3438,8 +3482,8 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
               filter: filter,
               clipStart: clipStart,
               clipDuration: clipDuration,
-              brand: currentUser.displayName || 'Marca',
-              brandImg: currentUser.photoURL || `https://i.pravatar.cc/150?u=${currentUser.uid}`,
+              brand: myStoryData?.displayName || currentUser.displayName || 'Marca',
+              brandImg: myStoryData?.photoURL || currentUser.photoURL || `https://i.pravatar.cc/150?u=${currentUser.uid}`,
               rentedBy: currentUser.uid,
               createdAt: Date.now(),
               ...(media.publicId ? { cloudinaryPublicId: media.publicId } : {})
@@ -3447,34 +3491,39 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
           await setDoc(doc(db, `creatorProfiles/${profileId}/stories`, newStory.id), newStory);
           setIsUploadingStory(false);
           setStoryImage('');
-          alert('¡Historia publicada exitosamente!');
-      } catch(e: any) { alert(e.message); }
+          showAlert('¡Historia publicada exitosamente!', 'success');
+      } catch(e: any) { showAlert(e.message, 'error'); }
       setIsProcessing(false);
   };
 
   const isTenant = currentUser && slots.some(s => s.isRented && s.rentedBy === currentUser.uid);
   const isOwnerProfile = !!currentUser && currentUser.uid === profileId;
-  const canUploadStory = isOwnerProfile || (!!isTenant && !isOwnerPreview && currentUser?.uid !== profileId);
-  const tokenMarket = useMemo(() => buildTokenMarket(profile, transactions, slots), [profile, transactions, slots]);
+  const canUploadStory = !!isTenant && !isOwnerPreview && currentUser?.uid !== profileId;
+  const tokenMarket = useMemo(() => buildTokenMarket(profile, transactions, slots, profileId || '', realTokenOrders), [profile, transactions, slots, profileId, realTokenOrders]);
   const marketActionAmount = confirmMarketAction === 'buy' ? buyTokenAmount : sellTokenAmount;
-  const marketActionPrice = confirmMarketAction === 'buy' ? tokenMarket.bestAsk : (tokenMarket.bestBid || tokenMarket.lastPrice);
+  const marketActionPrice = marketOrderPrice || (confirmMarketAction === 'buy' ? tokenMarket.bestAsk : (tokenMarket.bestBid || tokenMarket.lastPrice));
   const marketActionTotal = marketActionAmount * marketActionPrice;
-  const executeMarketAction = () => {
-    if (!confirmMarketAction) return;
+  const executeMarketAction = async () => {
+    if (!confirmMarketAction || !currentUser || !profileId) return;
     if (marketActionAmount <= 0) {
-      alert('Introduce una cantidad mayor que cero.');
+      showAlert('Introduce una cantidad mayor que cero.', 'error');
       return;
     }
-    const side = confirmMarketAction === 'buy' ? 'Compra' : 'Venta';
-    const hasBid = tokenMarket.bids.length > 0 && tokenMarket.bestBid > 0;
-    if (confirmMarketAction === 'sell' && !hasBid) {
-      setOpenSellOffers(current => [
-        { price: tokenMarket.lastPrice, amount: marketActionAmount },
-        ...current
-      ].slice(0, 5));
+    try {
+      const result = await placeOrFillTokenOrder({
+        userId: currentUser.uid,
+        creatorId: profileId,
+        side: confirmMarketAction,
+        orderType: marketOrderType,
+        price: marketActionPrice,
+        amount: marketActionAmount,
+        symbol: tokenMarket.symbol,
+        matchingOrders: realTokenOrders
+      });
+      showAlert(result.message, result.filled ? 'success' : 'info');
+    } catch (e: any) {
+      showAlert('Error al ejecutar la orden: ' + e.message, 'error');
     }
-    const fallbackText = confirmMarketAction === 'sell' && !hasBid ? 'No hay bid disponible; queda como oferta abierta.' : `${side} ejecutada al mercado.`;
-    alert(fallbackText);
     setConfirmMarketAction(null);
   };
 
@@ -3533,7 +3582,9 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
 
            <div className="relative inline-block w-fit mx-auto">
               <div className="absolute inset-0 bg-pink-500 rounded-full blur-xl opacity-20 scale-150 animate-pulse"></div>
-              <img src={profile.photoURL} alt={profile.displayName} className="w-[80px] h-[80px] rounded-full border-[4px] border-white object-cover bg-white shadow-[0_10px_25px_rgba(0,0,0,0.1)] relative z-10" />
+              <button onClick={() => setShowProfileCard(true)} className="relative z-10 rounded-full outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2 active:scale-95 transition-transform" aria-label="Ver tarjeta de perfil">
+                 <img src={profile.photoURL} alt={profile.displayName} className="w-[80px] h-[80px] rounded-full border-[4px] border-white object-cover bg-white shadow-[0_10px_25px_rgba(0,0,0,0.1)]" />
+              </button>
            </div>
            <div className="text-center mt-3">
               <h1 className="text-xl font-black text-gray-900 tracking-tight leading-none mb-1">{profile.displayName.replace(/^ZonaVip\s+/i, '')}</h1>
@@ -3565,7 +3616,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
         <div className="lg:px-8 lg:pb-10">
           <div className="lg:min-w-0">
         {/* Stories Section */}
-        {((stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }]).length > 0 || canUploadStory) && (
+        {(stories.length > 0 || canUploadStory) && (
             <div className="px-4 mb-4 shrink-0 w-full overflow-x-auto no-scrollbar">
                 <div className="flex gap-3 items-center">
                     {/* Add Story Button */}
@@ -3583,7 +3634,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                     )}
                     
                     {/* List of Stories */}
-                    {((stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }])).map((story, idx, arr) => (
+                    {stories.map((story, idx, arr) => (
                         <button 
                             key={story.id}
                             onClick={() => setSelectedStoryIndex(idx)}
@@ -3712,6 +3763,11 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                           <label className="font-bold text-gray-700 ml-1 text-sm">Caption (Opcional)</label>
                           <input type="text" value={rentCaption} onChange={e => setRentCaption(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="Texto que aparecerá..." />
                        </div>
+
+                       <div className="flex flex-col gap-1">
+                          <label className="font-bold text-gray-700 ml-1 text-sm">Enlace (Opcional)</label>
+                          <input type="url" value={rentLink} onChange={e => setRentLink(e.target.value)} className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl outline-none focus:border-pink-500" placeholder="https://tusitio.com" />
+                       </div>
                    </div>
                    
                    <button 
@@ -3751,7 +3807,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
         <AnimatePresence>
             {selectedStoryIndex !== null && (
                <StoryViewer 
-                  stories={(stories.length > 0 ? stories : [{ id: 'demo-1', brand: 'Nike', brandImg: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1552066344-2464c1135c32?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-2', brand: 'Spotify', brandImg: 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1614680376573-3e4e120f14f5?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }, { id: 'demo-3', brand: 'Netflix', brandImg: 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?auto=format&fit=crop&w=150&h=150&q=80', image: 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?auto=format&fit=crop&q=80', rentedBy: 'demo', createdAt: Date.now() }])}
+                  stories={stories}
                   initialIndex={selectedStoryIndex}
                   onClose={() => setSelectedStoryIndex(null)}
                />
@@ -3811,7 +3867,7 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
                           sellAmount={sellTokenAmount}
                           onBuyAmountChange={setBuyTokenAmount}
                           onSellAmountChange={setSellTokenAmount}
-                          onConfirm={setConfirmMarketAction}
+                          onConfirm={(side, orderType, price) => { setMarketOrderType(orderType); setMarketOrderPrice(price); setConfirmMarketAction(side); }}
                         />
                       </div>
                     </div>
@@ -3849,22 +3905,95 @@ function ProfileView({ profile, slots, stories = [], isOwnerPreview, profileId, 
             {viewingTenantSlot && (
               <React.Fragment key="view-tenant">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setViewingTenantSlot(null)} className="fixed inset-0 bg-black/50 z-[100] backdrop-blur-sm" />
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 m-auto w-[90%] max-w-[400px] md:max-w-[680px] h-fit bg-white rounded-3xl p-6 md:p-8 z-[100] shadow-2xl flex flex-col items-center">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 m-auto w-[90%] max-w-[400px] md:max-w-[600px] h-fit max-h-[90vh] bg-white rounded-3xl z-[100] shadow-2xl flex flex-col overflow-hidden">
                     {viewingTenantSlot.image && (
-                       <div className="w-full aspect-[4/5] bg-gray-900 rounded-2xl overflow-hidden mb-6 relative shadow-inner flex items-center justify-center">
-                          <img src={viewingTenantSlot.image} className="w-full h-full object-contain" alt="Ad" />
+                       <div className="w-full bg-gray-950 overflow-hidden flex-shrink-0">
+                          <img src={viewingTenantSlot.image} className="w-full h-auto block max-h-[55vh] object-contain" alt="Ad" />
                        </div>
                     )}
-                    <div className="flex items-center justify-center gap-3 mb-4 w-full px-2">
-                       {viewingTenantSlot.brandImg && <img src={viewingTenantSlot.brandImg} className="w-12 h-12 rounded-full border border-gray-200 shadow-sm shrink-0" alt="brand" />}
-                       <h3 className="font-black text-2xl text-gray-900 truncate">{viewingTenantSlot.brand}</h3>
+                    <div className="flex flex-col p-5 md:p-6 gap-3 overflow-y-auto">
+                       {(viewingTenantSlot.brand || viewingTenantSlot.brandImg) && (
+                         <div className="flex items-center gap-3">
+                            {viewingTenantSlot.brandImg && <img src={viewingTenantSlot.brandImg} className="w-10 h-10 rounded-full border border-gray-200 shadow-sm shrink-0 object-cover" alt="brand" />}
+                            {viewingTenantSlot.brand && <span className="font-black text-lg text-gray-900 leading-tight">{viewingTenantSlot.brand}</span>}
+                         </div>
+                       )}
+                       {viewingTenantSlot.link && (
+                          <a
+                            href={viewingTenantSlot.link.startsWith('http') ? viewingTenantSlot.link : `https://${viewingTenantSlot.link}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-pink-600 hover:text-pink-700 font-bold text-base underline underline-offset-2 truncate transition-colors"
+                          >
+                            {viewingTenantSlot.link.replace(/^https?:\/\//, '')}
+                          </a>
+                       )}
+                       {viewingTenantSlot.caption && (
+                          <p className="text-gray-600 text-sm leading-relaxed font-medium">
+                             {viewingTenantSlot.caption}
+                          </p>
+                       )}
+                       <button onClick={() => setViewingTenantSlot(null)} className="w-full mt-1 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-2xl transition active:scale-95 text-sm">Cerrar</button>
                     </div>
-                    {viewingTenantSlot.caption && (
-                       <p className="text-gray-600 text-center mb-6 leading-relaxed px-4 font-medium">
-                          {viewingTenantSlot.caption}
-                       </p>
+                </motion.div>
+              </React.Fragment>
+            )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+            {showProfileCard && (
+              <React.Fragment key="profile-card">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowProfileCard(false)} className="fixed inset-0 bg-black/50 z-[100] backdrop-blur-sm" />
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed inset-0 m-auto w-[90%] max-w-[400px] md:max-w-[520px] h-fit max-h-[90vh] bg-white rounded-3xl z-[100] shadow-2xl flex flex-col overflow-hidden">
+                  {/* Header con banner/gradiente */}
+                  <div className="relative w-full h-28 shrink-0 overflow-hidden">
+                    {profile.bannerURL
+                      ? <img src={profile.bannerURL} className="w-full h-full object-cover" alt="" />
+                      : <div className="w-full h-full bg-gradient-to-br from-pink-500 via-purple-600 to-gray-900" />
+                    }
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    {/* Avatar centrado sobre el borde */}
+                    <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 w-[72px] h-[72px] rounded-full border-[3px] border-white shadow-lg overflow-hidden bg-white">
+                      <img src={profile.photoURL} alt={profile.displayName} className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+
+                  {/* Contenido */}
+                  <div className="flex flex-col items-center px-6 pt-12 pb-5 gap-3 overflow-y-auto">
+                    <div className="text-center">
+                      <h2 className="font-black text-xl text-gray-900 leading-tight">{profile.displayName.replace(/^ZonaVip\s+/i, '')}</h2>
+                      <p className="text-gray-400 text-xs font-bold tracking-wide mt-0.5">@{profile.username}</p>
+                    </div>
+
+                    {profile.profileBio && (
+                      <p className="text-gray-600 text-sm text-center leading-relaxed px-2 font-medium">
+                        {profile.profileBio}
+                      </p>
                     )}
-                    <button onClick={() => setViewingTenantSlot(null)} className="w-full py-4 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-2xl transition active:scale-95">Cerrar</button>
+
+                    {profile.profileLinks && profile.profileLinks.length > 0 && (
+                      <div className="w-full flex flex-col gap-2 mt-1">
+                        {profile.profileLinks.filter(l => l.url?.trim()).map((lnk, i) => (
+                          <a
+                            key={i}
+                            href={lnk.url.startsWith('http') ? lnk.url : `https://${lnk.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between w-full px-4 py-3 bg-gray-50 hover:bg-pink-50 border border-gray-200 hover:border-pink-200 rounded-2xl transition-colors group"
+                          >
+                            <span className="font-bold text-gray-900 text-sm truncate group-hover:text-pink-600 transition-colors">{lnk.title || lnk.url.replace(/^https?:\/\//, '')}</span>
+                            <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-pink-500 shrink-0 ml-2 transition-colors" />
+                          </a>
+                        ))}
+                      </div>
+                    )}
+
+                    {(!profile.profileBio && (!profile.profileLinks || profile.profileLinks.length === 0)) && (
+                      <p className="text-gray-400 text-sm text-center py-2">Este perfil aún no tiene presentación.</p>
+                    )}
+
+                    <button onClick={() => setShowProfileCard(false)} className="w-full mt-2 py-3.5 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold rounded-2xl transition active:scale-95 text-sm">Cerrar</button>
+                  </div>
                 </motion.div>
               </React.Fragment>
             )}
